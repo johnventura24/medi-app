@@ -1,0 +1,172 @@
+✅ PRIMARY DASHBOARD VIEWS (GEOGRAPHY → BENEFIT MAPPING)
+1. State-Level Benefits Heatmap
+
+A map or table that shows, per state:
+
+% of plans offering each benefit
+
+Total # of plans
+
+Average copays / deductibles
+
+Standout states where benefits are significantly richer than national average
+
+Use cases:
+→ Identify states to target for: “$0 Dental,” “OTC Allowance,” “Flex Card,” “Transportation,” “Groceries,” etc.
+→ Find high-opportunity states for Medicare Advantage lead gen.
+
+2. City-Level Benefits Report
+
+For each city:
+
+Plans available
+
+Carriers available
+
+Key benefits summary (dental, OTC, flex, vision, hearing, groceries, insulin, etc.)
+
+Max/Min benefit values (e.g., OTC $300/qtr vs. $150/qtr)
+
+Use cases:
+→ Hyperlocal ad angles (e.g., “Charlotte seniors can now get up to $3,000 dental”).
+→ Identify underserved cities where only a few plan types exist.
+
+3. ZIP-Code Targetability Ranking
+
+For each ZIP:
+
+Number of eligible plans
+
+Top benefits offered
+
+Whether the ZIP has strong Flex Card or OTC coverage
+
+ZIP desirability score (you can define this formula)
+
+Use cases:
+→ ZIP-level Facebook targeting.
+→ Build “Benefit Finder” ads customized by ZIP.
+
+✅ BENEFIT-SPECIFIC DASHBOARD VIEWS (BENEFIT → GEOGRAPHY MAPPING)
+4. Benefit Heatmap Across the Country
+
+Pick a benefit (e.g., Dental, OTC, Groceries, Transportation, Flex Card), and see:
+
+Which states have highest average benefit amount
+
+Which states include it in most plans
+
+Trends by carrier and region
+
+Example:
+→ OTC strongest in FL, TX, CA
+→ Groceries strongest in midwest
+→ Transportation varies heavily by state
+
+5. Dental Benefits Breakdown (Major Targeting Angle)
+
+Dashboard shows:
+
+Max dental allowance by state/city
+
+Preventive vs. comprehensive coverage
+
+Copay levels
+
+Zip codes with highest dental caps
+
+Use case:
+→ “Your ZIP qualifies for $4,000 dental benefits this year.”
+
+6. OTC / Grocery / Flex Card Dashboard
+
+These are the most profitable direct-response angles.
+
+For each benefit type:
+
+Max allowance by state
+
+Allowance range by carrier
+
+Cities/ZIPs with highest benefit
+
+Plans offering combo benefits (e.g., OTC + Groceries + Utilities)
+
+Use case:
+→ Create ad angles like “$300/mo grocery allowance now available in your area.”
+
+7. Medical Benefits / Cost-Sharing Dashboard
+
+Useful for ACA-style ads, or value-based messaging:
+
+PCP copays
+
+Specialist copays
+
+Hospital copays
+
+ER copays
+
+Deductibles
+
+MOOP (Maximum Out-of-Pocket)
+
+Use case:
+→ “Save $$ on your annual medical costs with improved MA coverage.”
+
+✅ CARRIER & PLAN PERFORMANCE VIEWS
+8. Carrier Comparison by Market
+
+For each region:
+
+List of carriers
+
+Benefits comparison
+
+Richest plan per carrier
+
+New vs. returning plans
+
+Use case:
+→ Know which carriers dominate certain regions to customize ad messaging.
+
+9. Plan Benefit Comparison (PBP-level)
+
+For any selected plan:
+
+Benefit pack summary
+
+Cost-sharing details
+
+Competitors in same ZIP
+
+Visual comparison chart
+
+Use case:
+→ Understand why certain ZIPs perform better based on competitive plan benefits.
+
+✅ ADVANCED TARGETING VIEWS
+10. Benefit Opportunity Score (AI-derived)
+
+Create a scoring model that ranks ZIPs by opportunity based on:
+
+Number of benefit-rich plans
+
+Local senior population size
+
+Average MA adoption
+
+Benefit density (e.g., dental+OTC+flex overlap)
+
+Use case:
+→ Media buyers only target top 20% opportunity ZIPs.
+
+11. “Best Angles By Region” Recommendation Dashboard
+
+Auto-outputs for each ZIP/city/state:
+
+Best ad angle: Dental, OTC, Groceries, Flex Card, Transportation, Vision, etc.
+
+Why: “This area has 6 plans offering >$250 OTC per month + $3,500 dental.”
+
+This produces plug-and-play ad scripts for your team.
