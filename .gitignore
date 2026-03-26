@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+.env
+.env.local
+.local/
+
+# Large data files (data lives in Supabase, not in the repo)
+ndjson_uploads/
+ndjson-data/
+attached_assets/
+server/data/benefitsData.ts
+*.ndjson
+*.xlsb
