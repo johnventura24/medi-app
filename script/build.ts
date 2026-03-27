@@ -31,6 +31,7 @@ const allowlist = [
   "xlsx",
   "zod",
   "zod-validation-error",
+  "pdfkit",
 ];
 
 async function buildAll() {
