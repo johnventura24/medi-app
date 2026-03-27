@@ -5,6 +5,7 @@ import { PlanComparison } from "@/components/PlanComparison";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PlanData } from "@shared/schema";
 import { FileText, DollarSign, Star, TrendingUp } from "lucide-react";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function PlanView() {
   const { data: planData = [], isLoading } = useQuery<PlanData[]>({
@@ -71,8 +72,9 @@ export default function PlanView() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Side-by-Side Plan Comparison</CardTitle>
+          <ExportButton scope="plans" />
         </CardHeader>
         <CardContent>
           <PlanComparison plans={planData} />

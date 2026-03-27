@@ -6,6 +6,7 @@ import { DataTable, type Column, Badge } from "@/components/DataTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CarrierData } from "@shared/schema";
 import { Building, Users, MapPin, TrendingUp } from "lucide-react";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function CarrierView() {
   const { data: carrierData = [], isLoading } = useQuery<CarrierData[]>({
@@ -122,8 +123,9 @@ export default function CarrierView() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>All Carriers</CardTitle>
+          <ExportButton scope="carriers" />
         </CardHeader>
         <CardContent>
           <DataTable

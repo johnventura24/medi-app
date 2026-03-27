@@ -5,6 +5,7 @@ import { ZipRankingTable } from "@/components/ZipRankingTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ZipData } from "@shared/schema";
 import { MapPin, Target, Star, TrendingUp } from "lucide-react";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function ZipRankings() {
   const { data: zipData = [], isLoading } = useQuery<ZipData[]>({
@@ -71,8 +72,9 @@ export default function ZipRankings() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>ZIP Code Rankings by Opportunity Score</CardTitle>
+          <ExportButton scope="zips" />
         </CardHeader>
         <CardContent>
           <ZipRankingTable

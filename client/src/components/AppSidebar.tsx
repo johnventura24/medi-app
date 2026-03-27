@@ -25,6 +25,9 @@ import {
   FileText,
   Target,
   Zap,
+  LayoutGrid,
+  ArrowLeftRight,
+  ShieldCheck,
   Settings,
   HelpCircle,
 } from "lucide-react";
@@ -52,6 +55,12 @@ const carrierViews = [
 const targetingViews = [
   { title: "Opportunity Score", url: "/opportunity", icon: Target },
   { title: "Best Angles", url: "/recommendations", icon: Zap },
+];
+
+const complianceViews = [
+  { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
+  { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
+  { title: "Data Validation", url: "/validation", icon: ShieldCheck },
 ];
 
 export function AppSidebar() {
@@ -148,6 +157,28 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {targetingViews.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Compliance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {complianceViews.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

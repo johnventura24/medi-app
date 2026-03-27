@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, real, boolean, serial, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, real, boolean, serial, index, uniqueIndex, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -67,6 +67,72 @@ export const plans = pgTable("plans", {
   overallStarRating: real("overall_star_rating"),
   lowPerforming: boolean("low_performing").default(false),
   highPerforming: boolean("high_performing").default(false),
+
+  // Part B Giveback
+  partbGiveback: real("partb_giveback"),
+
+  // Drug Tier Cost Sharing (Part D)
+  drugDeductible: real("drug_deductible"),
+  tier1CopayPreferred: real("tier1_copay_preferred"),
+  tier1CopayStandard: real("tier1_copay_standard"),
+  tier2CopayPreferred: real("tier2_copay_preferred"),
+  tier2CopayStandard: real("tier2_copay_standard"),
+  tier3CopayPreferred: real("tier3_copay_preferred"),
+  tier3CopayStandard: real("tier3_copay_standard"),
+  tier4CoinsurancePreferred: real("tier4_coinsurance_preferred"),
+  tier4CoinsuranceStandard: real("tier4_coinsurance_standard"),
+  tier5CoinsurancePreferred: real("tier5_coinsurance_preferred"),
+  tier5CoinsuranceStandard: real("tier5_coinsurance_standard"),
+  tier6CopayPreferred: real("tier6_copay_preferred"),
+  tier6CopayStandard: real("tier6_copay_standard"),
+
+  // Coverage Gap / Catastrophic
+  coverageGapTier1: text("coverage_gap_tier1"),
+  coverageGapTier2: text("coverage_gap_tier2"),
+  catastrophicCopayGeneric: real("catastrophic_copay_generic"),
+  catastrophicCopayBrand: real("catastrophic_copay_brand"),
+  catastrophicCoinsurance: real("catastrophic_coinsurance"),
+
+  // Supplemental Benefit Dollar Amounts
+  otcAmountPerQuarter: real("otc_amount_per_quarter"),
+  transportationTripsPerYear: integer("transportation_trips_per_year"),
+  transportationAmountPerYear: real("transportation_amount_per_year"),
+  mealBenefitAmount: real("meal_benefit_amount"),
+  mealBenefitMealsPerEvent: integer("meal_benefit_meals_per_event"),
+  mealBenefitEventsPerYear: integer("meal_benefit_events_per_year"),
+  flexCardAmount: real("flex_card_amount"),
+  flexCardFrequency: text("flex_card_frequency"),
+  groceryAllowanceAmount: real("grocery_allowance_amount"),
+  groceryAllowanceFrequency: text("grocery_allowance_frequency"),
+
+  // Additional Medical Copays
+  diagnosticCopay: real("diagnostic_copay"),
+  labCopay: real("lab_copay"),
+  imagingCopayMin: real("imaging_copay_min"),
+  imagingCopayMax: real("imaging_copay_max"),
+  dmeCopayMin: real("dme_copay_min"),
+  dmeCopayMax: real("dme_copay_max"),
+  mentalHealthInpatientCopay: real("mental_health_inpatient_copay"),
+  mentalHealthOutpatientCopay: real("mental_health_outpatient_copay"),
+  snfCopayDays1to20: real("snf_copay_days1to20"),
+  snfCopayDays21to100: real("snf_copay_days21to100"),
+  homeHealthCopay: real("home_health_copay"),
+  ambulanceCopay: real("ambulance_copay"),
+
+  // Dental/Vision/Hearing Detail
+  dentalPreventiveCovered: boolean("dental_preventive_covered"),
+  dentalComprehensiveCovered: boolean("dental_comprehensive_covered"),
+  visionExamCopay: real("vision_exam_copay"),
+  hearingAidAllowance: real("hearing_aid_allowance"),
+
+  // Telehealth/Fitness/In-Home Detail
+  telehealthCopay: real("telehealth_copay"),
+  inHomeSupportHoursPerYear: integer("in_home_support_hours_per_year"),
+  fitnessBenefitName: text("fitness_benefit_name"),
+
+  // Prior Auth & Referral
+  requiresPcpReferral: boolean("requires_pcp_referral"),
+  priorAuthNotes: text("prior_auth_notes"),
 }, (table) => [
   index("idx_plans_state").on(table.state),
   index("idx_plans_county").on(table.county),
@@ -77,6 +143,60 @@ export const plans = pgTable("plans", {
 
 export type Plan = typeof plans.$inferSelect;
 export type InsertPlan = typeof plans.$inferInsert;
+
+// ── Plan History table (year-over-year snapshots) ──
+
+export const planHistory = pgTable("plan_history", {
+  id: serial("id").primaryKey(),
+  contractId: text("contract_id").notNull(),
+  planId: text("plan_id").notNull(),
+  segmentId: text("segment_id").notNull(),
+  fips: text("fips").notNull(),
+  contractYear: integer("contract_year").notNull(),
+  snapshotData: jsonb("snapshot_data").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("uq_plan_history_key").on(table.contractId, table.planId, table.segmentId, table.fips, table.contractYear),
+  index("idx_plan_history_plan").on(table.contractId, table.planId, table.segmentId, table.fips),
+  index("idx_plan_history_year").on(table.contractYear),
+]);
+
+export type PlanHistory = typeof planHistory.$inferSelect;
+export type InsertPlanHistory = typeof planHistory.$inferInsert;
+
+// ── Data Validation Logs table ──
+
+export const dataValidationLogs = pgTable("data_validation_logs", {
+  id: serial("id").primaryKey(),
+  planIdRef: integer("plan_id_ref").references(() => plans.id),
+  ruleName: text("rule_name").notNull(),
+  severity: text("severity").notNull(),
+  message: text("message").notNull(),
+  fieldName: text("field_name"),
+  fieldValue: text("field_value"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_validation_plan").on(table.planIdRef),
+  index("idx_validation_severity").on(table.severity),
+]);
+
+export type DataValidationLog = typeof dataValidationLogs.$inferSelect;
+export type InsertDataValidationLog = typeof dataValidationLogs.$inferInsert;
+
+// ── Export Logs table ──
+
+export const exportLogs = pgTable("export_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id"),
+  exportType: text("export_type").notNull(),
+  exportScope: text("export_scope").notNull(),
+  filters: jsonb("filters"),
+  rowCount: integer("row_count"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ExportLog = typeof exportLogs.$inferSelect;
+export type InsertExportLog = typeof exportLogs.$inferInsert;
 
 // ── TypeScript interfaces for API responses (kept compatible with frontend) ──
 
@@ -162,6 +282,26 @@ export interface PlanData {
   state: string;
   city: string;
   zip: string;
+  // Phase 1 additions (optional to preserve backward compatibility)
+  drugDeductible?: number | null;
+  tier1CopayPreferred?: number | null;
+  tier2CopayPreferred?: number | null;
+  tier3CopayPreferred?: number | null;
+  tier4CoinsurancePreferred?: number | null;
+  tier5CoinsurancePreferred?: number | null;
+  tier6CopayPreferred?: number | null;
+  partbGiveback?: number | null;
+  otcAmountPerQuarter?: number | null;
+  flexCardAmount?: number | null;
+  groceryAllowanceAmount?: number | null;
+  transportationAmountPerYear?: number | null;
+  mealBenefitAmount?: number | null;
+  dentalPreventiveCovered?: boolean | null;
+  dentalComprehensiveCovered?: boolean | null;
+  visionExamCopay?: number | null;
+  hearingAidAllowance?: number | null;
+  telehealthCopay?: number | null;
+  overallStarRating?: number | null;
 }
 
 export interface TargetingRecommendation {
@@ -211,3 +351,176 @@ export const stateAbbreviations: Record<string, string> = {
 export const stateNames: Record<string, string> = Object.fromEntries(
   Object.entries(stateAbbreviations).map(([name, abbr]) => [abbr, name])
 );
+
+// ── Phase 1 API Response Interfaces ──
+
+export interface SearchResult {
+  plans: Array<{ id: number; name: string; carrier: string; state: string; county: string }>;
+  carriers: Array<{ name: string; planCount: number }>;
+  locations: Array<{ type: 'state' | 'city' | 'zip'; name: string; state: string }>;
+}
+
+export interface MatrixRow {
+  field: string;
+  fieldGroup: 'medical' | 'drug' | 'supplemental' | 'quality';
+  values: Array<{ planId: number; value: string | number | boolean | null }>;
+}
+
+export interface MatrixResponse {
+  carrier: string;
+  counties: string[];
+  plans: Array<{ id: number; name: string; county: string }>;
+  rows: MatrixRow[];
+}
+
+export interface PlanChange {
+  field: string;
+  oldValue: string | number | boolean | null;
+  newValue: string | number | boolean | null;
+}
+
+export interface ChangeReportPlan {
+  contractId: string;
+  planId: string;
+  segmentId: string;
+  planName: string;
+  county: string;
+  status: 'new' | 'terminated' | 'changed' | 'unchanged';
+  changes: PlanChange[];
+}
+
+export interface ChangeReportResponse {
+  year1: number;
+  year2: number;
+  newPlans: ChangeReportPlan[];
+  terminatedPlans: ChangeReportPlan[];
+  changedPlans: ChangeReportPlan[];
+  unchangedCount: number;
+}
+
+export interface ValidationSummary {
+  total: number;
+  valid: number;
+  warnings: number;
+  errors: number;
+}
+
+export interface ValidationDetail {
+  id: number;
+  planId: number;
+  planName: string;
+  carrier: string;
+  ruleName: string;
+  severity: string;
+  message: string;
+  fieldName: string | null;
+  fieldValue: string | null;
+}
+
+// ── Phase 1 Typed Interfaces for new tables ──
+
+export interface PlanHistoryRecord {
+  contractId: string;
+  planId: string;
+  segmentId: string;
+  fips: string;
+  contractYear: number;
+  snapshotData: Record<string, unknown>;
+}
+
+export interface ValidationLogEntry {
+  id: number;
+  planIdRef: number | null;
+  ruleName: string;
+  severity: "error" | "warning" | "info";
+  message: string;
+  fieldName: string | null;
+  fieldValue: string | null;
+  createdAt: Date | null;
+}
+
+export interface ExportLogEntry {
+  id: number;
+  userId: string | null;
+  exportType: "csv" | "pdf";
+  exportScope: "plan_detail" | "comparison" | "matrix" | "changes";
+  filters: Record<string, unknown> | null;
+  rowCount: number | null;
+  createdAt: Date | null;
+}
+
+// ── Extended PlanData interface (frontend-facing, includes Phase 1 fields) ──
+
+export interface PlanDataExtended extends PlanData {
+  // Drug Tier Cost Sharing
+  drugDeductible: number | null;
+  tier1CopayPreferred: number | null;
+  tier2CopayPreferred: number | null;
+  tier3CopayPreferred: number | null;
+  tier4CoinsurancePreferred: number | null;
+  tier5CoinsurancePreferred: number | null;
+  tier6CopayPreferred: number | null;
+  // Part B Giveback
+  partbGiveback: number | null;
+  // Supplemental Benefit Amounts
+  otcAmountPerQuarter: number | null;
+  flexCardAmount: number | null;
+  groceryAllowanceAmount: number | null;
+  transportationAmountPerYear: number | null;
+  mealBenefitAmount: number | null;
+  // Dental/Vision/Hearing Detail
+  dentalPreventiveCovered: boolean | null;
+  dentalComprehensiveCovered: boolean | null;
+  visionExamCopay: number | null;
+  hearingAidAllowance: number | null;
+  telehealthCopay: number | null;
+  // Quality
+  overallStarRating: number | null;
+}
+
+// ── CMS Summary of Benefits Field Ordering ──
+
+export const cmsSbFieldOrder = [
+  // Plan Identification
+  'name', 'contractId', 'planId', 'segmentId', 'planType', 'category', 'organizationName',
+  'state', 'county', 'city', 'zipcode', 'fips',
+  // Cost
+  'calculatedMonthlyPremium', 'partbGiveback', 'annualDeductible', 'maximumOopc',
+  // Medical Benefits (CMS SB order)
+  'pcpCopayMin', 'pcpCopayMax', 'specialistCopayMin', 'specialistCopayMax',
+  'emergencyCopay', 'urgentCareCopay', 'inpatientCopay',
+  'outpatientCopayMin', 'outpatientCopayMax',
+  'diagnosticCopay', 'labCopay', 'imagingCopayMin', 'imagingCopayMax',
+  'mentalHealthInpatientCopay', 'mentalHealthOutpatientCopay',
+  'snfCopayDays1to20', 'snfCopayDays21to100',
+  'homeHealthCopay', 'ambulanceCopay',
+  'dmeCopayMin', 'dmeCopayMax',
+  // Drug Benefits
+  'drugDeductible',
+  'tier1CopayPreferred', 'tier1CopayStandard',
+  'tier2CopayPreferred', 'tier2CopayStandard',
+  'tier3CopayPreferred', 'tier3CopayStandard',
+  'tier4CoinsurancePreferred', 'tier4CoinsuranceStandard',
+  'tier5CoinsurancePreferred', 'tier5CoinsuranceStandard',
+  'tier6CopayPreferred', 'tier6CopayStandard',
+  'coverageGapTier1', 'coverageGapTier2',
+  'catastrophicCopayGeneric', 'catastrophicCopayBrand', 'catastrophicCoinsurance',
+  // Supplemental Benefits
+  'dentalPreventiveCovered', 'dentalComprehensiveCovered', 'dentalCoverageLimit',
+  'visionExamCopay', 'visionAllowance',
+  'hearingCopayMin', 'hearingCopayMax', 'hearingAidAllowance',
+  'otcAmountPerQuarter', 'hasOtc',
+  'transportationTripsPerYear', 'transportationAmountPerYear', 'hasTransportation',
+  'mealBenefitAmount', 'hasMealBenefit',
+  'flexCardAmount', 'flexCardFrequency',
+  'groceryAllowanceAmount', 'groceryAllowanceFrequency',
+  'telehealthCopay', 'hasTelehealth',
+  'fitnessBenefitName', 'hasSilverSneakers', 'hasFitnessBenefit',
+  'inHomeSupportHoursPerYear', 'hasInHomeSupport',
+  // Quality
+  'overallStarRating', 'lowPerforming', 'highPerforming',
+  // SNP
+  'snpType', 'enrollmentStatus',
+  // Referral/Auth
+  'requiresPcpReferral', 'priorAuthNotes',
+] as const;

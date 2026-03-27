@@ -10,7 +10,7 @@ export default function DashboardHeaderExample() {
           <DashboardHeader
             title="State-Level Benefits"
             showSearch={true}
-            onExport={() => console.log("Export clicked")}
+            exportScope="states"
           />
         </div>
       </SidebarProvider>

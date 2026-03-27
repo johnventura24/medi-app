@@ -15,6 +15,9 @@ import BenefitDetailView from "@/pages/BenefitDetailView";
 import CarrierView from "@/pages/CarrierView";
 import PlanView from "@/pages/PlanView";
 import Recommendations from "@/pages/Recommendations";
+import MatrixView from "@/pages/MatrixView";
+import ChangeReportView from "@/pages/ChangeReportView";
+import ValidationDashboard from "@/pages/ValidationDashboard";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 
@@ -30,6 +33,9 @@ function Router() {
       <Route path="/plans" component={PlanView} />
       <Route path="/opportunity" component={Recommendations} />
       <Route path="/recommendations" component={Recommendations} />
+      <Route path="/matrix" component={MatrixView} />
+      <Route path="/changes" component={ChangeReportView} />
+      <Route path="/validation" component={ValidationDashboard} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
@@ -52,7 +58,6 @@ function App() {
               <div className="flex flex-col flex-1 min-w-0">
                 <DashboardHeader
                   showSearch={true}
-                  onExport={() => console.log("Export data")}
                 />
                 <main className="flex-1 overflow-auto bg-background">
                   <Router />

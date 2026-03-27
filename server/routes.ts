@@ -4,11 +4,20 @@ import { db } from "./db";
 import { plans, stateNames } from "@shared/schema";
 import { sql, eq, count, avg, max, min, countDistinct, desc, asc } from "drizzle-orm";
 import type { StateData, CityData, ZipData, CarrierData, PlanData, TargetingRecommendation, NationalAverages } from "@shared/schema";
+import exportRoutes from "./routes/exports";
+import searchRoutes from "./routes/search";
+import { registerMatrixRoutes } from "./routes/matrix";
+import { registerChangeRoutes } from "./routes/changes";
+import { registerValidationRoutes } from "./routes/validation";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Mount export and search route modules
+  app.use("/api/export", exportRoutes);
+  app.use("/api/search", searchRoutes);
 
   // ── GET /api/states ──
   app.get("/api/states", async (_req, res) => {
@@ -654,6 +663,11 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch benefit data" });
     }
   });
+
+  // Register carrier-by-county matrix, year-over-year changes, and validation routes
+  registerMatrixRoutes(app);
+  registerChangeRoutes(app);
+  registerValidationRoutes(app);
 
   return httpServer;
 }

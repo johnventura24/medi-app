@@ -5,6 +5,7 @@ import { StatCard } from "@/components/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CityData } from "@shared/schema";
 import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function CityReports() {
   const { data: cityData = [], isLoading } = useQuery<CityData[]>({
@@ -132,8 +133,9 @@ export default function CityReports() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>City-Level Benefits Report</CardTitle>
+          <ExportButton scope="cities" />
         </CardHeader>
         <CardContent>
           <DataTable
