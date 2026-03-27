@@ -14,6 +14,10 @@ import { registerPlanCompareRoutes } from "./routes/plan-compare";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerSavedSearchRoutes } from "./routes/saved-searches";
 import { registerFavoriteRoutes } from "./routes/favorites";
+import { registerClientRoutes } from "./routes/clients";
+import { registerRecommendationRoutes } from "./routes/recommendations";
+import { registerInteractionRoutes } from "./routes/interactions";
+import { registerSOARoutes } from "./routes/soa";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -677,6 +681,12 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerSavedSearchRoutes(app);
   registerFavoriteRoutes(app);
+
+  // Register Phase 3: client management, recommendations, interactions, SOA
+  registerClientRoutes(app);
+  registerRecommendationRoutes(app);
+  registerInteractionRoutes(app);
+  registerSOARoutes(app);
 
   // Register carrier-by-county matrix, year-over-year changes, and validation routes
   registerMatrixRoutes(app);

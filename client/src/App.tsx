@@ -25,6 +25,10 @@ import Settings from "@/pages/Settings";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import ProfilePage from "@/pages/ProfilePage";
+import ClientList from "@/pages/ClientList";
+import ClientIntake from "@/pages/ClientIntake";
+import ClientDetail from "@/pages/ClientDetail";
+import SOADashboard from "@/pages/SOADashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -46,6 +50,10 @@ function Router() {
       <Route path="/compare" component={PlanCompare} />
       <Route path="/settings" component={Settings} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/clients/new" component={ClientIntake} />
+      <Route path="/clients/:id" component={ClientDetail} />
+      <Route path="/clients" component={ClientList} />
+      <Route path="/soa" component={SOADashboard} />
       <Route component={NotFound} />
     </Switch>
   );

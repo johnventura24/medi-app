@@ -35,6 +35,8 @@ import {
   LogIn,
   Search,
   GitCompareArrows,
+  Users,
+  FileCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -66,6 +68,8 @@ const targetingViews = [
 const agentToolsViews = [
   { title: "Plan Finder", url: "/find", icon: Search },
   { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
+  { title: "Clients", url: "/clients", icon: Users },
+  { title: "SOA Dashboard", url: "/soa", icon: FileCheck },
 ];
 
 const complianceViews = [

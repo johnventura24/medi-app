@@ -271,6 +271,128 @@ export const exportLogs = pgTable("export_logs", {
 export type ExportLog = typeof exportLogs.$inferSelect;
 export type InsertExportLog = typeof exportLogs.$inferInsert;
 
+// ── Clients table (agent-managed beneficiary profiles) ──
+
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  agentUserId: integer("agent_user_id").notNull().references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: text("date_of_birth"), // YYYY-MM-DD
+  gender: text("gender"),
+  zipCode: text("zip_code").notNull(),
+  county: text("county"),
+  fips: text("fips"),
+  currentCoverage: text("current_coverage"), // "original_medicare" | "ma" | "medicaid" | "employer"
+  currentPlanName: text("current_plan_name"),
+  maxMonthlyPremium: real("max_monthly_premium"),
+  maxAnnualOop: real("max_annual_oop"),
+  chronicConditions: jsonb("chronic_conditions"), // ["diabetes", "copd", ...]
+  mobilityLevel: text("mobility_level"), // "independent" | "limited" | "homebound"
+  hospitalizedLastYear: boolean("hospitalized_last_year"),
+  medications: jsonb("medications"), // [{ name, dosage, frequency }]
+  preferredDoctors: jsonb("preferred_doctors"), // [{ name, npi }]
+  mustHaveBenefits: jsonb("must_have_benefits"), // ["dental", "otc", "transportation", ...]
+  benefitWeights: jsonb("benefit_weights"), // { lowPremium: 5, lowCopays: 3, ... }
+  notes: text("notes"),
+  status: text("status").notNull().default("intake"), // intake | plans_reviewed | enrolled | archived
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_clients_agent").on(table.agentUserId),
+  index("idx_clients_zip").on(table.zipCode),
+  index("idx_clients_status").on(table.status),
+]);
+
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  agentUserId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Client = typeof clients.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+
+// ── Client Recommendations table ──
+
+export const clientRecommendations = pgTable("client_recommendations", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull().references(() => clients.id),
+  planId: integer("plan_id").notNull().references(() => plans.id),
+  score: real("score").notNull(),
+  scoreBreakdown: jsonb("score_breakdown").notNull(), // { premiumScore, copayScore, dentalScore, drugScore, supplementalScore, starScore }
+  rank: integer("rank").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_recommendations_client").on(table.clientId),
+]);
+
+export const insertClientRecommendationSchema = createInsertSchema(clientRecommendations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ClientRecommendation = typeof clientRecommendations.$inferSelect;
+export type InsertClientRecommendation = z.infer<typeof insertClientRecommendationSchema>;
+
+// ── Interaction Logs table ──
+
+export const interactionLogs = pgTable("interaction_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id),
+  action: text("action").notNull(), // "view_plans" | "compare" | "export" | "discuss" | "recommend"
+  details: jsonb("details"), // { planIds: [...], ... }
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_interactions_client").on(table.clientId),
+  index("idx_interactions_user").on(table.userId),
+  index("idx_interactions_created").on(table.createdAt),
+]);
+
+export const insertInteractionLogSchema = createInsertSchema(interactionLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InteractionLog = typeof interactionLogs.$inferSelect;
+export type InsertInteractionLog = z.infer<typeof insertInteractionLogSchema>;
+
+// ── Scope of Appointments table ──
+
+export const scopeOfAppointments = pgTable("scope_of_appointments", {
+  id: serial("id").primaryKey(),
+  agentUserId: integer("agent_user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").notNull().references(() => clients.id),
+  beneficiaryName: text("beneficiary_name").notNull(),
+  soaDate: timestamp("soa_date").notNull(),
+  planTypesDiscussed: jsonb("plan_types_discussed").notNull(), // ["MA", "MAPD", "PDP"]
+  beneficiaryInitiated: boolean("beneficiary_initiated").notNull().default(false),
+  method: text("method").notNull(), // "in_person" | "telephonic" | "online"
+  signatureName: text("signature_name").notNull(),
+  signatureTimestamp: timestamp("signature_timestamp").notNull(),
+  expiresAt: timestamp("expires_at"),
+  status: text("status").notNull().default("active"), // active | expired | superseded
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_soa_agent").on(table.agentUserId),
+  index("idx_soa_client").on(table.clientId),
+  index("idx_soa_expires").on(table.expiresAt),
+]);
+
+export const insertSOASchema = createInsertSchema(scopeOfAppointments).omit({
+  id: true,
+  agentUserId: true,
+  signatureTimestamp: true,
+  expiresAt: true,
+  status: true,
+  createdAt: true,
+});
+
+export type ScopeOfAppointment = typeof scopeOfAppointments.$inferSelect;
+export type InsertSOA = z.infer<typeof insertSOASchema>;
+
 // ── TypeScript interfaces for API responses (kept compatible with frontend) ──
 
 export interface StateData {
