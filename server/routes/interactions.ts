@@ -3,28 +3,35 @@ import { db } from "../db";
 import { interactionLogs, clients } from "@shared/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { authenticate } from "../middleware/auth.middleware";
+import { z } from "zod";
+
+const createInteractionSchema = z.object({
+  clientId: z.union([z.number(), z.string().transform(Number)]).nullable().optional(),
+  action: z.string().min(1, "action is required"),
+  details: z.any().optional(),
+});
 
 export function registerInteractionRoutes(app: Express) {
   // ── POST /api/interactions ──
   app.post("/api/interactions", authenticate, async (req, res) => {
     try {
-      const { clientId, action, details } = req.body;
-
-      if (!action) {
-        return res.status(400).json({ error: "action is required" });
+      const parsed = createInteractionSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
       }
+
+      const { clientId, action, details } = parsed.data;
 
       // If clientId is provided, verify the client belongs to the current agent
       if (clientId != null) {
-        const parsedClientId = parseInt(clientId);
-        if (isNaN(parsedClientId)) {
+        if (isNaN(clientId)) {
           return res.status(400).json({ error: "Invalid client ID" });
         }
 
         const [client] = await db
           .select()
           .from(clients)
-          .where(and(eq(clients.id, parsedClientId), eq(clients.agentUserId, req.user!.id)))
+          .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user!.id)))
           .limit(1);
 
         if (!client) {
@@ -36,7 +43,7 @@ export function registerInteractionRoutes(app: Express) {
         .insert(interactionLogs)
         .values({
           userId: req.user!.id,
-          clientId: clientId != null ? parseInt(clientId) : null,
+          clientId: clientId ?? null,
           action,
           details: details || null,
         })

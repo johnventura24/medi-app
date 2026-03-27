@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "./db";
 import { plans, stateNames } from "@shared/schema";
 import { sql, eq, count, avg, max, min, countDistinct, desc, asc } from "drizzle-orm";
+import { z } from "zod";
 import type { StateData, CityData, ZipData, CarrierData, PlanData, TargetingRecommendation, NationalAverages } from "@shared/schema";
 import exportRoutes from "./routes/exports";
 import searchRoutes from "./routes/search";
@@ -702,6 +703,16 @@ export async function registerRoutes(
   registerChangeRoutes(app);
   registerValidationRoutes(app);
   registerBenefitGridRoutes(app);
+
+  // ── Health Check ──
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await db.select({ one: sql`1` }).from(plans).limit(1);
+      res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+    } catch (err) {
+      res.status(503).json({ status: 'unhealthy', error: 'Database connection failed' });
+    }
+  });
 
   return httpServer;
 }

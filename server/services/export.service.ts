@@ -197,8 +197,13 @@ export async function generatePDF(
           width: isLandscape ? 700 : 540,
           align: 'center',
         });
+      doc.fontSize(6).font('Helvetica-Oblique')
+        .text(PDF_TPMO_DISCLAIMER, 36, footerY + 10, {
+          width: isLandscape ? 700 : 540,
+          align: 'center',
+        });
       doc.fontSize(7).font('Helvetica')
-        .text(`Page ${i + 1} of ${pageCount}`, 36, footerY + 12, {
+        .text(`Page ${i + 1} of ${pageCount}`, 36, footerY + 20, {
           width: isLandscape ? 700 : 540,
           align: 'right',
         });

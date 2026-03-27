@@ -31,6 +31,7 @@ import ClientDetail from "@/pages/ClientDetail";
 import SOADashboard from "@/pages/SOADashboard";
 import BenefitGridView from "@/pages/BenefitGridView";
 import NotFound from "@/pages/not-found";
+import TPMODisclaimer from "@/components/TPMODisclaimer";
 
 function Router() {
   return (
@@ -75,6 +76,7 @@ function AppLayout() {
           <DashboardHeader showSearch={true} />
           <main className="flex-1 overflow-auto bg-background">
             <Router />
+            <TPMODisclaimer />
           </main>
         </div>
       </div>

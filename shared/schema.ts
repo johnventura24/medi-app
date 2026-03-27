@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -298,6 +299,7 @@ export const clients = pgTable("clients", {
   status: text("status").notNull().default("intake"), // intake | plans_reviewed | enrolled | archived
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 }, (table) => [
   index("idx_clients_agent").on(table.agentUserId),
   index("idx_clients_zip").on(table.zipCode),

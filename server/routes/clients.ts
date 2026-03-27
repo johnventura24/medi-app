@@ -1,8 +1,51 @@
 import type { Express } from "express";
 import { db } from "../db";
 import { clients, clientRecommendations, interactionLogs, scopeOfAppointments, plans, insertClientSchema } from "@shared/schema";
-import { eq, and, or, ilike, sql, desc } from "drizzle-orm";
+import { eq, and, or, ilike, sql, desc, isNull } from "drizzle-orm";
 import { authenticate } from "../middleware/auth.middleware";
+import { encrypt, decrypt, encryptJson, decryptJson } from "../services/encryption.service";
+import { z } from "zod";
+
+const updateClientSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  dateOfBirth: z.string().optional(),
+  gender: z.string().optional(),
+  zipCode: z.string().optional(),
+  county: z.string().optional(),
+  fips: z.string().optional(),
+  currentCoverage: z.string().optional(),
+  currentPlanName: z.string().optional(),
+  maxMonthlyPremium: z.number().optional(),
+  maxAnnualOop: z.number().optional(),
+  chronicConditions: z.any().optional(),
+  mobilityLevel: z.string().optional(),
+  hospitalizedLastYear: z.boolean().optional(),
+  medications: z.any().optional(),
+  preferredDoctors: z.any().optional(),
+  mustHaveBenefits: z.any().optional(),
+  benefitWeights: z.any().optional(),
+  notes: z.string().optional(),
+  status: z.string().optional(),
+});
+
+function encryptClientData(data: any) {
+  const encrypted = { ...data };
+  if (encrypted.chronicConditions) encrypted.chronicConditions = encryptJson(encrypted.chronicConditions);
+  if (encrypted.medications) encrypted.medications = encryptJson(encrypted.medications);
+  if (encrypted.preferredDoctors) encrypted.preferredDoctors = encryptJson(encrypted.preferredDoctors);
+  if (encrypted.dateOfBirth) encrypted.dateOfBirth = encrypt(encrypted.dateOfBirth);
+  return encrypted;
+}
+
+function decryptClientData(data: any) {
+  const decrypted = { ...data };
+  if (decrypted.chronicConditions) decrypted.chronicConditions = decryptJson(decrypted.chronicConditions);
+  if (decrypted.medications) decrypted.medications = decryptJson(decrypted.medications);
+  if (decrypted.preferredDoctors) decrypted.preferredDoctors = decryptJson(decrypted.preferredDoctors);
+  if (decrypted.dateOfBirth) decrypted.dateOfBirth = decrypt(decrypted.dateOfBirth);
+  return decrypted;
+}
 
 export function registerClientRoutes(app: Express) {
   // ── POST /api/clients ──
@@ -13,15 +56,17 @@ export function registerClientRoutes(app: Express) {
         return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
       }
 
+      const encryptedData = encryptClientData(parsed.data);
+
       const [client] = await db
         .insert(clients)
         .values({
-          ...parsed.data,
+          ...encryptedData,
           agentUserId: req.user!.id,
         })
         .returning();
 
-      res.status(201).json(client);
+      res.status(201).json(decryptClientData(client));
     } catch (err: any) {
       console.error("Create client error:", err.message);
       res.status(500).json({ error: "Failed to create client" });
@@ -37,7 +82,7 @@ export function registerClientRoutes(app: Express) {
       const status = req.query.status as string | undefined;
       const search = req.query.search as string | undefined;
 
-      const conditions: any[] = [eq(clients.agentUserId, req.user!.id)];
+      const conditions: any[] = [eq(clients.agentUserId, req.user!.id), isNull(clients.deletedAt)];
 
       if (status) {
         conditions.push(eq(clients.status, status));
@@ -68,7 +113,7 @@ export function registerClientRoutes(app: Express) {
       const total = Number(totalResult[0]?.count || 0);
 
       res.json({
-        clients: rows,
+        clients: rows.map(decryptClientData),
         total,
         page,
         limit,
@@ -87,11 +132,11 @@ export function registerClientRoutes(app: Express) {
         return res.status(400).json({ error: "Invalid client ID" });
       }
 
-      // Fetch client — must be owned by current agent or user is admin
+      // Fetch client — must be owned by current agent or user is admin, exclude soft-deleted
       const [client] = await db
         .select()
         .from(clients)
-        .where(eq(clients.id, clientId))
+        .where(and(eq(clients.id, clientId), isNull(clients.deletedAt)))
         .limit(1);
 
       if (!client) {
@@ -139,7 +184,7 @@ export function registerClientRoutes(app: Express) {
       ]);
 
       res.json({
-        ...client,
+        ...decryptClientData(client),
         recommendations,
         recentInteractions,
         activeSoas,
@@ -158,46 +203,46 @@ export function registerClientRoutes(app: Express) {
         return res.status(400).json({ error: "Invalid client ID" });
       }
 
-      // Verify ownership
+      const parsed = updateClientSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
+      }
+
+      // Verify ownership (exclude soft-deleted)
       const [existing] = await db
         .select()
         .from(clients)
-        .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user!.id)))
+        .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user!.id), isNull(clients.deletedAt)))
         .limit(1);
 
       if (!existing) {
         return res.status(404).json({ error: "Client not found or access denied" });
       }
 
-      // Build update payload — only allow safe fields
-      const allowedFields = [
-        "firstName", "lastName", "dateOfBirth", "gender", "zipCode", "county", "fips",
-        "currentCoverage", "currentPlanName", "maxMonthlyPremium", "maxAnnualOop",
-        "chronicConditions", "mobilityLevel", "hospitalizedLastYear", "medications",
-        "preferredDoctors", "mustHaveBenefits", "benefitWeights", "notes", "status",
-      ] as const;
-
       const updates: Record<string, any> = { updatedAt: new Date() };
-      for (const field of allowedFields) {
-        if (req.body[field] !== undefined) {
-          updates[field] = req.body[field];
+      for (const [key, value] of Object.entries(parsed.data)) {
+        if (value !== undefined) {
+          updates[key] = value;
         }
       }
 
+      // Encrypt sensitive fields before saving
+      const encryptedUpdates = encryptClientData(updates);
+
       const [updated] = await db
         .update(clients)
-        .set(updates)
+        .set(encryptedUpdates)
         .where(eq(clients.id, clientId))
         .returning();
 
-      res.json(updated);
+      res.json(decryptClientData(updated));
     } catch (err: any) {
       console.error("Update client error:", err.message);
       res.status(500).json({ error: "Failed to update client" });
     }
   });
 
-  // ── DELETE /api/clients/:id — Soft delete (archive) ──
+  // ── DELETE /api/clients/:id — Soft delete ──
   app.delete("/api/clients/:id", authenticate, async (req, res) => {
     try {
       const clientId = parseInt(req.params.id);
@@ -205,27 +250,27 @@ export function registerClientRoutes(app: Express) {
         return res.status(400).json({ error: "Invalid client ID" });
       }
 
-      // Verify ownership
+      // Verify ownership (exclude already soft-deleted)
       const [existing] = await db
         .select()
         .from(clients)
-        .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user!.id)))
+        .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user!.id), isNull(clients.deletedAt)))
         .limit(1);
 
       if (!existing) {
         return res.status(404).json({ error: "Client not found or access denied" });
       }
 
-      const [archived] = await db
+      const [deleted] = await db
         .update(clients)
-        .set({ status: "archived", updatedAt: new Date() })
+        .set({ deletedAt: new Date(), status: "archived", updatedAt: new Date() })
         .where(eq(clients.id, clientId))
         .returning();
 
-      res.json(archived);
+      res.json(deleted);
     } catch (err: any) {
       console.error("Delete client error:", err.message);
-      res.status(500).json({ error: "Failed to archive client" });
+      res.status(500).json({ error: "Failed to delete client" });
     }
   });
 }

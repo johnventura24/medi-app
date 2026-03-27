@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { db } from "../db";
 import { users, registerSchema, loginSchema } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { hashPassword, verifyPassword, generateToken } from "../services/auth.service";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -61,7 +61,7 @@ export function registerAuthRoutes(app: Express) {
 
       const { email, password } = parsed.data;
 
-      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const [user] = await db.select().from(users).where(and(eq(users.email, email), isNull(users.deletedAt))).limit(1);
       if (!user) {
         return res.status(401).json({ error: "Invalid email or password" });
       }
@@ -96,7 +96,7 @@ export function registerAuthRoutes(app: Express) {
       const [user] = await db
         .select()
         .from(users)
-        .where(eq(users.id, req.user!.id))
+        .where(and(eq(users.id, req.user!.id), isNull(users.deletedAt)))
         .limit(1);
 
       if (!user) {
