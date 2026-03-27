@@ -1,8 +1,11 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
 import { ZipRankingTable } from "@/components/ZipRankingTable";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ZipScoresBarChart } from "@/components/charts/ZipScoresBarChart";
+import { DesirabilityHistogram } from "@/components/charts/DesirabilityHistogram";
 import type { ZipData } from "@shared/schema";
 import { MapPin, Target, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
@@ -19,6 +22,16 @@ export default function ZipRankings() {
   const bestZip = zipData.length > 0
     ? zipData.reduce((max, z) => z.desirabilityScore > max.desirabilityScore ? z : max, zipData[0])?.zip
     : "—";
+
+  const zipScoreData = useMemo(
+    () => zipData.map((z) => ({ zip: z.zip, city: z.city, state: z.state, score: z.desirabilityScore })),
+    [zipData]
+  );
+
+  const desirabilityScores = useMemo(
+    () => zipData.map((z) => z.desirabilityScore),
+    [zipData]
+  );
 
   if (isLoading) {
     return (
@@ -69,6 +82,23 @@ export default function ZipRankings() {
           value={bestZip}
           icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
         />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {zipScoreData.length > 0 && (
+          <ZipScoresBarChart
+            data={zipScoreData}
+            count={15}
+            title="Top 15 ZIP Codes by Desirability Score"
+          />
+        )}
+        {desirabilityScores.length > 0 && (
+          <DesirabilityHistogram
+            scores={desirabilityScores}
+            title="Desirability Score Distribution"
+          />
+        )}
       </div>
 
       <Card>

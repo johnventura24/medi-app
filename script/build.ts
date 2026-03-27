@@ -32,6 +32,8 @@ const allowlist = [
   "zod",
   "zod-validation-error",
   "pdfkit",
+  "@sentry/node",
+  "csv-parse",
 ];
 
 async function buildAll() {

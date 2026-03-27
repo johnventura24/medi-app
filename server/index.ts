@@ -1,4 +1,9 @@
 import "dotenv/config";
+import { initMonitoring, captureException, Sentry } from "./services/monitoring.service";
+
+// Initialize error monitoring before anything else
+initMonitoring();
+
 import express, { type Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
@@ -108,12 +113,22 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
+  // Sentry error handler - must be before generic error handler
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    captureException(err instanceof Error ? err : new Error(message), {
+      status,
+      path: _req.path,
+      method: _req.method,
+    });
+
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after

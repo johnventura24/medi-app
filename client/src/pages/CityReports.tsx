@@ -1,15 +1,22 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type Column, Badge } from "@/components/DataTable";
 import { StatCard } from "@/components/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CityData } from "@shared/schema";
+import { BenefitComparisonBar } from "@/components/charts/BenefitComparisonBar";
+import { StarRatingDistribution } from "@/components/charts/StarRatingDistribution";
+import type { CityData, PlanData } from "@shared/schema";
 import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 export default function CityReports() {
   const { data: cityData = [], isLoading } = useQuery<CityData[]>({
     queryKey: ["/api/cities"],
+  });
+
+  const { data: planData = [] } = useQuery<PlanData[]>({
+    queryKey: ["/api/plans"],
   });
 
   const totalCities = cityData.length;
@@ -20,6 +27,25 @@ export default function CityReports() {
   const topCity = cityData.length > 0
     ? cityData.reduce((max, c) => c.planCount > max.planCount ? c : max, cityData[0])?.city
     : "—";
+
+  const top10CitiesBenefitData = useMemo(() => {
+    return [...cityData]
+      .sort((a, b) => (b.maxDental + b.maxOtc) - (a.maxDental + a.maxOtc))
+      .slice(0, 10)
+      .map((c) => ({
+        name: c.city,
+        dental: c.maxDental,
+        otc: c.maxOtc,
+        vision: 0,
+        flexCard: c.maxFlexCard,
+      }));
+  }, [cityData]);
+
+  const starRatings = useMemo(() => {
+    return planData
+      .map((p) => p.overallStarRating ?? 0)
+      .filter((r) => r > 0);
+  }, [planData]);
 
   const columns: Column<CityData>[] = [
     { key: "city", header: "City", sortable: true },
@@ -130,6 +156,22 @@ export default function CityReports() {
           value={topCity}
           icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
         />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {top10CitiesBenefitData.length > 0 && (
+          <BenefitComparisonBar
+            data={top10CitiesBenefitData}
+            title="Top 10 Cities by Dental & OTC Benefits"
+          />
+        )}
+        {starRatings.length > 0 && (
+          <StarRatingDistribution
+            ratings={starRatings}
+            title="Plan Star Rating Distribution"
+          />
+        )}
       </div>
 
       <Card>

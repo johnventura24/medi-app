@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StatCard } from "@/components/StatCard";
 import { BenefitCard } from "@/components/BenefitCard";
@@ -6,7 +6,10 @@ import { USMapHeatmap } from "@/components/USMapHeatmap";
 import { FilterPanel, type FilterState, defaultFilters } from "@/components/FilterPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import type { StateData, NationalAverages, BenefitType } from "@shared/schema";
+import { CarrierMarketShareChart } from "@/components/charts/CarrierMarketShareChart";
+import { BenefitComparisonBar } from "@/components/charts/BenefitComparisonBar";
+import { PremiumDistributionChart } from "@/components/charts/PremiumDistributionChart";
+import type { StateData, NationalAverages, BenefitType, CarrierData, PlanData } from "@shared/schema";
 import { Heart, DollarSign, MapPin, TrendingUp, Stethoscope, Pill, CreditCard, ShoppingCart } from "lucide-react";
 
 export default function StateHeatmap() {
@@ -21,7 +24,38 @@ export default function StateHeatmap() {
     queryKey: ["/api/averages"],
   });
 
+  const { data: carrierData = [] } = useQuery<CarrierData[]>({
+    queryKey: ["/api/carriers"],
+  });
+
+  const { data: planData = [] } = useQuery<PlanData[]>({
+    queryKey: ["/api/plans"],
+  });
+
   const isLoading = statesLoading || averagesLoading;
+
+  const carrierShareData = useMemo(
+    () => carrierData.map((c) => ({ name: c.name, plans: c.totalPlans, marketShare: c.marketShare })),
+    [carrierData]
+  );
+
+  const top5StatesBenefitData = useMemo(() => {
+    return [...stateData]
+      .sort((a, b) => b.planCount - a.planCount)
+      .slice(0, 5)
+      .map((s) => ({
+        name: s.abbreviation || s.name,
+        dental: s.avgDentalAllowance,
+        otc: s.avgOtcAllowance,
+        vision: 0,
+        flexCard: s.avgFlexCard,
+      }));
+  }, [stateData]);
+
+  const premiums = useMemo(
+    () => planData.map((p) => p.premium),
+    [planData]
+  );
 
   const totalPlans = stateData.reduce((acc, s) => acc + s.planCount, 0);
   const avgDental = stateData.length > 0 
@@ -157,6 +191,29 @@ export default function StateHeatmap() {
           onViewDetails={() => console.log("View groceries")}
         />
       </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {carrierShareData.length > 0 && (
+          <CarrierMarketShareChart
+            data={carrierShareData}
+            title="National Carrier Market Share"
+          />
+        )}
+        {premiums.length > 0 && (
+          <PremiumDistributionChart
+            premiums={premiums}
+            title="National Premium Distribution"
+          />
+        )}
+      </div>
+
+      {top5StatesBenefitData.length > 0 && (
+        <BenefitComparisonBar
+          data={top5StatesBenefitData}
+          title="Top 5 States - Benefit Comparison (Dental, OTC, Flex Card)"
+        />
+      )}
     </div>
   );
 }

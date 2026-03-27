@@ -30,6 +30,7 @@ import ClientIntake from "@/pages/ClientIntake";
 import ClientDetail from "@/pages/ClientDetail";
 import SOADashboard from "@/pages/SOADashboard";
 import BenefitGridView from "@/pages/BenefitGridView";
+import MarketIntelligence from "@/pages/MarketIntelligence";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/clients" component={ClientList} />
       <Route path="/soa" component={SOADashboard} />
       <Route path="/benefit-grid" component={BenefitGridView} />
+      <Route path="/intelligence" component={MarketIntelligence} />
       <Route component={NotFound} />
     </Switch>
   );

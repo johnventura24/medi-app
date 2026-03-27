@@ -23,6 +23,7 @@ import { registerDrugRoutes } from "./routes/drugs";
 import { registerProviderRoutes } from "./routes/providers";
 import { registerAIRoutes } from "./routes/ai";
 import { registerBenefitGridRoutes } from "./routes/benefit-grid";
+import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -703,6 +704,7 @@ export async function registerRoutes(
   registerChangeRoutes(app);
   registerValidationRoutes(app);
   registerBenefitGridRoutes(app);
+  registerMarketIntelligenceRoutes(app);
 
   // ── Health Check ──
   app.get('/api/health', async (_req, res) => {

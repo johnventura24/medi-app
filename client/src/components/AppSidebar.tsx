@@ -38,6 +38,8 @@ import {
   Users,
   FileCheck,
   FileSpreadsheet,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -64,6 +66,10 @@ const carrierViews = [
 const targetingViews = [
   { title: "Opportunity Score", url: "/opportunity", icon: Target },
   { title: "Best Angles", url: "/recommendations", icon: Zap },
+];
+
+const intelligenceViews = [
+  { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
 ];
 
 const agentToolsViews = [
@@ -175,6 +181,28 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {targetingViews.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Intelligence</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {intelligenceViews.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

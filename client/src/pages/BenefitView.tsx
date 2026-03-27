@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,10 @@ import { StatCard } from "@/components/StatCard";
 import { BenefitCard } from "@/components/BenefitCard";
 import { USMapHeatmap } from "@/components/USMapHeatmap";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { StateData, NationalAverages, BenefitType } from "@shared/schema";
+import { PremiumDistributionChart } from "@/components/charts/PremiumDistributionChart";
+import { CopayRangeChart } from "@/components/charts/CopayRangeChart";
+import { SupplementalBenefitsPie } from "@/components/charts/SupplementalBenefitsPie";
+import type { StateData, NationalAverages, BenefitType, PlanData } from "@shared/schema";
 import { Stethoscope, Pill, CreditCard, ShoppingCart, Car, Eye, Ear, Heart } from "lucide-react";
 
 export default function BenefitView() {
@@ -22,7 +25,50 @@ export default function BenefitView() {
     queryKey: ["/api/averages"],
   });
 
+  const { data: planData = [] } = useQuery<PlanData[]>({
+    queryKey: ["/api/plans"],
+  });
+
   const isLoading = statesLoading || averagesLoading;
+
+  const premiums = useMemo(() => planData.map((p) => p.premium), [planData]);
+
+  const copayRanges = useMemo(() => {
+    if (planData.length === 0) return [];
+    const services = [
+      { service: "PCP", getVal: (p: PlanData) => p.pcpCopay },
+      { service: "Specialist", getVal: (p: PlanData) => p.specialistCopay },
+      { service: "ER", getVal: (p: PlanData) => p.erCopay },
+      { service: "Urgent Care", getVal: (p: PlanData) => p.hospitalCopay },
+      { service: "Inpatient", getVal: (p: PlanData) => p.deductible },
+    ];
+    return services.map(({ service, getVal }) => {
+      const vals = planData.map(getVal).filter((v) => v != null && v >= 0);
+      if (vals.length === 0) return { service, min: 0, max: 0, avg: 0 };
+      return {
+        service,
+        min: Math.min(...vals),
+        max: Math.max(...vals),
+        avg: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length),
+      };
+    });
+  }, [planData]);
+
+  const supplementalCoverage = useMemo(() => {
+    if (planData.length === 0) {
+      return { dental: 0, otc: 0, transportation: 0, meals: 0, fitness: 0, telehealth: 0, inHomeSupport: 0 };
+    }
+    const total = planData.length;
+    return {
+      dental: Math.round((planData.filter((p) => p.dentalAllowance > 0).length / total) * 100),
+      otc: Math.round((planData.filter((p) => p.otcAllowance > 0).length / total) * 100),
+      transportation: Math.round((planData.filter((p) => p.transportation > 0).length / total) * 100),
+      meals: Math.round((planData.filter((p) => (p.mealBenefitAmount ?? 0) > 0).length / total) * 100),
+      fitness: Math.round((planData.filter((p) => p.hearing > 0).length / total) * 100),
+      telehealth: Math.round((planData.filter((p) => (p.telehealthCopay ?? 0) >= 0 && p.telehealthCopay != null).length / total) * 100),
+      inHomeSupport: Math.round((planData.filter((p) => p.vision > 0).length / total) * 100),
+    };
+  }, [planData]);
 
   const benefitCards = nationalAverages ? [
     {
@@ -212,6 +258,29 @@ export default function BenefitView() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {premiums.length > 0 && (
+          <PremiumDistributionChart
+            premiums={premiums}
+            title="Premium Distribution Across Plans"
+          />
+        )}
+        {copayRanges.length > 0 && (
+          <CopayRangeChart
+            data={copayRanges}
+            title="National Copay Ranges by Service Type"
+          />
+        )}
+      </div>
+
+      {planData.length > 0 && (
+        <SupplementalBenefitsPie
+          coverage={supplementalCoverage}
+          title="Supplemental Benefits Coverage (% of Plans)"
+        />
+      )}
     </div>
   );
 }
