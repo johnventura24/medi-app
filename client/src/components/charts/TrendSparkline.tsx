@@ -13,7 +13,11 @@ export function TrendSparkline({
   width = 80,
   height = 24,
 }: Props) {
-  const chartData = data.map((value, index) => ({ index, value }));
+  if (!data || data.length === 0) {
+    return <div style={{ width, height }} />;
+  }
+
+  const chartData = data.map((value, index) => ({ index, value: value ?? 0 }));
 
   return (
     <div style={{ width, height }}>

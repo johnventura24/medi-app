@@ -36,6 +36,19 @@ export function ZipScoresBarChart({
   count = 15,
   title = "Top ZIP Codes by Desirability Score",
 }: Props) {
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const topZips = [...data]
     .sort((a, b) => b.score - a.score)
     .slice(0, count)

@@ -11,7 +11,7 @@ import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 export default function CityReports() {
-  const { data: cityData = [], isLoading } = useQuery<CityData[]>({
+  const { data: cityData = [], isLoading, isError } = useQuery<CityData[]>({
     queryKey: ["/api/cities"],
   });
 
@@ -20,24 +20,24 @@ export default function CityReports() {
   });
 
   const totalCities = cityData.length;
-  const totalPlans = cityData.reduce((acc, c) => acc + c.planCount, 0);
+  const totalPlans = cityData.reduce((acc, c) => acc + (c.planCount ?? 0), 0);
   const avgDental = cityData.length > 0
-    ? Math.round(cityData.reduce((acc, c) => acc + c.maxDental, 0) / cityData.length)
+    ? Math.round(cityData.reduce((acc, c) => acc + (c.maxDental ?? 0), 0) / cityData.length)
     : 0;
   const topCity = cityData.length > 0
-    ? cityData.reduce((max, c) => c.planCount > max.planCount ? c : max, cityData[0])?.city
+    ? cityData.reduce((max, c) => (c.planCount ?? 0) > (max.planCount ?? 0) ? c : max, cityData[0])?.city ?? "—"
     : "—";
 
   const top10CitiesBenefitData = useMemo(() => {
     return [...cityData]
-      .sort((a, b) => (b.maxDental + b.maxOtc) - (a.maxDental + a.maxOtc))
+      .sort((a, b) => ((b.maxDental ?? 0) + (b.maxOtc ?? 0)) - ((a.maxDental ?? 0) + (a.maxOtc ?? 0)))
       .slice(0, 10)
       .map((c) => ({
-        name: c.city,
-        dental: c.maxDental,
-        otc: c.maxOtc,
+        name: c.city ?? "Unknown",
+        dental: c.maxDental ?? 0,
+        otc: c.maxOtc ?? 0,
         vision: 0,
-        flexCard: c.maxFlexCard,
+        flexCard: c.maxFlexCard ?? 0,
       }));
   }, [cityData]);
 
@@ -73,7 +73,7 @@ export default function CityReports() {
       sortable: true,
       render: (value) => (
         <span className="font-mono font-medium text-chart-1">
-          ${(value as number).toLocaleString()}
+          ${((value as number) ?? 0).toLocaleString()}
         </span>
       ),
     },
@@ -82,7 +82,7 @@ export default function CityReports() {
       header: "Max OTC",
       sortable: true,
       render: (value) => (
-        <span className="font-mono">${(value as number)}/mo</span>
+        <span className="font-mono">${(value as number) ?? 0}/mo</span>
       ),
     },
     {
@@ -90,7 +90,7 @@ export default function CityReports() {
       header: "Max Flex",
       sortable: true,
       render: (value) => (
-        <span className="font-mono">${(value as number)}/mo</span>
+        <span className="font-mono">${(value as number) ?? 0}/mo</span>
       ),
     },
     {
@@ -98,12 +98,23 @@ export default function CityReports() {
       header: "PCP Copay",
       sortable: true,
       render: (value) => (
-        <Badge variant={value === 0 ? "default" : "secondary"}>
-          {value === 0 ? "$0" : `$${value}`}
+        <Badge variant={(value ?? 0) === 0 ? "default" : "secondary"}>
+          {(value ?? 0) === 0 ? "$0" : `$${value}`}
         </Badge>
       ),
     },
   ];
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load city data</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

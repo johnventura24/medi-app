@@ -28,10 +28,12 @@ export function DesirabilityHistogram({
   scores,
   title = "Desirability Score Distribution",
 }: Props) {
+  const safeScores = useMemo(() => (scores ?? []).map((s) => s ?? 0), [scores]);
+
   const chartData = useMemo(() => {
-    const total = scores.length || 1;
+    const total = safeScores.length || 1;
     return BUCKETS.map((bucket) => {
-      const count = scores.filter(
+      const count = safeScores.filter(
         (s) => s >= bucket.min && s <= bucket.max
       ).length;
       return {
@@ -41,7 +43,20 @@ export function DesirabilityHistogram({
         color: bucket.color,
       };
     });
-  }, [scores]);
+  }, [safeScores]);
+
+  if (!scores || scores.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

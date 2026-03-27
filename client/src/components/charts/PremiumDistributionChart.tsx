@@ -28,10 +28,12 @@ export function PremiumDistributionChart({
   premiums,
   title = "Premium Distribution",
 }: Props) {
+  const safePremiums = useMemo(() => (premiums ?? []).map((p) => p ?? 0), [premiums]);
+
   const chartData = useMemo(() => {
-    const total = premiums.length || 1;
+    const total = safePremiums.length || 1;
     return BUCKETS.map((bucket) => {
-      const count = premiums.filter(
+      const count = safePremiums.filter(
         (p) => p >= bucket.min && p <= bucket.max
       ).length;
       return {
@@ -41,7 +43,20 @@ export function PremiumDistributionChart({
         color: bucket.color,
       };
     });
-  }, [premiums]);
+  }, [safePremiums]);
+
+  if (!premiums || premiums.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

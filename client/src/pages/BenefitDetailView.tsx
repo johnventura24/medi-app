@@ -60,7 +60,7 @@ export default function BenefitDetailView() {
   const benefitType = params.type || 'dental';
   const [visibleZips, setVisibleZips] = useState(20);
 
-  const { data, isLoading } = useQuery<BenefitDetailData>({
+  const { data, isLoading, isError } = useQuery<BenefitDetailData>({
     queryKey: ["/api/benefits", benefitType],
   });
 
@@ -79,6 +79,22 @@ export default function BenefitDetailView() {
           ))}
         </div>
         <Skeleton className="h-[400px] w-full" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 space-y-6">
+        <Link href="/benefits">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load benefit data</p>
+          <p className="text-sm mt-1">Please try again later or select a different benefit type.</p>
+        </div>
       </div>
     );
   }
@@ -153,6 +169,9 @@ export default function BenefitDetailView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
+              {(!data?.topStates || data.topStates.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-8">No state data available for this benefit type.</p>
+              )}
               {data?.topStates?.map((state, index) => (
                 <div 
                   key={state.id} 
@@ -191,6 +210,9 @@ export default function BenefitDetailView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto">
+              {(!data?.zipsWithBenefit || data.zipsWithBenefit.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-8">No ZIP code data available for this benefit type.</p>
+              )}
               {data?.zipsWithBenefit?.slice(0, visibleZips).map((zip) => (
                 <div 
                   key={zip.zip} 

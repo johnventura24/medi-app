@@ -13,7 +13,7 @@ import { Building, Users, MapPin, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 export default function CarrierView() {
-  const { data: carrierData = [], isLoading } = useQuery<CarrierData[]>({
+  const { data: carrierData = [], isLoading, isError } = useQuery<CarrierData[]>({
     queryKey: ["/api/carriers"],
   });
 
@@ -22,18 +22,18 @@ export default function CarrierView() {
   });
 
   const totalCarriers = carrierData.length;
-  const totalPlans = carrierData.reduce((acc, c) => acc + c.totalPlans, 0);
+  const totalPlans = carrierData.reduce((acc, c) => acc + (c.totalPlans ?? 0), 0);
   const avgMarketShare = carrierData.length > 0
-    ? Math.round((carrierData.reduce((acc, c) => acc + c.marketShare, 0) / carrierData.length) * 10) / 10
+    ? Math.round((carrierData.reduce((acc, c) => acc + (c.marketShare ?? 0), 0) / carrierData.length) * 10) / 10
     : 0;
 
   const carrierShareData = useMemo(
-    () => carrierData.map((c) => ({ name: c.name, plans: c.totalPlans, marketShare: c.marketShare })),
+    () => carrierData.map((c) => ({ name: c.name ?? "Unknown", plans: c.totalPlans ?? 0, marketShare: c.marketShare ?? 0 })),
     [carrierData]
   );
 
   const topCarrier = useMemo(
-    () => carrierData.length > 0 ? [...carrierData].sort((a, b) => b.totalPlans - a.totalPlans)[0] : null,
+    () => carrierData.length > 0 ? [...carrierData].sort((a, b) => (b.totalPlans ?? 0) - (a.totalPlans ?? 0))[0] : null,
     [carrierData]
   );
 
@@ -41,19 +41,19 @@ export default function CarrierView() {
     if (!topCarrier || !nationalAverages) return null;
     return {
       planData: {
-        dental: topCarrier.avgDentalAllowance,
-        otc: topCarrier.avgOtcAllowance,
+        dental: topCarrier.avgDentalAllowance ?? 0,
+        otc: topCarrier.avgOtcAllowance ?? 0,
         vision: 0,
         premium: 0,
         copay: 0,
         starRating: 0,
       },
       areaAverage: {
-        dental: nationalAverages.dentalAllowance,
-        otc: nationalAverages.otcAllowance,
+        dental: nationalAverages.dentalAllowance ?? 0,
+        otc: nationalAverages.otcAllowance ?? 0,
         vision: 0,
         premium: 0,
-        copay: nationalAverages.pcpCopay,
+        copay: nationalAverages.pcpCopay ?? 0,
         starRating: 0,
       },
     };
@@ -61,14 +61,14 @@ export default function CarrierView() {
 
   const top5CarriersBenefitData = useMemo(() => {
     return [...carrierData]
-      .sort((a, b) => b.totalPlans - a.totalPlans)
+      .sort((a, b) => (b.totalPlans ?? 0) - (a.totalPlans ?? 0))
       .slice(0, 5)
       .map((c) => ({
-        name: c.name.length > 18 ? c.name.substring(0, 18) + "..." : c.name,
-        dental: c.avgDentalAllowance,
-        otc: c.avgOtcAllowance,
+        name: (c.name ?? "Unknown").length > 18 ? (c.name ?? "Unknown").substring(0, 18) + "..." : (c.name ?? "Unknown"),
+        dental: c.avgDentalAllowance ?? 0,
+        otc: c.avgOtcAllowance ?? 0,
         vision: 0,
-        flexCard: c.avgFlexCard,
+        flexCard: c.avgFlexCard ?? 0,
       }));
   }, [carrierData]);
 
@@ -115,6 +115,17 @@ export default function CarrierView() {
       render: (value) => <Badge variant="secondary">{value as number}%</Badge>,
     },
   ];
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load carrier data</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

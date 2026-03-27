@@ -16,7 +16,7 @@ export default function StateHeatmap() {
   const [selectedBenefit, setSelectedBenefit] = useState<BenefitType>("Dental");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
-  const { data: stateData = [], isLoading: statesLoading } = useQuery<StateData[]>({
+  const { data: stateData = [], isLoading: statesLoading, isError: statesError } = useQuery<StateData[]>({
     queryKey: ["/api/states"],
   });
 
@@ -35,35 +35,46 @@ export default function StateHeatmap() {
   const isLoading = statesLoading || averagesLoading;
 
   const carrierShareData = useMemo(
-    () => carrierData.map((c) => ({ name: c.name, plans: c.totalPlans, marketShare: c.marketShare })),
+    () => carrierData.map((c) => ({ name: c.name ?? "Unknown", plans: c.totalPlans ?? 0, marketShare: c.marketShare ?? 0 })),
     [carrierData]
   );
 
   const top5StatesBenefitData = useMemo(() => {
     return [...stateData]
-      .sort((a, b) => b.planCount - a.planCount)
+      .sort((a, b) => (b.planCount ?? 0) - (a.planCount ?? 0))
       .slice(0, 5)
       .map((s) => ({
-        name: s.abbreviation || s.name,
-        dental: s.avgDentalAllowance,
-        otc: s.avgOtcAllowance,
+        name: s.abbreviation || s.name || "Unknown",
+        dental: s.avgDentalAllowance ?? 0,
+        otc: s.avgOtcAllowance ?? 0,
         vision: 0,
-        flexCard: s.avgFlexCard,
+        flexCard: s.avgFlexCard ?? 0,
       }));
   }, [stateData]);
 
   const premiums = useMemo(
-    () => planData.map((p) => p.premium),
+    () => planData.map((p) => p.premium ?? 0),
     [planData]
   );
 
-  const totalPlans = stateData.reduce((acc, s) => acc + s.planCount, 0);
-  const avgDental = stateData.length > 0 
-    ? Math.round(stateData.reduce((acc, s) => acc + s.avgDentalAllowance, 0) / stateData.length)
+  const totalPlans = stateData.reduce((acc, s) => acc + (s.planCount ?? 0), 0);
+  const avgDental = stateData.length > 0
+    ? Math.round(stateData.reduce((acc, s) => acc + (s.avgDentalAllowance ?? 0), 0) / stateData.length)
     : 0;
   const avgOtc = stateData.length > 0
-    ? Math.round(stateData.reduce((acc, s) => acc + s.avgOtcAllowance, 0) / stateData.length)
+    ? Math.round(stateData.reduce((acc, s) => acc + (s.avgOtcAllowance ?? 0), 0) / stateData.length)
     : 0;
+
+  if (statesError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load state data</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -108,7 +119,7 @@ export default function StateHeatmap() {
           label="Avg Dental Allowance"
           prefix="$"
           value={avgDental}
-          trend={nationalAverages ? Math.round(((avgDental - nationalAverages.dentalAllowance) / nationalAverages.dentalAllowance) * 100) : 0}
+          trend={nationalAverages && nationalAverages.dentalAllowance ? Math.round(((avgDental - nationalAverages.dentalAllowance) / nationalAverages.dentalAllowance) * 100) : 0}
           trendLabel="vs national"
           icon={<DollarSign className="h-5 w-5 text-muted-foreground" />}
         />
@@ -121,7 +132,7 @@ export default function StateHeatmap() {
           label="Avg OTC Monthly"
           prefix="$"
           value={avgOtc}
-          trend={nationalAverages ? Math.round(((avgOtc - nationalAverages.otcAllowance) / nationalAverages.otcAllowance) * 100) : 0}
+          trend={nationalAverages && nationalAverages.otcAllowance ? Math.round(((avgOtc - nationalAverages.otcAllowance) / nationalAverages.otcAllowance) * 100) : 0}
           trendLabel="vs national"
           icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
         />
@@ -144,7 +155,7 @@ export default function StateHeatmap() {
           value={avgDental}
           prefix="$"
           suffix="/yr"
-          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.dentalCoverage, 0) / stateData.length) : 0}
+          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.dentalCoverage ?? 0), 0) / stateData.length) : 0}
           details={[
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$5,000" },
@@ -157,7 +168,7 @@ export default function StateHeatmap() {
           value={avgOtc}
           prefix="$"
           suffix="/mo"
-          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.otcCoverage, 0) / stateData.length) : 0}
+          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.otcCoverage ?? 0), 0) / stateData.length) : 0}
           details={[
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$400/mo" },
@@ -167,10 +178,10 @@ export default function StateHeatmap() {
         <BenefitCard
           icon={<CreditCard className="h-6 w-6 text-chart-3" />}
           title="Flex Card"
-          value={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.avgFlexCard, 0) / stateData.length) : 0}
+          value={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.avgFlexCard ?? 0), 0) / stateData.length) : 0}
           prefix="$"
           suffix="/mo"
-          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.flexCardCoverage, 0) / stateData.length) : 0}
+          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.flexCardCoverage ?? 0), 0) / stateData.length) : 0}
           details={[
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$680/mo" },
@@ -180,10 +191,10 @@ export default function StateHeatmap() {
         <BenefitCard
           icon={<ShoppingCart className="h-6 w-6 text-chart-4" />}
           title="Groceries"
-          value={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.avgGroceryAllowance, 0) / stateData.length) : 0}
+          value={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.avgGroceryAllowance ?? 0), 0) / stateData.length) : 0}
           prefix="$"
           suffix="/mo"
-          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + s.groceryCoverage, 0) / stateData.length) : 0}
+          coverage={stateData.length > 0 ? Math.round(stateData.reduce((acc, s) => acc + (s.groceryCoverage ?? 0), 0) / stateData.length) : 0}
           details={[
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$300/mo" },

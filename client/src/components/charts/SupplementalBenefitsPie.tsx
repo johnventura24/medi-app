@@ -43,11 +43,26 @@ export function SupplementalBenefitsPie({
     () =>
       BENEFIT_META.map((b) => ({
         name: b.label,
-        value: coverage[b.key as keyof BenefitCoverage],
+        value: coverage?.[b.key as keyof BenefitCoverage] ?? 0,
         color: b.color,
       })),
     [coverage]
   );
+
+  const allZero = chartData.every((d) => d.value === 0);
+
+  if (!coverage || allZero) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

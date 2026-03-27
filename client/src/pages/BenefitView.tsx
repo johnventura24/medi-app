@@ -31,7 +31,7 @@ export default function BenefitView() {
 
   const isLoading = statesLoading || averagesLoading;
 
-  const premiums = useMemo(() => planData.map((p) => p.premium), [planData]);
+  const premiums = useMemo(() => planData.map((p) => p.premium ?? 0), [planData]);
 
   const copayRanges = useMemo(() => {
     if (planData.length === 0) return [];
@@ -193,7 +193,7 @@ export default function BenefitView() {
         <StatCard
           label="Avg Dental Allowance"
           prefix="$"
-          value={nationalAverages?.dentalAllowance.toLocaleString() ?? 0}
+          value={nationalAverages?.dentalAllowance ?? 0}
           trend={5}
           trendLabel="YoY"
         />
@@ -215,7 +215,7 @@ export default function BenefitView() {
         <StatCard
           label="Avg Transportation"
           prefix="$"
-          value={nationalAverages?.transportation.toLocaleString() ?? 0}
+          value={nationalAverages?.transportation ?? 0}
           suffix="/yr"
           trend={8}
           trendLabel="YoY"

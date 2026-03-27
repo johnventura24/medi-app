@@ -11,27 +11,38 @@ import { MapPin, Target, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 export default function ZipRankings() {
-  const { data: zipData = [], isLoading } = useQuery<ZipData[]>({
+  const { data: zipData = [], isLoading, isError } = useQuery<ZipData[]>({
     queryKey: ["/api/zips"],
   });
 
   const avgScore = zipData.length > 0
-    ? Math.round(zipData.reduce((acc, z) => acc + z.desirabilityScore, 0) / zipData.length)
+    ? Math.round(zipData.reduce((acc, z) => acc + (z.desirabilityScore ?? 0), 0) / zipData.length)
     : 0;
-  const topZips = zipData.filter((z) => z.desirabilityScore >= 90).length;
+  const topZips = zipData.filter((z) => (z.desirabilityScore ?? 0) >= 90).length;
   const bestZip = zipData.length > 0
-    ? zipData.reduce((max, z) => z.desirabilityScore > max.desirabilityScore ? z : max, zipData[0])?.zip
+    ? zipData.reduce((max, z) => (z.desirabilityScore ?? 0) > (max.desirabilityScore ?? 0) ? z : max, zipData[0])?.zip ?? "—"
     : "—";
 
   const zipScoreData = useMemo(
-    () => zipData.map((z) => ({ zip: z.zip, city: z.city, state: z.state, score: z.desirabilityScore })),
+    () => zipData.map((z) => ({ zip: z.zip ?? "", city: z.city ?? "", state: z.state ?? "", score: z.desirabilityScore ?? 0 })),
     [zipData]
   );
 
   const desirabilityScores = useMemo(
-    () => zipData.map((z) => z.desirabilityScore),
+    () => zipData.map((z) => z.desirabilityScore ?? 0),
     [zipData]
   );
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load ZIP data</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

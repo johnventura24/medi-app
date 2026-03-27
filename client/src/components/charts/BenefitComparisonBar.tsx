@@ -37,6 +37,28 @@ export function BenefitComparisonBar({
   highlightIndex,
   title = "Benefit Comparison",
 }: Props) {
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Default null/undefined values to 0
+  const safeData = data.map((d) => ({
+    name: d.name ?? "Unknown",
+    dental: d.dental ?? 0,
+    otc: d.otc ?? 0,
+    vision: d.vision ?? 0,
+    flexCard: d.flexCard ?? 0,
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -44,16 +66,16 @@ export function BenefitComparisonBar({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+          <BarChart data={safeData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
             <XAxis
               dataKey="name"
               tick={{ fill: "#6b7280", fontSize: 11 }}
               axisLine={{ stroke: "#d1d5db" }}
               interval={0}
-              angle={data.length > 6 ? -30 : 0}
-              textAnchor={data.length > 6 ? "end" : "middle"}
-              height={data.length > 6 ? 60 : 30}
+              angle={safeData.length > 6 ? -30 : 0}
+              textAnchor={safeData.length > 6 ? "end" : "middle"}
+              height={safeData.length > 6 ? 60 : 30}
             />
             <YAxis
               tick={{ fill: "#6b7280", fontSize: 12 }}
@@ -68,7 +90,7 @@ export function BenefitComparisonBar({
                 fontSize: 12,
               }}
               formatter={(value: number, name: string) => [
-                `$${value.toLocaleString()}`,
+                `$${(value ?? 0).toLocaleString()}`,
                 name,
               ]}
             />
@@ -81,7 +103,7 @@ export function BenefitComparisonBar({
                 radius={[3, 3, 0, 0]}
                 maxBarSize={24}
               >
-                {data.map((_, idx) => (
+                {safeData.map((_, idx) => (
                   <Cell
                     key={idx}
                     fill={

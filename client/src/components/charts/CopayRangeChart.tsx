@@ -35,6 +35,19 @@ export function CopayRangeChart({
   data,
   title = "Copay Ranges by Service",
 }: Props) {
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Transform data for stacked bars: base (invisible) + range (visible)
   const chartData = data.map((d) => ({
     service: d.service,

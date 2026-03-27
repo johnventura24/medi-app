@@ -47,6 +47,9 @@ export function registerAuthRoutes(app: Express) {
       res.status(201).json({ user: sanitizeUser(newUser), token });
     } catch (err: any) {
       console.error("Register error:", err.message);
+      if (err.message?.includes('relation "users" does not exist')) {
+        return res.status(503).json({ error: "User system not yet initialized. Run the database migration to create the users table." });
+      }
       res.status(500).json({ error: "Registration failed" });
     }
   });
@@ -86,6 +89,9 @@ export function registerAuthRoutes(app: Express) {
       res.json({ user: sanitizeUser({ ...user, lastLoginAt: new Date() }), token });
     } catch (err: any) {
       console.error("Login error:", err.message);
+      if (err.message?.includes('relation "users" does not exist')) {
+        return res.status(503).json({ error: "User system not yet initialized. Run the database migration to create the users table." });
+      }
       res.status(500).json({ error: "Login failed" });
     }
   });
@@ -106,6 +112,9 @@ export function registerAuthRoutes(app: Express) {
       res.json({ user: sanitizeUser(user) });
     } catch (err: any) {
       console.error("Get profile error:", err.message);
+      if (err.message?.includes('relation "users" does not exist')) {
+        return res.status(503).json({ error: "User system not yet initialized. Run the database migration to create the users table." });
+      }
       res.status(500).json({ error: "Failed to fetch profile" });
     }
   });

@@ -118,7 +118,7 @@ function buildDentalRows(allPlans: PlanRow[]): any[][] {
     "Comprehensive Benefits",
     "Routine Benefits",
     "Annual Allowance",
-    "Annual Allowance - Comp Routine or both",
+    "Annual Allowance - Comp, Routine or both",
     "Summary of Benefits",
   ];
 
@@ -246,7 +246,7 @@ function buildOtcRows(allPlans: PlanRow[]): any[][] {
     if (!p.hasOtc) continue;
 
     const amount = p.otcAmountPerQuarter || 0;
-    const details = `This plan provides a spending allowance of $${amount} every Quarterly for over-the-counter (OTC) health and wellness products.`;
+    const details = `This benefit provides a spending allowance of $${amount} every quarter on your Benefits Prepaid Card for over-the-counter (OTC) health and wellness products like vitamins, first aid supplies, pain-relievers, and more.\nUnused amounts expire at the end of every quarter.`;
 
     dataRows.push([
       p.county,

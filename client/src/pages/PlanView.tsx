@@ -8,17 +8,28 @@ import { FileText, DollarSign, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 
 export default function PlanView() {
-  const { data: planData = [], isLoading } = useQuery<PlanData[]>({
+  const { data: planData = [], isLoading, isError } = useQuery<PlanData[]>({
     queryKey: ["/api/plans"],
   });
 
-  const zeroPremiumPlans = planData.filter((p) => p.premium === 0).length;
+  const zeroPremiumPlans = planData.filter((p) => (p.premium ?? 0) === 0).length;
   const avgDental = planData.length > 0
-    ? Math.round(planData.reduce((acc, p) => acc + p.dentalAllowance, 0) / planData.length)
+    ? Math.round(planData.reduce((acc, p) => acc + (p.dentalAllowance ?? 0), 0) / planData.length)
     : 0;
   const bestPlan = planData.length > 0
-    ? planData.reduce((max, p) => p.dentalAllowance > max.dentalAllowance ? p : max, planData[0])?.planName
+    ? planData.reduce((max, p) => (p.dentalAllowance ?? 0) > (max.dentalAllowance ?? 0) ? p : max, planData[0])?.planName ?? "—"
     : "—";
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load plan data</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

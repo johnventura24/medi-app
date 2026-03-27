@@ -7,17 +7,28 @@ import type { TargetingRecommendation } from "@shared/schema";
 import { Target, Zap, TrendingUp, MapPin } from "lucide-react";
 
 export default function Recommendations() {
-  const { data: recommendations = [], isLoading } = useQuery<TargetingRecommendation[]>({
+  const { data: recommendations = [], isLoading, isError } = useQuery<TargetingRecommendation[]>({
     queryKey: ["/api/recommendations"],
   });
 
   const avgScore = recommendations.length > 0
-    ? Math.round(recommendations.reduce((acc, r) => acc + r.score, 0) / recommendations.length)
+    ? Math.round(recommendations.reduce((acc, r) => acc + (r.score ?? 0), 0) / recommendations.length)
     : 0;
-  const topPicks = recommendations.filter((r) => r.score >= 90).length;
+  const topPicks = recommendations.filter((r) => (r.score ?? 0) >= 90).length;
   const bestLocation = recommendations.length > 0
-    ? recommendations.reduce((max, r) => r.score > max.score ? r : max, recommendations[0])?.location
+    ? recommendations.reduce((max, r) => (r.score ?? 0) > (max.score ?? 0) ? r : max, recommendations[0])?.location ?? "—"
     : "—";
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">Failed to load recommendations</p>
+          <p className="text-sm mt-1">Please check your connection and try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -78,11 +89,19 @@ export default function Recommendations() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <TargetingRecommendations
-            recommendations={recommendations}
-            onExport={(rec) => console.log("Export:", rec.location)}
-            onShare={(rec) => console.log("Share:", rec.location)}
-          />
+          {recommendations.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">No recommendations available</p>
+              <p className="text-sm mt-1">Try adjusting your filters or check back later.</p>
+            </div>
+          ) : (
+            <TargetingRecommendations
+              recommendations={recommendations}
+              onExport={(rec) => console.log("Export:", rec.location)}
+              onShare={(rec) => console.log("Share:", rec.location)}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

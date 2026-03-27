@@ -72,6 +72,19 @@ export function CarrierMarketShareChart({
 }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const chartData = useMemo(() => {
     const sorted = [...data].sort((a, b) => b.plans - a.plans);
     if (sorted.length <= 8) return sorted;

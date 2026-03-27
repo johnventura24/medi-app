@@ -10,6 +10,7 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { ensureTables } from "./services/migrate";
 
 const app = express();
 const httpServer = createServer(app);
@@ -111,6 +112,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure all required tables exist before registering routes
+  await ensureTables();
+
   await registerRoutes(httpServer, app);
 
   // Sentry error handler - must be before generic error handler

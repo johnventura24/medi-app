@@ -19,9 +19,11 @@ export function StarRatingDistribution({
   ratings,
   title = "Star Rating Distribution",
 }: Props) {
+  const safeRatings = useMemo(() => (ratings ?? []).filter((r) => r != null), [ratings]);
+
   const distribution = useMemo(() => {
     const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    ratings.forEach((r) => {
+    safeRatings.forEach((r) => {
       const rounded = Math.max(1, Math.min(5, Math.round(r)));
       counts[rounded]++;
     });
@@ -29,11 +31,24 @@ export function StarRatingDistribution({
     return [5, 4, 3, 2, 1].map((star) => ({
       star,
       count: counts[star],
-      pct: ratings.length > 0 ? Math.round((counts[star] / ratings.length) * 100) : 0,
+      pct: safeRatings.length > 0 ? Math.round((counts[star] / safeRatings.length) * 100) : 0,
       widthPct: (counts[star] / maxCount) * 100,
       color: RATING_COLORS[star],
     }));
-  }, [ratings]);
+  }, [safeRatings]);
+
+  if (safeRatings.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

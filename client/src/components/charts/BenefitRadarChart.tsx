@@ -41,6 +41,19 @@ export function BenefitRadarChart({
   planLabel = "This Plan",
   averageLabel = "Area Average",
 }: Props) {
+  if (!planData || !areaAverage) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">Benefit Comparison Radar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-12">No data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const chartData = (Object.keys(AXIS_LABELS) as (keyof BenefitScores)[]).map(
     (key) => ({
       axis: AXIS_LABELS[key],
