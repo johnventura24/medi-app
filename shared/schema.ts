@@ -3,21 +3,94 @@ import { pgTable, text, varchar, integer, real, boolean, serial, index, uniqueIn
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// ── Users table (kept from original) ──
+// ── Users table ──
 
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  fullName: text("full_name"),
+  role: text("role").notNull().default("agent"), // admin | compliance | agent | viewer
+  organization: text("organization"),
+  npn: text("npn"), // National Producer Number for agents
+  phone: text("phone"),
+  isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+  email: true,
+  passwordHash: true,
+  fullName: true,
+  role: true,
+  organization: true,
+  npn: true,
+  phone: true,
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  fullName: z.string().optional(),
+  role: z.enum(["admin", "compliance", "agent", "viewer"]).optional(),
+  organization: z.string().optional(),
+  npn: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+// ── Saved Searches table ──
+
+export const savedSearches = pgTable("saved_searches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  criteria: jsonb("criteria").notNull(), // { zip, maxPremium, minDental, ... }
+  resultCount: integer("result_count"),
+  lastRunAt: timestamp("last_run_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_saved_searches_user").on(table.userId),
+]);
+
+export const insertSavedSearchSchema = createInsertSchema(savedSearches).pick({
+  name: true,
+  criteria: true,
+});
+
+export type SavedSearch = typeof savedSearches.$inferSelect;
+export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
+
+// ── Favorite Plans table ──
+
+export const favoritePlans = pgTable("favorite_plans", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  planId: integer("plan_id").notNull().references(() => plans.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("uq_favorite_user_plan").on(table.userId, table.planId),
+  index("idx_favorites_user").on(table.userId),
+]);
+
+export const insertFavoritePlanSchema = createInsertSchema(favoritePlans).pick({
+  planId: true,
+  notes: true,
+});
+
+export type FavoritePlan = typeof favoritePlans.$inferSelect;
+export type InsertFavoritePlan = z.infer<typeof insertFavoritePlanSchema>;
 
 // ── Plans table (one row per plan-per-county from NDJSON) ──
 

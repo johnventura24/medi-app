@@ -9,6 +9,11 @@ import searchRoutes from "./routes/search";
 import { registerMatrixRoutes } from "./routes/matrix";
 import { registerChangeRoutes } from "./routes/changes";
 import { registerValidationRoutes } from "./routes/validation";
+import { registerPlanFinderRoutes } from "./routes/plan-finder";
+import { registerPlanCompareRoutes } from "./routes/plan-compare";
+import { registerAuthRoutes } from "./routes/auth";
+import { registerSavedSearchRoutes } from "./routes/saved-searches";
+import { registerFavoriteRoutes } from "./routes/favorites";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -333,6 +338,10 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch carrier" });
     }
   });
+
+  // Register plan finder and compare routes (before /api/plans/:id to avoid param capture)
+  registerPlanFinderRoutes(app);
+  registerPlanCompareRoutes(app);
 
   // ── GET /api/plans ──
   app.get("/api/plans", async (req, res) => {
@@ -663,6 +672,11 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch benefit data" });
     }
   });
+
+  // Register auth, saved searches, and favorites routes
+  registerAuthRoutes(app);
+  registerSavedSearchRoutes(app);
+  registerFavoriteRoutes(app);
 
   // Register carrier-by-county matrix, year-over-year changes, and validation routes
   registerMatrixRoutes(app);

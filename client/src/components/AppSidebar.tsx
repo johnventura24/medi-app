@@ -11,6 +11,8 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Map,
   Building2,
@@ -30,7 +32,11 @@ import {
   ShieldCheck,
   Settings,
   HelpCircle,
+  LogIn,
+  Search,
+  GitCompareArrows,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const geographyViews = [
   { title: "State Heatmap", url: "/", icon: Map },
@@ -57,6 +63,11 @@ const targetingViews = [
   { title: "Best Angles", url: "/recommendations", icon: Zap },
 ];
 
+const agentToolsViews = [
+  { title: "Plan Finder", url: "/find", icon: Search },
+  { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
+];
+
 const complianceViews = [
   { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
   { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
@@ -65,6 +76,7 @@ const complianceViews = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   const isActive = (url: string) => {
     if (url === "/") return location === "/";
@@ -175,6 +187,28 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>Agent Tools</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {agentToolsViews.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
           <SidebarGroupLabel>Compliance</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -216,6 +250,38 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        <Separator className="my-2" />
+
+        {isAuthenticated && user ? (
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">
+              {user.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2)}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium truncate">{user.fullName}</span>
+              <Badge variant="secondary" className="w-fit text-[10px] capitalize px-1.5 py-0">
+                {user.role}
+              </Badge>
+            </div>
+          </div>
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild data-testid="nav-sign-in">
+                <Link href="/login">
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
