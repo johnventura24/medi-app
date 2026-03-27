@@ -21,6 +21,7 @@ import { registerSOARoutes } from "./routes/soa";
 import { registerDrugRoutes } from "./routes/drugs";
 import { registerProviderRoutes } from "./routes/providers";
 import { registerAIRoutes } from "./routes/ai";
+import { registerBenefitGridRoutes } from "./routes/benefit-grid";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -700,6 +701,7 @@ export async function registerRoutes(
   registerMatrixRoutes(app);
   registerChangeRoutes(app);
   registerValidationRoutes(app);
+  registerBenefitGridRoutes(app);
 
   return httpServer;
 }

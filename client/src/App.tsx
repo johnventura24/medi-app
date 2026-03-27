@@ -29,6 +29,7 @@ import ClientList from "@/pages/ClientList";
 import ClientIntake from "@/pages/ClientIntake";
 import ClientDetail from "@/pages/ClientDetail";
 import SOADashboard from "@/pages/SOADashboard";
+import BenefitGridView from "@/pages/BenefitGridView";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/clients/:id" component={ClientDetail} />
       <Route path="/clients" component={ClientList} />
       <Route path="/soa" component={SOADashboard} />
+      <Route path="/benefit-grid" component={BenefitGridView} />
       <Route component={NotFound} />
     </Switch>
   );

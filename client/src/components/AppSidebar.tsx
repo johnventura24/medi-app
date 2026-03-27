@@ -37,6 +37,7 @@ import {
   GitCompareArrows,
   Users,
   FileCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -76,6 +77,7 @@ const complianceViews = [
   { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
   { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
   { title: "Data Validation", url: "/validation", icon: ShieldCheck },
+  { title: "Benefit Grid", url: "/benefit-grid", icon: FileSpreadsheet },
 ];
 
 export function AppSidebar() {
