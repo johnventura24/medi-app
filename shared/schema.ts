@@ -393,6 +393,120 @@ export const insertSOASchema = createInsertSchema(scopeOfAppointments).omit({
 export type ScopeOfAppointment = typeof scopeOfAppointments.$inferSelect;
 export type InsertSOA = z.infer<typeof insertSOASchema>;
 
+// ── Formulary Drugs table (Part D formulary data) ──
+
+export const formularyDrugs = pgTable("formulary_drugs", {
+  id: serial("id").primaryKey(),
+  contractId: text("contract_id").notNull(),
+  formularyId: text("formulary_id").notNull(),
+  rxcui: text("rxcui").notNull(),
+  drugName: text("drug_name").notNull(),
+  tier: integer("tier").notNull(), // 1-6
+  priorAuthorization: boolean("prior_authorization").default(false),
+  stepTherapy: boolean("step_therapy").default(false),
+  quantityLimit: boolean("quantity_limit").default(false),
+  quantityLimitAmount: real("quantity_limit_amount"),
+  quantityLimitDays: integer("quantity_limit_days"),
+  contractYear: integer("contract_year").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_formulary_contract").on(table.contractId),
+  index("idx_formulary_contract_rxcui").on(table.contractId, table.rxcui),
+  index("idx_formulary_rxcui").on(table.rxcui),
+  index("idx_formulary_drug_name").on(table.drugName),
+]);
+
+export const insertFormularyDrugSchema = createInsertSchema(formularyDrugs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type FormularyDrug = typeof formularyDrugs.$inferSelect;
+export type InsertFormularyDrug = z.infer<typeof insertFormularyDrugSchema>;
+
+// ── Drug Cache table (RxNorm resolution cache) ──
+
+export const drugCache = pgTable("drug_cache", {
+  id: serial("id").primaryKey(),
+  inputName: text("input_name").notNull().unique(),
+  rxcui: text("rxcui"),
+  resolvedName: text("resolved_name"),
+  strength: text("strength"),
+  dosageForm: text("dosage_form"),
+  resolvedAt: timestamp("resolved_at").defaultNow(),
+}, (table) => [
+  index("idx_drug_cache_input").on(table.inputName),
+  index("idx_drug_cache_rxcui").on(table.rxcui),
+]);
+
+export type DrugCacheEntry = typeof drugCache.$inferSelect;
+export type InsertDrugCacheEntry = typeof drugCache.$inferInsert;
+
+// ── Drug Cost Estimates table (cached cost calculations per client) ──
+
+export const drugCostEstimates = pgTable("drug_cost_estimates", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull().references(() => clients.id),
+  planId: integer("plan_id").notNull().references(() => plans.id),
+  medications: jsonb("medications").notNull(), // input medications list
+  estimatedAnnualCost: real("estimated_annual_cost").notNull(),
+  costBreakdown: jsonb("cost_breakdown").notNull(), // per-drug and per-phase breakdown
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+}, (table) => [
+  index("idx_drug_cost_estimates_client").on(table.clientId),
+]);
+
+export const insertDrugCostEstimateSchema = createInsertSchema(drugCostEstimates).omit({
+  id: true,
+  calculatedAt: true,
+});
+
+export type DrugCostEstimate = typeof drugCostEstimates.$inferSelect;
+export type InsertDrugCostEstimate = z.infer<typeof insertDrugCostEstimateSchema>;
+
+// ── Provider Cache table (NPPES resolution cache) ──
+
+export const providerCache = pgTable("provider_cache", {
+  id: serial("id").primaryKey(),
+  npi: text("npi").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  organizationName: text("organization_name"),
+  specialty: text("specialty"),
+  addressLine1: text("address_line1"),
+  city: text("city"),
+  state: text("state"),
+  zip: text("zip"),
+  phone: text("phone"),
+  resolvedAt: timestamp("resolved_at").defaultNow(),
+}, (table) => [
+  index("idx_provider_cache_npi").on(table.npi),
+  index("idx_provider_cache_name").on(table.lastName, table.firstName),
+]);
+
+export type ProviderCacheEntry = typeof providerCache.$inferSelect;
+export type InsertProviderCacheEntry = typeof providerCache.$inferInsert;
+
+// ── AI Explanations table (cached AI-generated plan summaries) ──
+
+export const aiExplanations = pgTable("ai_explanations", {
+  id: serial("id").primaryKey(),
+  planId: integer("plan_id").notNull().references(() => plans.id),
+  clientId: integer("client_id").references(() => clients.id),
+  explanationType: text("explanation_type").notNull(), // "plan_summary" | "comparison"
+  content: text("content").notNull(),
+  model: text("model").notNull(), // e.g., "gpt-4o-mini"
+  tokensUsed: integer("tokens_used"),
+  planDataHash: text("plan_data_hash").notNull(), // SHA256 for cache invalidation
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ai_explanations_plan").on(table.planId),
+  index("idx_ai_explanations_hash").on(table.planDataHash),
+]);
+
+export type AIExplanation = typeof aiExplanations.$inferSelect;
+export type InsertAIExplanation = typeof aiExplanations.$inferInsert;
+
 // ── TypeScript interfaces for API responses (kept compatible with frontend) ──
 
 export interface StateData {

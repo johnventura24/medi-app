@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlanFinder, type FinderCriteria, type FinderPlanResult } from "@/hooks/usePlanFinder";
+import { AIPlanExplainer } from "@/components/ai/AIPlanExplainer";
 
 // ── Slider Filter Component ──
 
@@ -308,7 +309,7 @@ function PlanCard({ plan, isCompareSelected, onToggleCompare }: PlanCardProps) {
 
         {/* Expanded Details */}
         {expanded && (
-          <div className="pt-2 border-t text-sm space-y-2">
+          <div className="pt-2 border-t text-sm space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
               <DetailItem label="Specialist Copay" value={`$${plan.specialistCopay}`} />
               <DetailItem label="Drug Deductible" value={plan.drugDeductible !== null ? `$${plan.drugDeductible}` : "N/A"} />
@@ -334,6 +335,9 @@ function PlanCard({ plan, isCompareSelected, onToggleCompare }: PlanCardProps) {
                 <DetailItem label="Tier 3 Copay (Pref)" value={`$${plan.tier3CopayPreferred}`} />
               )}
             </div>
+
+            {/* AI Plan Explainer */}
+            <AIPlanExplainer planId={plan.id} />
           </div>
         )}
       </CardContent>

@@ -21,6 +21,8 @@ import {
   Plus,
   Clock,
   FileCheck,
+  Pill,
+  Stethoscope,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClient } from "@/hooks/useClients";
@@ -33,6 +35,11 @@ import {
   type SOARecord,
 } from "@/hooks/useRecommendations";
 import { useToast } from "@/hooks/use-toast";
+import { MedicationList, type MedicationEntry } from "@/components/drugs/MedicationList";
+import { DrugCostEstimator } from "@/components/drugs/DrugCostEstimator";
+import { ProviderSearchInput } from "@/components/providers/ProviderSearchInput";
+import { NetworkStatusGrid } from "@/components/providers/NetworkStatusGrid";
+import type { ProviderResult } from "@/hooks/useProviderSearch";
 
 function statusBadgeClass(status: string): string {
   switch (status) {
@@ -659,6 +666,125 @@ function SOATab({ clientId, clientName }: { clientId: string; clientName: string
   );
 }
 
+function DrugCostsTab({ clientId }: { clientId: string }) {
+  const { recommendations } = useRecommendations(clientId);
+  const { data: client } = useClient(clientId);
+  const [medications, setMedications] = useState<MedicationEntry[]>(() => {
+    if (!client?.medications) return [];
+    return client.medications.map((m) => ({
+      name: m.drugName,
+      dosage: m.dosage,
+      frequency: m.frequency,
+    }));
+  });
+
+  const planIds = recommendations.map((r) => r.planId);
+
+  const drugCostMedications = medications
+    .filter((m) => m.rxcui)
+    .map((m) => ({ rxcui: m.rxcui!, name: m.name }));
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Pill className="h-4 w-4" />
+            Medications
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MedicationList
+            medications={medications}
+            onChange={setMedications}
+            showFormularyStatus={planIds.length > 0}
+            planIds={planIds}
+          />
+        </CardContent>
+      </Card>
+
+      <DrugCostEstimator
+        clientId={Number(clientId)}
+        planIds={planIds}
+        medications={drugCostMedications}
+      />
+    </div>
+  );
+}
+
+function ProviderCheckTab({ clientId }: { clientId: string }) {
+  const { recommendations } = useRecommendations(clientId);
+  const { data: client } = useClient(clientId);
+  const [selectedNpi, setSelectedNpi] = useState<string>("");
+
+  const planIds = recommendations.map((r) => r.planId);
+
+  const handleProviderSelect = (provider: ProviderResult) => {
+    setSelectedNpi(provider.npi);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Stethoscope className="h-4 w-4" />
+            Provider Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProviderSearchInput onSelect={handleProviderSelect} />
+        </CardContent>
+      </Card>
+
+      {selectedNpi && planIds.length > 0 && (
+        <NetworkStatusGrid npi={selectedNpi} planIds={planIds} />
+      )}
+
+      {selectedNpi && planIds.length === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            Generate recommendations first to check provider network status across plans.
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Show preferred doctors from client profile */}
+      {client?.preferredDoctors && client.preferredDoctors.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Preferred Doctors</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {client.preferredDoctors.map((doc, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-2 border rounded-lg"
+              >
+                <div>
+                  <p className="text-sm font-medium">{doc.name}</p>
+                  {doc.npi && (
+                    <p className="text-xs text-muted-foreground">NPI: {doc.npi}</p>
+                  )}
+                </div>
+                {doc.npi && planIds.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedNpi(doc.npi!)}
+                  >
+                    Check Network
+                  </Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 function ClientDetailContent() {
   const [, navigate] = useLocation();
   const [matched, params] = useRoute("/clients/:id");
@@ -721,9 +847,11 @@ function ClientDetailContent() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="recommendations" data-value="recommendations">Recommendations</TabsTrigger>
+          <TabsTrigger value="drug-costs">Drug Costs</TabsTrigger>
+          <TabsTrigger value="provider-check">Provider Check</TabsTrigger>
           <TabsTrigger value="interactions">Interactions</TabsTrigger>
           <TabsTrigger value="soa">SOA</TabsTrigger>
         </TabsList>
@@ -734,6 +862,14 @@ function ClientDetailContent() {
 
         <TabsContent value="recommendations" className="mt-4">
           <RecommendationsTab clientId={clientId!} />
+        </TabsContent>
+
+        <TabsContent value="drug-costs" className="mt-4">
+          <DrugCostsTab clientId={clientId!} />
+        </TabsContent>
+
+        <TabsContent value="provider-check" className="mt-4">
+          <ProviderCheckTab clientId={clientId!} />
         </TabsContent>
 
         <TabsContent value="interactions" className="mt-4">

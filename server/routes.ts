@@ -18,6 +18,9 @@ import { registerClientRoutes } from "./routes/clients";
 import { registerRecommendationRoutes } from "./routes/recommendations";
 import { registerInteractionRoutes } from "./routes/interactions";
 import { registerSOARoutes } from "./routes/soa";
+import { registerDrugRoutes } from "./routes/drugs";
+import { registerProviderRoutes } from "./routes/providers";
+import { registerAIRoutes } from "./routes/ai";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -687,6 +690,11 @@ export async function registerRoutes(
   registerRecommendationRoutes(app);
   registerInteractionRoutes(app);
   registerSOARoutes(app);
+
+  // Register Phase 4: drug formulary, cost estimation, provider lookup, and AI explainer
+  registerDrugRoutes(app);
+  registerProviderRoutes(app);
+  registerAIRoutes(app);
 
   // Register carrier-by-county matrix, year-over-year changes, and validation routes
   registerMatrixRoutes(app);

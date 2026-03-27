@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { AIComparisonNarrative } from "@/components/ai/AIComparisonNarrative";
 
 // ── Types ──
 
@@ -449,6 +450,9 @@ export default function PlanCompare() {
           </Badge>
         ))}
       </div>
+
+      {/* AI Comparison Narrative */}
+      <AIComparisonNarrative planIds={plans.map((p) => p.id)} />
 
       {/* Comparison Tabs */}
       <Tabs defaultValue="info">
