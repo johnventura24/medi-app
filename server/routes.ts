@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "./db";
-import { plans, stateNames } from "@shared/schema";
+import { plans, stateNames, formularyDrugs, drugCache, providerCache, providerNetworkCache, aiExplanations } from "@shared/schema";
 import { sql, eq, count, avg, max, min, countDistinct, desc, asc } from "drizzle-orm";
 import { z } from "zod";
 import type { StateData, CityData, ZipData, CarrierData, PlanData, TargetingRecommendation, NationalAverages } from "@shared/schema";
@@ -727,6 +727,167 @@ export async function registerRoutes(
   // Register Consumer & Lead routes
   registerConsumerRoutes(app);
   registerLeadRoutes(app);
+
+  // ── Data Sources ──
+  app.get('/api/data-sources', async (_req, res) => {
+    try {
+      // Helper to safely count rows from a table
+      async function safeCount(query: string): Promise<number | null> {
+        try {
+          const result = await db.execute(sql.raw(query));
+          return Number(result.rows[0]?.count) || 0;
+        } catch {
+          return null;
+        }
+      }
+
+      const [
+        plansCount,
+        zipCountyCount,
+        plansWithStars,
+        plansWithEnrollment,
+        formularyCount,
+        drugCacheCount,
+        providerCacheCount,
+        providerNetworkCacheCount,
+        countyHealthCount,
+        plansWithCahps,
+        providerQualityCount,
+        aiExplanationsCount,
+      ] = await Promise.all([
+        safeCount("SELECT count(*) FROM plans"),
+        safeCount("SELECT count(*) FROM zip_county_map"),
+        safeCount("SELECT count(*) FROM plans WHERE overall_star_rating IS NOT NULL"),
+        safeCount("SELECT count(*) FROM plans WHERE enrollment_status IS NOT NULL"),
+        safeCount("SELECT count(*) FROM formulary_drugs"),
+        safeCount("SELECT count(*) FROM drug_cache"),
+        safeCount("SELECT count(*) FROM provider_cache"),
+        safeCount("SELECT count(*) FROM provider_network_cache"),
+        safeCount("SELECT count(*) FROM county_health_data"),
+        safeCount("SELECT count(*) FROM plans WHERE overall_star_rating IS NOT NULL AND overall_star_rating > 0"),
+        safeCount("SELECT count(*) FROM provider_quality"),
+        safeCount("SELECT count(*) FROM ai_explanations"),
+      ]);
+
+      const sources = [
+        {
+          name: "CMS Plan Benefit Package (PBP)",
+          type: "file_import",
+          description: "Core plan benefits data filed by carriers with CMS",
+          status: "connected",
+          records: plansCount,
+          lastUpdated: "CY2026",
+          provides: ["Plan details", "Premiums", "Copays", "Dental limits", "Vision", "Supplemental benefits", "Drug tiers"],
+          endpoint: null,
+        },
+        {
+          name: "ZIP-County Crosswalk",
+          type: "file_import",
+          description: "Maps US ZIP codes to counties for plan lookup",
+          status: zipCountyCount !== null && zipCountyCount > 0 ? "connected" : "not_configured",
+          records: zipCountyCount,
+          coverage: "33,791 ZIP codes → 3,232 counties",
+          provides: ["ZIP to county resolution", "Consumer flow ZIP support"],
+          endpoint: null,
+        },
+        {
+          name: "CMS Star Ratings",
+          type: "file_import",
+          description: "Quality scores (1-5 stars) per contract from CMS",
+          status: plansWithStars !== null && plansWithStars > 0 ? "connected" : "not_configured",
+          records: plansWithStars,
+          provides: ["Overall star rating", "Part C rating", "Part D rating", "High/low performing flags"],
+          endpoint: null,
+        },
+        {
+          name: "CMS Enrollment Data",
+          type: "file_import",
+          description: "Real member enrollment counts per plan from Jan 2026",
+          status: plansWithEnrollment !== null && plansWithEnrollment > 0 ? "connected" : "not_configured",
+          records: plansWithEnrollment,
+          provides: ["Enrollment counts", "Real market share"],
+          endpoint: null,
+        },
+        {
+          name: "Part D Formulary",
+          type: "file_import",
+          description: "Drug coverage data — which drugs each plan covers and at what tier",
+          status: formularyCount !== null && formularyCount > 0 ? "connected" : "not_configured",
+          records: formularyCount,
+          provides: ["Drug tier assignments", "Prior authorization flags", "Step therapy", "Quantity limits"],
+          endpoint: null,
+        },
+        {
+          name: "RxNorm API (NLM/NIH)",
+          type: "api",
+          description: "Drug name resolution — converts drug names to standard identifiers",
+          status: "connected",
+          records: drugCacheCount,
+          provides: ["Drug name autocomplete", "RXCUI resolution", "Strength/dosage form"],
+          endpoint: "https://rxnav.nlm.nih.gov/REST/",
+        },
+        {
+          name: "NPPES NPI Registry",
+          type: "api",
+          description: "Provider lookup — find doctors by name, NPI, specialty",
+          status: "connected",
+          records: providerCacheCount,
+          provides: ["Provider search", "NPI lookup", "Specialty", "Address"],
+          endpoint: "https://npiregistry.cms.hhs.gov/api/",
+        },
+        {
+          name: "Carrier FHIR Directories",
+          type: "api",
+          description: "In-network provider verification via carrier FHIR R4 APIs",
+          status: "partial",
+          records: providerNetworkCacheCount,
+          provides: ["In-network status for UHC, Humana, Aetna, Cigna, Anthem, BCBS, Centene, Molina"],
+          endpoint: "Per-carrier FHIR R4",
+        },
+        {
+          name: "County Health Rankings",
+          type: "file_import",
+          description: "County-level chronic condition rates — diabetes, obesity, COPD, etc.",
+          status: countyHealthCount !== null && countyHealthCount > 0 ? "connected" : "not_configured",
+          records: countyHealthCount,
+          provides: ["Diabetes rate", "Obesity rate", "Smoking rate", "Physical inactivity", "Uninsured rate"],
+          endpoint: null,
+        },
+        {
+          name: "CAHPS Survey Data",
+          type: "file_import",
+          description: "Member satisfaction scores per plan from CMS surveys",
+          status: plansWithCahps !== null && plansWithCahps > 0 ? "connected" : "not_configured",
+          records: plansWithCahps,
+          provides: ["Overall satisfaction", "Care access rating", "Plan rating"],
+          endpoint: null,
+        },
+        {
+          name: "Provider Quality Data",
+          type: "file_import",
+          description: "Provider-level quality and patient experience scores",
+          status: providerQualityCount !== null && providerQualityCount > 0 ? "connected" : "not_configured",
+          records: providerQualityCount,
+          provides: ["Provider quality scores", "Patient experience", "Specialty data"],
+          endpoint: null,
+        },
+        {
+          name: "OpenAI API",
+          type: "api",
+          description: "AI-powered plan explanations and comparison narratives",
+          status: process.env.OPENAI_API_KEY ? "connected" : "not_configured",
+          records: aiExplanationsCount,
+          provides: ["Plan summaries", "Comparison narratives", "Client-personalized explanations"],
+          endpoint: "https://api.openai.com/v1/",
+        },
+      ];
+
+      res.json({ sources });
+    } catch (err: any) {
+      console.error("Error fetching data sources:", err.message);
+      res.status(500).json({ error: "Failed to fetch data sources" });
+    }
+  });
 
   // ── Health Check ──
   app.get('/api/health', async (_req, res) => {

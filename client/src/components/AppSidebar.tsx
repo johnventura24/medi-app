@@ -46,6 +46,7 @@ import {
   Activity,
   HeartPulse,
   Inbox,
+  Database,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -305,6 +306,14 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/data-sources")} data-testid="nav-data-sources">
+              <Link href="/data-sources">
+                <Database className="h-4 w-4" />
+                <span>Data Sources</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild data-testid="nav-settings">
               <Link href="/settings">
