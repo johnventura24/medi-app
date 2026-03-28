@@ -13,6 +13,7 @@ import { createServer } from "http";
 import { ensureTables } from "./services/migrate";
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (DigitalOcean load balancer)
 const httpServer = createServer(app);
 
 declare module "http" {

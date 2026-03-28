@@ -5,7 +5,7 @@ import { z } from "zod";
 
 // ── Users table ──
 
-export const users = pgTable("users", {
+export const users = pgTable("app_users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
