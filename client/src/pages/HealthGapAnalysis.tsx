@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import {
   Cell,
 } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN",
@@ -71,6 +72,66 @@ export default function HealthGapAnalysisPage() {
   const { data: analyses, isLoading } = useQuery<HealthGapAnalysis[]>({
     queryKey: ["/api/health-gaps" + stateParam],
   });
+
+  const gapInsights = useMemo((): InsightItem[] => {
+    if (!analyses || analyses.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Most critical county
+    const sorted = [...analyses].sort((a, b) => b.overallGapScore - a.overallGapScore);
+    const worst = sorted[0];
+    if (worst.overallGapScore >= 50) {
+      // Find the biggest specific gap
+      const critGaps = worst.gaps.filter((g) => g.gapSeverity === "critical");
+      const biggestGap = critGaps[0];
+      if (biggestGap) {
+        items.push({
+          icon: "alert",
+          text: `Critical gap: ${worst.county}, ${worst.state} has ${Math.round(biggestGap.estimatedRate * 100)}% ${biggestGap.conditionLabel.toLowerCase()} but only ${biggestGap.coverageRate}% of plans offer ${biggestGap.benefitLabel.toLowerCase()}`,
+          priority: "high",
+        });
+      }
+    }
+
+    // Quick win across all counties
+    const benefitGapCounts: Record<string, number> = {};
+    analyses.forEach((a) => {
+      a.gaps.filter((g) => g.gapSeverity === "critical").forEach((g) => {
+        benefitGapCounts[g.benefitLabel] = (benefitGapCounts[g.benefitLabel] || 0) + 1;
+      });
+    });
+    const topBenefitGap = Object.entries(benefitGapCounts).sort((a, b) => b[1] - a[1])[0];
+    if (topBenefitGap) {
+      items.push({
+        icon: "target",
+        text: `Quick win: Adding ${topBenefitGap[0].toLowerCase()} coverage would address critical gaps in ${topBenefitGap[1]} counties — highest-impact benefit to add`,
+        priority: "high",
+      });
+    }
+
+    // Revenue opportunity
+    const criticalCounties = analyses.filter((a) => a.overallGapScore >= 70);
+    if (criticalCounties.length > 0) {
+      const totalPlans = criticalCounties.reduce((s, a) => s + a.planCount, 0);
+      items.push({
+        icon: "opportunity",
+        text: `Revenue opportunity: ${criticalCounties.length} counties with critical gaps covering ${totalPlans} plans — carriers closing these gaps gain competitive advantage`,
+        priority: "medium",
+      });
+    }
+
+    // Well-covered counties
+    const lowGap = analyses.filter((a) => a.overallGapScore < 40);
+    if (lowGap.length > 0) {
+      items.push({
+        icon: "trend",
+        text: `${lowGap.length} counties have low gap scores (<40) — well-served markets where differentiation requires niche benefits`,
+        priority: "low",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [analyses]);
 
   const handleCountyClick = (analysis: HealthGapAnalysis) => {
     setSelectedCounty(analysis);
@@ -149,6 +210,11 @@ export default function HealthGapAnalysisPage() {
         </div>
       ) : (
         <>
+          {/* Actionable Insights */}
+          {gapInsights.length > 0 && (
+            <InsightBox title="Health Gap Action Items" insights={gapInsights} />
+          )}
+
           {/* Summary Stats */}
           {analyses && analyses.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

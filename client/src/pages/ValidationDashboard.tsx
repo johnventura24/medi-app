@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 interface ValidationSummary {
   totalPlans: number;
@@ -91,6 +92,55 @@ export default function ValidationDashboard() {
   const issues = detailsData?.issues ?? [];
   const totalIssues = detailsData?.total ?? 0;
   const summaryData = summary ?? { totalPlans: 0, validPlans: 0, warnings: 0, errors: 0 };
+
+  const validationInsights = useMemo((): InsightItem[] => {
+    if (!summary) return [];
+    const items: InsightItem[] = [];
+
+    // Errors requiring attention
+    if (summaryData.errors > 0) {
+      items.push({
+        icon: "alert",
+        text: `Found ${summaryData.errors} errors requiring immediate attention — fix before CMS submission deadline`,
+        priority: "high",
+      });
+    }
+
+    // Top issue
+    if (issues.length > 0) {
+      const ruleCounts: Record<string, number> = {};
+      issues.forEach((i) => { ruleCounts[i.ruleName] = (ruleCounts[i.ruleName] || 0) + 1; });
+      const topRule = Object.entries(ruleCounts).sort((a, b) => b[1] - a[1])[0];
+      if (topRule) {
+        items.push({
+          icon: "target",
+          text: `Top issue: "${topRule[0]}" affects ${topRule[1]} plans — prioritize fixing this rule first for maximum impact`,
+          priority: "high",
+        });
+      }
+    }
+
+    // Data quality score
+    const qualityPct = summaryData.totalPlans > 0
+      ? Math.round((summaryData.validPlans / summaryData.totalPlans) * 100)
+      : 0;
+    items.push({
+      icon: qualityPct >= 90 ? "trend" : "warning",
+      text: `Data quality score: ${qualityPct}% of plans pass all checks${qualityPct < 90 ? " — target 90%+ before filing" : " — strong compliance posture"}`,
+      priority: qualityPct < 80 ? "high" : qualityPct < 90 ? "medium" : "low",
+    });
+
+    // Warnings
+    if (summaryData.warnings > 0) {
+      items.push({
+        icon: "warning",
+        text: `${summaryData.warnings} warnings found — review for potential compliance risks before AEP`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [summary, summaryData, issues]);
 
   const columns: Column<Record<string, unknown>>[] = [
     {
@@ -197,6 +247,10 @@ export default function ValidationDashboard() {
           className="border-red-200 dark:border-red-900"
         />
       </div>
+
+      {validationInsights.length > 0 && (
+        <InsightBox title="Validation Action Items" insights={validationInsights} />
+      )}
 
       <Card>
         <CardContent className="p-4">

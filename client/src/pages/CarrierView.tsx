@@ -12,6 +12,7 @@ import type { CarrierData, NationalAverages } from "@shared/schema";
 import { Building, Users, MapPin, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 export default function CarrierView() {
   const { data: carrierData = [], isLoading, isError } = useQuery<CarrierData[]>({
@@ -71,6 +72,60 @@ export default function CarrierView() {
         vision: 0,
         flexCard: c.avgFlexCard ?? 0,
       }));
+  }, [carrierData]);
+
+  const carrierInsights = useMemo((): InsightItem[] => {
+    if (carrierData.length === 0) return [];
+    const items: InsightItem[] = [];
+    const sorted = [...carrierData].sort((a, b) => (b.marketShare ?? 0) - (a.marketShare ?? 0));
+
+    // Top 3 carriers market concentration
+    const top3Share = sorted.slice(0, 3).reduce((s, c) => s + (c.marketShare ?? 0), 0);
+    const top3Names = sorted.slice(0, 3).map((c) => c.name).join(", ");
+    items.push({
+      icon: "trend",
+      text: `Top 3 carriers (${top3Names}) control ${Math.round(top3Share)}% of the national market`,
+      priority: top3Share > 50 ? "high" : "medium",
+    });
+
+    // Best dental vs lowest OTC
+    const byDental = [...carrierData].sort((a, b) => (b.avgDentalAllowance ?? 0) - (a.avgDentalAllowance ?? 0));
+    const bestDentalCarrier = byDental[0];
+    if (bestDentalCarrier) {
+      items.push({
+        icon: "opportunity",
+        text: `${bestDentalCarrier.name} has the best avg dental ($${bestDentalCarrier.avgDentalAllowance?.toLocaleString()}) — target for dental-focused clients`,
+        priority: "medium",
+      });
+    }
+
+    // Smaller carriers hidden value
+    const smallCarriers = carrierData.filter((c) => (c.marketShare ?? 0) < 5);
+    if (smallCarriers.length > 0) {
+      const smallAvgDental = Math.round(smallCarriers.reduce((s, c) => s + (c.avgDentalAllowance ?? 0), 0) / smallCarriers.length);
+      const bigCarriers = carrierData.filter((c) => (c.marketShare ?? 0) >= 5);
+      const bigAvgDental = bigCarriers.length > 0 ? Math.round(bigCarriers.reduce((s, c) => s + (c.avgDentalAllowance ?? 0), 0) / bigCarriers.length) : 0;
+      if (smallAvgDental > bigAvgDental) {
+        const pctHigher = bigAvgDental > 0 ? Math.round(((smallAvgDental - bigAvgDental) / bigAvgDental) * 100) : 0;
+        items.push({
+          icon: "opportunity",
+          text: `Smaller carriers (<5% share) average ${pctHigher}% higher dental ($${smallAvgDental} vs $${bigAvgDental}) — hidden value for agents`,
+          priority: "medium",
+        });
+      }
+    }
+
+    // OTC leader
+    const byOtc = [...carrierData].sort((a, b) => (b.avgOtcAllowance ?? 0) - (a.avgOtcAllowance ?? 0));
+    if (byOtc[0]) {
+      items.push({
+        icon: "target",
+        text: `${byOtc[0].name} leads in avg OTC allowance ($${byOtc[0].avgOtcAllowance}/mo) — recommend for OTC-sensitive beneficiaries`,
+        priority: "low",
+      });
+    }
+
+    return items.slice(0, 5);
   }, [carrierData]);
 
   const columns: Column<CarrierData>[] = [
@@ -186,6 +241,10 @@ export default function CarrierView() {
           icon={<MapPin className="h-5 w-5 text-muted-foreground" />}
         />
       </div>
+
+      {carrierInsights.length > 0 && (
+        <InsightBox title="Carrier Intelligence" insights={carrierInsights} />
+      )}
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Top Carriers Comparison</h2>

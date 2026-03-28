@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Pie Chart Colors ──
 
@@ -247,6 +248,57 @@ export default function Archetypes() {
     }
   };
 
+  const archetypeInsights = useMemo((): InsightItem[] => {
+    if (!data?.archetypes || !data?.countyProfile) return [];
+    const items: InsightItem[] = [];
+    const profile = data.countyProfile;
+    const archetypes = [...data.archetypes].sort((a: any, b: any) => b.matchCount - a.matchCount);
+    const totalPlans = profile.totalPlans || 1;
+
+    // Dominant archetype
+    if (archetypes.length > 0 && archetypes[0].matchCount > 0) {
+      const dominant = archetypes[0];
+      const pct = Math.round((dominant.matchCount / totalPlans) * 100);
+      items.push({
+        icon: "trend",
+        text: `This area skews "${dominant.archetype.name}" — ${pct}% of plans match this profile. Tailor your pitch accordingly.`,
+        priority: "high",
+      });
+    }
+
+    // Underserved archetype
+    const underserved = archetypes.filter((a: any) => a.matchCount > 0 && a.matchCount <= 3);
+    if (underserved.length > 0) {
+      const weakest = underserved[underserved.length - 1];
+      items.push({
+        icon: "alert",
+        text: `Underserved archetype: "${weakest.archetype.name}" — only ${weakest.matchCount} plans match. Agents should focus here for less competition.`,
+        priority: "high",
+      });
+    }
+
+    // Zero-match archetypes
+    const noMatch = archetypes.filter((a: any) => a.matchCount === 0);
+    if (noMatch.length > 0) {
+      items.push({
+        icon: "opportunity",
+        text: `${noMatch.length} archetype${noMatch.length > 1 ? "s have" : " has"} zero matching plans — carrier opportunity to fill the gap`,
+        priority: "medium",
+      });
+    }
+
+    // Marketing recommendation
+    if (profile.recommendation) {
+      items.push({
+        icon: "target",
+        text: `Marketing recommendation: ${profile.recommendation}`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [data]);
+
   const profile = data?.countyProfile;
   const pieData = profile?.distribution
     ?.filter((d: any) => d.pct > 0)
@@ -374,6 +426,11 @@ export default function Archetypes() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Insights */}
+      {archetypeInsights.length > 0 && (
+        <InsightBox title="Archetype Action Items" insights={archetypeInsights} />
       )}
 
       {/* Results */}

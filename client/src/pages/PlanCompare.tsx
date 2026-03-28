@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AIComparisonNarrative } from "@/components/ai/AIComparisonNarrative";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Types ──
 
@@ -257,6 +258,75 @@ export default function PlanCompare() {
     return map;
   }, [plans]);
 
+  const compareInsights = useMemo((): InsightItem[] => {
+    if (plans.length < 2) return [];
+    const items: InsightItem[] = [];
+
+    // Count wins per plan across comparable fields
+    const winsCount: Record<number, number> = {};
+    let comparableFields = 0;
+    plans.forEach((p) => (winsCount[p.id] = 0));
+    for (const field of fields) {
+      if (!field.bestIs || field.group === "info") continue;
+      const numVals = plans
+        .map((p) => ({ id: p.id, val: field.getValue(p) }))
+        .filter((x) => x.val !== null && x.val !== undefined && typeof x.val === "number");
+      if (numVals.length < 2) continue;
+      comparableFields++;
+      const sorted = [...numVals].sort((a, b) => (a.val as number) - (b.val as number));
+      const winnerId = field.bestIs === "low" ? sorted[0].id : sorted[sorted.length - 1].id;
+      winsCount[winnerId] = (winsCount[winnerId] || 0) + 1;
+    }
+
+    const winEntries = plans.map((p) => ({ plan: p, wins: winsCount[p.id] ?? 0 })).sort((a, b) => b.wins - a.wins);
+    if (winEntries.length > 0 && comparableFields > 0) {
+      items.push({
+        icon: "target",
+        text: `${winEntries[0].plan.name} wins on ${winEntries[0].wins} of ${comparableFields} comparable categories`,
+        priority: "high",
+      });
+    }
+
+    // Cost comparison
+    const byAnnualCost = [...plans].sort((a, b) => a.premium * 12 + a.moop - (b.premium * 12 + b.moop));
+    if (byAnnualCost.length >= 2) {
+      const cheapest = byAnnualCost[0];
+      const costliest = byAnnualCost[byAnnualCost.length - 1];
+      const diff = (costliest.premium - cheapest.premium) * 12;
+      if (diff > 0) {
+        items.push({
+          icon: "opportunity",
+          text: `If cost is your priority, ${cheapest.name} saves $${diff.toLocaleString()}/year in premiums vs ${costliest.name}`,
+          priority: "medium",
+        });
+      }
+    }
+
+    // Benefits comparison
+    const byBenefits = [...plans].sort((a, b) => (b.dental + b.otcPerQuarter * 4) - (a.dental + a.otcPerQuarter * 4));
+    if (byBenefits.length >= 2 && byBenefits[0].id !== byAnnualCost[0].id) {
+      const bestBen = byBenefits[0];
+      const totalBen = bestBen.dental + bestBen.otcPerQuarter * 4;
+      items.push({
+        icon: "opportunity",
+        text: `If benefits matter most, ${bestBen.name} offers $${totalBen.toLocaleString()} in dental + annual OTC combined`,
+        priority: "medium",
+      });
+    }
+
+    // Low star rating warning
+    const lowStars = plans.filter((p) => p.starRating !== null && p.starRating < 3);
+    lowStars.forEach((p) => {
+      items.push({
+        icon: "warning",
+        text: `Warning: ${p.name} has a ${p.starRating}-star rating — below average quality`,
+        priority: "high",
+      });
+    });
+
+    return items.slice(0, 5);
+  }, [plans]);
+
   const rowIsDifferent = (key: string) => {
     const vals = rowValues[key];
     if (!vals || vals.length <= 1) return false;
@@ -449,6 +519,11 @@ export default function PlanCompare() {
           </Badge>
         ))}
       </div>
+
+      {/* Actionable Insights */}
+      {compareInsights.length > 0 && (
+        <InsightBox title="Comparison Insights" insights={compareInsights} />
+      )}
 
       {/* AI Comparison Narrative */}
       <AIComparisonNarrative planIds={plans.map((p) => p.id)} />

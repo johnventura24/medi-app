@@ -10,6 +10,7 @@ import type { ZipData } from "@shared/schema";
 import { MapPin, Target, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 export default function ZipRankings() {
   const { data: zipData = [], isLoading, isError } = useQuery<ZipData[]>({
@@ -23,6 +24,50 @@ export default function ZipRankings() {
   const bestZip = zipData.length > 0
     ? zipData.reduce((max, z) => (z.desirabilityScore ?? 0) > (max.desirabilityScore ?? 0) ? z : max, zipData[0])?.zip ?? "—"
     : "—";
+
+  const zipInsights = useMemo((): InsightItem[] => {
+    if (zipData.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Best ZIP
+    const best = zipData.reduce((max, z) => (z.desirabilityScore ?? 0) > (max.desirabilityScore ?? 0) ? z : max, zipData[0]);
+    items.push({
+      icon: "target",
+      text: `Top ZIP ${best.zip} (${best.city}, ${best.state}) has a desirability score of ${best.desirabilityScore} — best area for beneficiaries`,
+      priority: "high",
+    });
+
+    // Underserved ZIPs
+    const underserved = zipData.filter((z) => (z.desirabilityScore ?? 0) < 50);
+    if (underserved.length > 0) {
+      items.push({
+        icon: "alert",
+        text: `${underserved.length} ZIPs score below 50 — underserved areas worth targeting for market entry`,
+        priority: underserved.length > zipData.length * 0.3 ? "high" : "medium",
+      });
+    }
+
+    // Average score context
+    const nationalBenchmark = 65;
+    items.push({
+      icon: "trend",
+      text: `Average score across all ${zipData.length} ZIPs: ${avgScore}/100 — ${avgScore >= nationalBenchmark ? "above" : "below"} the ${nationalBenchmark} national benchmark`,
+      priority: avgScore < nationalBenchmark ? "medium" : "low",
+    });
+
+    // Top ZIPs cluster
+    const top10 = [...zipData].sort((a, b) => (b.desirabilityScore ?? 0) - (a.desirabilityScore ?? 0)).slice(0, 10);
+    const topStates = Array.from(new Set(top10.map((z) => z.state)));
+    if (topStates.length <= 3) {
+      items.push({
+        icon: "opportunity",
+        text: `Top 10 ZIPs cluster in ${topStates.join(", ")} — focus agent recruitment in these states`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [zipData, avgScore]);
 
   const zipScoreData = useMemo(
     () => zipData.map((z) => ({ zip: z.zip ?? "", city: z.city ?? "", state: z.state ?? "", score: z.desirabilityScore ?? 0 })),
@@ -100,6 +145,10 @@ export default function ZipRankings() {
           icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
         />
       </div>
+
+      {zipInsights.length > 0 && (
+        <InsightBox title="ZIP Code Insights" insights={zipInsights} />
+      )}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

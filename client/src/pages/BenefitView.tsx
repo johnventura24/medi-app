@@ -13,6 +13,7 @@ import { SupplementalBenefitsPie } from "@/components/charts/SupplementalBenefit
 import type { StateData, NationalAverages, BenefitType, PlanData } from "@shared/schema";
 import { Stethoscope, Pill, CreditCard, ShoppingCart, Car, Eye, Ear, Heart } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 export default function BenefitView() {
   const [selectedBenefit, setSelectedBenefit] = useState<BenefitType>("Dental");
@@ -70,6 +71,59 @@ export default function BenefitView() {
       inHomeSupport: Math.round((planData.filter((p) => p.vision > 0).length / total) * 100),
     };
   }, [planData]);
+
+  const benefitInsights = useMemo((): InsightItem[] => {
+    if (planData.length === 0 || !nationalAverages) return [];
+    const items: InsightItem[] = [];
+    const total = planData.length;
+
+    // #1 benefit nationally
+    const dentalPct = supplementalCoverage.dental;
+    items.push({
+      icon: "trend",
+      text: `Dental is the #1 benefit nationally — ${dentalPct}% of plans offer it. Lead with dental in marketing.`,
+      priority: "low",
+    });
+
+    // Transportation coverage
+    const transportPct = supplementalCoverage.transportation;
+    items.push({
+      icon: "opportunity",
+      text: `Transportation coverage is at ${transportPct}% — a growing supplemental benefit. Agents should highlight this for mobility-limited clients.`,
+      priority: transportPct < 50 ? "medium" : "low",
+    });
+
+    // In-home support gap
+    const inHomePct = Math.round((planData.filter((p) => (p as unknown as Record<string, unknown>).inHomeSupport === true || (p as unknown as Record<string, unknown>).inHomeSupport === 1).length / total) * 100);
+    if (inHomePct < 30) {
+      items.push({
+        icon: "opportunity",
+        text: `Only ~${inHomePct || supplementalCoverage.inHomeSupport}% of plans offer in-home support — opportunity for carriers to differentiate`,
+        priority: "medium",
+      });
+    }
+
+    // Meal benefit
+    const mealPct = supplementalCoverage.meals;
+    if (mealPct < 40) {
+      items.push({
+        icon: "alert",
+        text: `Meal benefits are only at ${mealPct}% coverage — underserved for post-discharge and chronic-condition beneficiaries`,
+        priority: "medium",
+      });
+    }
+
+    // OTC allowance
+    if (nationalAverages.otcAllowance > 0) {
+      items.push({
+        icon: "target",
+        text: `Average OTC allowance is $${nationalAverages.otcAllowance}/mo nationally — plans above this benchmark stand out to beneficiaries`,
+        priority: "low",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [planData, nationalAverages, supplementalCoverage]);
 
   const benefitCards = nationalAverages ? [
     {
@@ -227,6 +281,10 @@ export default function BenefitView() {
           trendLabel="YoY"
         />
       </div>
+
+      {benefitInsights.length > 0 && (
+        <InsightBox title="Benefit Intelligence" insights={benefitInsights} />
+      )}
 
       <Tabs defaultValue="heatmap" className="space-y-6">
         <TabsList>

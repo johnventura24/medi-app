@@ -49,6 +49,7 @@ import {
   Legend,
 } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Types ──
 
@@ -222,6 +223,52 @@ export default function CarrierMovements() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const forecastInsights = useMemo((): InsightItem[] => {
+    if (filteredForecasts.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Top growth opportunity
+    const topOpp = filteredForecasts.reduce((best, f) => f.opportunityScore > best.opportunityScore ? f : best, filteredForecasts[0]);
+    items.push({
+      icon: "target",
+      text: `Top growth opportunity: ${topOpp.county}, ${topOpp.state} — $${topOpp.perCapitaSpending.toLocaleString()} spending, ${topOpp.maPercentage}% penetration, only ${topOpp.currentCarriers} carriers`,
+      priority: "high",
+    });
+
+    // Likely entrant
+    const withEntrants = filteredForecasts.filter((f) => f.likelyEntrants.length > 0);
+    if (withEntrants.length > 0) {
+      const topEntry = withEntrants[0];
+      items.push({
+        icon: "opportunity",
+        text: `${topEntry.likelyEntrants[0]} is most likely to enter ${topEntry.county}, ${topEntry.state} — present in adjacent counties already`,
+        priority: "medium",
+      });
+    }
+
+    // High-growth count
+    const highGrowth = filteredForecasts.filter((f) => f.predictedGrowth === "high");
+    if (highGrowth.length > 0) {
+      items.push({
+        icon: "trend",
+        text: `${highGrowth.length} high-growth counties identified — focus business development efforts here`,
+        priority: "medium",
+      });
+    }
+
+    // Low-competition markets
+    const lowComp = filteredForecasts.filter((f) => f.currentCarriers <= 3 && f.opportunityScore >= 50);
+    if (lowComp.length > 0) {
+      items.push({
+        icon: "opportunity",
+        text: `${lowComp.length} underserved markets with 3 or fewer carriers and high opportunity scores — first-mover advantage available`,
+        priority: "high",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [filteredForecasts]);
 
   // ── Dynamics computed insights ──
   const dynamicsInsight = useMemo(() => {
@@ -609,6 +656,11 @@ export default function CarrierMovements() {
 
           {!forecastLoading && filteredForecasts.length > 0 && (
             <>
+              {/* Forecast Insights */}
+              {forecastInsights.length > 0 && (
+                <InsightBox title="Market Forecast Intelligence" insights={forecastInsights} />
+              )}
+
               {/* Scatter Plot — the money visualization */}
               <Card>
                 <CardHeader>

@@ -410,12 +410,40 @@ export const formularyDrugs = pgTable("formulary_drugs", {
   quantityLimitAmount: real("quantity_limit_amount"),
   quantityLimitDays: integer("quantity_limit_days"),
   contractYear: integer("contract_year").notNull(),
+  source: text("source").default("PBP"), // "PBP" | "FHIR" | "Cache"
+  carrier: text("carrier"),
+  copay: real("copay"),
+  coinsurance: real("coinsurance"),
+  lastFhirCheck: timestamp("last_fhir_check"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_formulary_contract").on(table.contractId),
   index("idx_formulary_contract_rxcui").on(table.contractId, table.rxcui),
   index("idx_formulary_rxcui").on(table.rxcui),
   index("idx_formulary_drug_name").on(table.drugName),
+]);
+
+// ── CMS Plan Cache table (caches CMS Finder API results) ──
+
+export const cmsPlanCache = pgTable("cms_plan_cache", {
+  id: serial("id").primaryKey(),
+  zipCode: text("zip_code"),
+  state: text("state"),
+  county: text("county"),
+  contractId: text("contract_id"),
+  planId: text("plan_id"),
+  planName: text("plan_name"),
+  organizationName: text("organization_name"),
+  planType: text("plan_type"),
+  monthlyPremium: real("monthly_premium"),
+  starRating: real("star_rating"),
+  snpType: text("snp_type"),
+  rawData: jsonb("raw_data"),
+  fetchedAt: timestamp("fetched_at").defaultNow(),
+}, (table) => [
+  index("idx_cms_cache_zip").on(table.zipCode),
+  index("idx_cms_cache_contract").on(table.contractId, table.planId),
+  index("idx_cms_cache_state_county").on(table.state, table.county),
 ]);
 
 export const insertFormularyDrugSchema = createInsertSchema(formularyDrugs).omit({
@@ -425,6 +453,8 @@ export const insertFormularyDrugSchema = createInsertSchema(formularyDrugs).omit
 
 export type FormularyDrug = typeof formularyDrugs.$inferSelect;
 export type InsertFormularyDrug = z.infer<typeof insertFormularyDrugSchema>;
+
+export type CMSPlanCacheEntry = typeof cmsPlanCache.$inferSelect;
 
 // ── Drug Cache table (RxNorm resolution cache) ──
 

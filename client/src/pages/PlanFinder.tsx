@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { usePlanFinder, type FinderCriteria, type FinderPlanResult } from "@/hooks/usePlanFinder";
 import { AIPlanExplainer } from "@/components/ai/AIPlanExplainer";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Slider Filter Component ──
 
@@ -405,6 +406,67 @@ export default function PlanFinder() {
     ? `${results.location.county}, ${results.location.state}`
     : "";
 
+  const finderInsights = useMemo((): InsightItem[] => {
+    if (!results || plans.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Strong match count
+    const strongMatches = plans.filter((p) => {
+      const totalCrit = p.matchedCriteria.length + p.unmatchedCriteria.length;
+      return totalCrit > 0 && p.matchedCriteria.length / totalCrit >= 0.8;
+    });
+    if (results.totalCriteria > 0) {
+      items.push({
+        icon: "target",
+        text: `${strongMatches.length} of ${total} plans in this area are a strong match (80%+ criteria met)`,
+        priority: strongMatches.length > 0 ? "low" : "high",
+      });
+    }
+
+    // Best savings vs average
+    const avgPremium = plans.reduce((s, p) => s + p.premium, 0) / plans.length;
+    const bestPlan = plans.reduce((best, p) => (p.premium < best.premium ? p : best), plans[0]);
+    const annualSavings = Math.round((avgPremium - bestPlan.premium) * 12);
+    if (annualSavings > 0) {
+      items.push({
+        icon: "opportunity",
+        text: `Best option saves $${annualSavings}/year vs the average plan in this ZIP ($${bestPlan.premium}/mo vs $${Math.round(avgPremium)}/mo avg)`,
+        priority: annualSavings > 500 ? "high" : "medium",
+      });
+    }
+
+    // Low star rating warning
+    const lowStarPlans = plans.filter((p) => p.starRating !== null && p.starRating < 3);
+    if (lowStarPlans.length > 0) {
+      items.push({
+        icon: "warning",
+        text: `${lowStarPlans.length} plan${lowStarPlans.length > 1 ? "s" : ""} in results have below-average star ratings (< 3 stars) — review quality before recommending`,
+        priority: "medium",
+      });
+    }
+
+    // Supplemental benefit coverage gaps
+    const checkedBenefits: { key: keyof typeof criteria; label: string }[] = [
+      { key: "transportation", label: "Transportation" },
+      { key: "mealBenefit", label: "Meal Benefit" },
+      { key: "fitness", label: "Fitness" },
+      { key: "telehealth", label: "Telehealth" },
+      { key: "inHomeSupport", label: "In-Home Support" },
+    ];
+    const missingBenefits = checkedBenefits.filter(
+      (b) => criteria[b.key] && plans.every((p) => !(p as unknown as Record<string, unknown>)[b.key])
+    );
+    if (missingBenefits.length > 0) {
+      items.push({
+        icon: "alert",
+        text: `No plans in this ZIP offer ${missingBenefits.map((b) => b.label).join(", ")} — consider adjusting criteria`,
+        priority: "high",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [results, plans, criteria, total]);
+
   const goToCompare = () => {
     const ids = Array.from(compareIds).join(",");
     navigate(`/compare?ids=${ids}`);
@@ -733,6 +795,11 @@ export default function PlanFinder() {
                   </Select>
                 </div>
               </div>
+
+              {/* Actionable Insights */}
+              {finderInsights.length > 0 && (
+                <InsightBox title="What To Do Next" insights={finderInsights} />
+              )}
 
               {/* Plan Cards */}
               {plans.length === 0 ? (

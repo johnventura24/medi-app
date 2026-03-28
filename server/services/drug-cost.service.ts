@@ -1,6 +1,7 @@
 import { db } from "../db";
 import { formularyDrugs, plans, drugCostEstimates } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import { checkDrugCoverage, type FormularyDrugResult } from "./fhir-formulary.service";
 
 // ── Interfaces ──
 
@@ -198,26 +199,61 @@ export async function estimateDrugCosts(input: DrugCostInput): Promise<DrugCostR
     const drugDeductible = plan.drugDeductible ?? 0;
 
     // Build per-drug info with formulary lookup
+    // Priority: 1) FHIR real-time data, 2) Local formulary_drugs table (PBP), 3) Default
     const drugInfos: Array<{
       med: typeof medications[0];
       formularyEntry: any;
       fillsPerYear: number;
       retailPerFill: number;
       copayPerFill: number;
+      dataSource: string;
     }> = [];
 
     for (const med of medications) {
-      const formularyEntry = plan.contractId
-        ? formularyMap.get(`${plan.contractId}:${med.rxcui}`)
-        : undefined;
-
       const fillsPerYear = parseFillsPerYear(med.frequency);
+      let formularyEntry: any = null;
+      let dataSource = "default";
+
+      // Step 1: Try FHIR real-time lookup (non-blocking, with fallback)
+      if (plan.organizationName) {
+        try {
+          const fhirResult: FormularyDrugResult | null = await checkDrugCoverage(
+            plan.organizationName,
+            plan.contractId || plan.planId || String(plan.id),
+            med.rxcui
+          );
+          if (fhirResult) {
+            formularyEntry = {
+              tier: fhirResult.tier,
+              priorAuthorization: fhirResult.priorAuth,
+              stepTherapy: fhirResult.stepTherapy,
+              quantityLimit: fhirResult.quantityLimit,
+              copay: fhirResult.copay,
+              coinsurance: fhirResult.coinsurance,
+            };
+            dataSource = `FHIR (${fhirResult.source})`;
+          }
+        } catch (err: any) {
+          console.log(`[DrugCost] FHIR lookup failed for ${med.rxcui}: ${err.message}`);
+        }
+      }
+
+      // Step 2: Fall back to local PBP formulary data
+      if (!formularyEntry && plan.contractId) {
+        formularyEntry = formularyMap.get(`${plan.contractId}:${med.rxcui}`);
+        if (formularyEntry) {
+          dataSource = "PBP";
+        }
+      }
 
       if (formularyEntry) {
         const tier = formularyEntry.tier;
         const retailPerFill = estimateRetailCostPerFill(tier);
-        const copayPerFill = getTierCost(plan, tier, retailPerFill);
-        drugInfos.push({ med, formularyEntry, fillsPerYear, retailPerFill, copayPerFill });
+        // If FHIR returned a copay, use it directly; otherwise use plan tier costs
+        const copayPerFill = formularyEntry.copay != null
+          ? formularyEntry.copay
+          : getTierCost(plan, tier, retailPerFill);
+        drugInfos.push({ med, formularyEntry, fillsPerYear, retailPerFill, copayPerFill, dataSource });
       } else {
         drugInfos.push({
           med,
@@ -225,8 +261,11 @@ export async function estimateDrugCosts(input: DrugCostInput): Promise<DrugCostR
           fillsPerYear,
           retailPerFill: DEFAULT_RETAIL_MONTHLY,
           copayPerFill: DEFAULT_RETAIL_MONTHLY,
+          dataSource: "default",
         });
       }
+
+      console.log(`[DrugCost] ${med.name} (${med.rxcui}) for plan ${plan.id}: source=${dataSource}`);
     }
 
     // Simulate month by month to properly phase spending

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,7 @@ import { ProviderSearchInput } from "@/components/providers/ProviderSearchInput"
 import { NetworkStatusGrid } from "@/components/providers/NetworkStatusGrid";
 import type { ProviderResult } from "@/hooks/useProviderSearch";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 function statusBadgeClass(status: string): string {
   switch (status) {
@@ -367,6 +368,70 @@ function RecommendationsTab({ clientId }: { clientId: string }) {
     generateRecommendations,
     isGenerating,
   } = useRecommendations(clientId);
+  const { data: client } = useClient(clientId);
+
+  const recInsights = useMemo((): InsightItem[] => {
+    if (recommendations.length === 0) return [];
+    const items: InsightItem[] = [];
+    const top = recommendations[0];
+
+    // Top match score
+    items.push({
+      icon: "target",
+      text: `Top match scores ${top.totalScore}/100 — ${top.totalScore >= 80 ? "strong" : top.totalScore >= 60 ? "moderate" : "weak"} fit for this client's needs`,
+      priority: top.totalScore >= 80 ? "low" : top.totalScore >= 60 ? "medium" : "high",
+    });
+
+    // Warnings from top plan
+    if (top.warnings && top.warnings.length > 0) {
+      top.warnings.forEach((w) => {
+        items.push({
+          icon: "warning",
+          text: w,
+          priority: "high",
+        });
+      });
+    }
+
+    // Score gap between #1 and #2
+    if (recommendations.length >= 2) {
+      const diff = recommendations[0].totalScore - recommendations[1].totalScore;
+      if (diff <= 5) {
+        items.push({
+          icon: "opportunity",
+          text: `Consider: ${recommendations[1].planName} scores only ${diff} points lower but may offer different strengths — present both options to the client`,
+          priority: "medium",
+        });
+      }
+    }
+
+    // Drug score warning
+    if (top.scoreBreakdown.drugScore < 50) {
+      items.push({
+        icon: "alert",
+        text: `Drug coverage alert: Top plan scores ${top.scoreBreakdown.drugScore}/100 on drug coverage — review formulary for client's medications`,
+        priority: "high",
+      });
+    }
+
+    // Low premium vs high supplemental tradeoff
+    if (recommendations.length >= 2) {
+      const cheapest = [...recommendations].sort((a, b) => a.premium - b.premium)[0];
+      const bestSupp = [...recommendations].sort((a, b) => b.scoreBreakdown.supplementalScore - a.scoreBreakdown.supplementalScore)[0];
+      if (cheapest.planId !== bestSupp.planId) {
+        const savings = (bestSupp.premium - cheapest.premium) * 12;
+        if (savings > 0) {
+          items.push({
+            icon: "opportunity",
+            text: `Tradeoff: ${cheapest.planName} saves $${savings}/yr in premiums, but ${bestSupp.planName} has richer supplemental benefits`,
+            priority: "low",
+          });
+        }
+      }
+    }
+
+    return items.slice(0, 5);
+  }, [recommendations]);
 
   return (
     <div className="space-y-4">
@@ -406,6 +471,10 @@ function RecommendationsTab({ clientId }: { clientId: string }) {
         </Card>
       ) : (
         <>
+          {recInsights.length > 0 && (
+            <InsightBox title="Recommendation Insights" insights={recInsights} />
+          )}
+
           <div className="space-y-3">
             {recommendations.map((plan) => (
               <PlanCard key={plan.rank} plan={plan} />

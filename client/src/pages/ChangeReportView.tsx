@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/StatCard";
@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 interface FieldChange {
   field: string;
@@ -112,6 +113,65 @@ export default function ChangeReportView() {
   const changedPlans = changeData?.changedPlans ?? [];
   const newPlans = changeData?.newPlans ?? [];
   const terminatedPlans = changeData?.terminatedPlans ?? [];
+
+  const changeInsights = useMemo((): InsightItem[] => {
+    if (!changeData) return [];
+    const items: InsightItem[] = [];
+
+    // Improved vs worsened
+    let improvedCount = 0;
+    let worsenedCount = 0;
+    changedPlans.forEach((p) => {
+      const better = p.changes.filter((c) => c.direction === "better").length;
+      const worse = p.changes.filter((c) => c.direction === "worse").length;
+      if (better > worse) improvedCount++;
+      else if (worse > better) worsenedCount++;
+    });
+    if (changedPlans.length > 0) {
+      items.push({
+        icon: improvedCount >= worsenedCount ? "trend" : "warning",
+        text: `${improvedCount} plans improved benefits this year, ${worsenedCount} got worse — ${improvedCount > worsenedCount ? "market is getting more competitive" : "watch for client attrition"}`,
+        priority: worsenedCount > improvedCount ? "high" : "medium",
+      });
+    }
+
+    // Biggest improvement
+    let bestChange: { plan: string; field: string; oldVal: string | number; newVal: string | number } | null = null;
+    changedPlans.forEach((p) => {
+      p.changes.forEach((c) => {
+        if (c.direction === "better" && (c.field.toLowerCase().includes("dental") || c.field.toLowerCase().includes("otc") || c.field.toLowerCase().includes("premium"))) {
+          bestChange = { plan: p.planName, field: c.field, oldVal: c.oldValue, newVal: c.newValue };
+        }
+      });
+    });
+    if (bestChange) {
+      items.push({
+        icon: "opportunity",
+        text: `Biggest improvement: ${(bestChange as { plan: string; field: string; oldVal: string | number; newVal: string | number }).plan} changed ${(bestChange as { plan: string; field: string }).field} from ${(bestChange as { oldVal: string | number }).oldVal} to ${(bestChange as { newVal: string | number }).newVal}`,
+        priority: "medium",
+      });
+    }
+
+    // Terminated plans warning
+    if (terminatedPlans.length > 0) {
+      items.push({
+        icon: "alert",
+        text: `Warning: ${terminatedPlans.length} plans terminated — beneficiaries on these plans need new coverage. Proactively reach out.`,
+        priority: "high",
+      });
+    }
+
+    // New plans opportunity
+    if (newPlans.length > 0) {
+      items.push({
+        icon: "opportunity",
+        text: `${newPlans.length} new plans entered the market — review for competitive advantages and new client options`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [changeData, changedPlans, newPlans, terminatedPlans]);
 
   const toggleRow = (contractId: string) => {
     setExpandedRows((prev) => {
@@ -291,6 +351,10 @@ export default function ChangeReportView() {
           </div>
         </CardContent>
       </Card>
+
+      {submitted && changeData && changeInsights.length > 0 && (
+        <InsightBox title="Year-over-Year Action Items" insights={changeInsights} />
+      )}
 
       {submitted && changeData && (
         <Card>

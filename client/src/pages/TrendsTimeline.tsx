@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 import { TrendSparkline } from "@/components/charts/TrendSparkline";
 import {
   BarChart3,
@@ -302,6 +303,54 @@ export default function TrendsTimeline() {
     return null;
   }, [marketData, stateComparison, stateParam]);
 
+  const trendsInsights = useMemo((): InsightItem[] => {
+    const items: InsightItem[] = [];
+
+    // Carrier leaderboard insights
+    if (leaderboard && leaderboard.length > 0) {
+      const leader = leaderboard[0];
+      items.push({
+        icon: "trend",
+        text: `Market leader: ${leader.carrier} has ${leader.marketShare}% share with ${leader.planCount.toLocaleString()} plans — ${leader.trend === "growing" ? "growing" : leader.trend === "declining" ? "declining, watch for opportunity" : "stable"}`,
+        priority: "medium",
+      });
+    }
+
+    // Benefit evolution insights
+    if (benefitTrends && benefitTrends.length > 0) {
+      const growing = [...benefitTrends].filter((bt) => bt.direction === "up").sort((a, b) => b.changePercent - a.changePercent);
+      if (growing.length > 0) {
+        items.push({
+          icon: "opportunity",
+          text: `${growing[0].benefit} coverage increased ${growing[0].changePercent}% — fastest growing benefit. Highlight this in marketing.`,
+          priority: "medium",
+        });
+      }
+    }
+
+    // Top movers insight
+    if (movers && movers.length > 0) {
+      const topGrower = movers.filter((m) => m.direction === "up")[0];
+      if (topGrower) {
+        items.push({
+          icon: "target",
+          text: `Biggest mover: ${topGrower.carrier} — +${topGrower.change.toLocaleString()} ${topGrower.metric}. Track this carrier's expansion strategy.`,
+          priority: "high",
+        });
+      }
+      const topDecliner = movers.filter((m) => m.direction === "down")[0];
+      if (topDecliner) {
+        items.push({
+          icon: "warning",
+          text: `${topDecliner.carrier} is declining: -${topDecliner.change.toLocaleString()} ${topDecliner.metric}. Opportunity to capture their beneficiaries.`,
+          priority: "medium",
+        });
+      }
+    }
+
+    return items.slice(0, 5);
+  }, [leaderboard, benefitTrends, movers]);
+
   const isSingleYear = useMemo(() => {
     if (marketData?.dataPoints?.length) return marketData.dataPoints.length <= 1;
     return true;
@@ -360,6 +409,10 @@ export default function TrendsTimeline() {
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32" />)}
         </div>
       ) : null}
+
+      {trendsInsights.length > 0 && (
+        <InsightBox title="Trends Intelligence" insights={trendsInsights} />
+      )}
 
       {/* ── Tab Sections ── */}
       <Tabs defaultValue="carriers" className="space-y-4">

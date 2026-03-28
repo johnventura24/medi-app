@@ -34,7 +34,11 @@ import { registerConsumerRoutes } from "./routes/consumer";
 import { registerLeadRoutes } from "./routes/leads";
 import { registerTrendRoutes } from "./routes/trends";
 import { registerCarrierMovementRoutes } from "./routes/carrier-movements";
+import { registerCmsLiveRoutes } from "./routes/cms-live";
+import { registerFhirFormularyRoutes } from "./routes/fhir-formulary";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
+import { checkCmsApiStatus } from "./services/cms-finder.service";
+import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -737,6 +741,12 @@ export async function registerRoutes(
   // Register Carrier Movements routes
   registerCarrierMovementRoutes(app);
 
+  // Register CMS Live API routes
+  registerCmsLiveRoutes(app);
+
+  // Register FHIR Formulary routes
+  registerFhirFormularyRoutes(app);
+
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
     try {
@@ -890,6 +900,56 @@ export async function registerRoutes(
           endpoint: "https://api.openai.com/v1/",
         },
       ];
+
+      // Check live API statuses (non-blocking, with short timeouts)
+      const [cmsStatus, uhcStatus, humanaStatus, anthemStatus] = await Promise.allSettled([
+        checkCmsApiStatus(),
+        checkCarrierFhirStatus("UnitedHealthcare"),
+        checkCarrierFhirStatus("Humana"),
+        checkCarrierFhirStatus("Anthem"),
+      ]);
+
+      const cmsLiveCount = await safeCount("SELECT count(*) FROM cms_plan_cache");
+      const fhirFormularyCount = await safeCount("SELECT count(*) FROM formulary_drugs WHERE source = 'FHIR'");
+
+      sources.push(
+        {
+          name: "CMS Finder API (data.cms.gov)",
+          type: "api",
+          description: "Real-time Medicare plan data from CMS public datasets — same data as Medicare.gov",
+          status: cmsStatus.status === "fulfilled" ? cmsStatus.value : "connecting",
+          records: cmsLiveCount,
+          provides: ["Live plan search by ZIP", "Plan details", "County plan lookup", "Star ratings"],
+          endpoint: "https://data.cms.gov/api/1/datastore/query",
+        } as any,
+        {
+          name: "UHC FHIR Drug Formulary",
+          type: "api",
+          description: "Real-time drug formulary from UnitedHealthcare via FHIR R4 (CMS interop mandate)",
+          status: uhcStatus.status === "fulfilled" ? uhcStatus.value : "connecting",
+          records: fhirFormularyCount,
+          provides: ["Drug tier lookup", "Prior auth flags", "Copay/coinsurance", "Step therapy", "Quantity limits"],
+          endpoint: "https://public.fhir.flex.optum.com/FormularyItem",
+        } as any,
+        {
+          name: "Humana FHIR Drug Formulary",
+          type: "api",
+          description: "Real-time drug formulary from Humana via FHIR R4 (CMS interop mandate)",
+          status: humanaStatus.status === "fulfilled" ? humanaStatus.value : "connecting",
+          records: null,
+          provides: ["Drug tier lookup", "Prior auth flags", "Copay/coinsurance", "Step therapy", "Quantity limits"],
+          endpoint: "https://fhir.humana.com/api/FormularyItem",
+        } as any,
+        {
+          name: "Anthem FHIR Drug Formulary",
+          type: "api",
+          description: "Real-time drug formulary from Anthem via FHIR R4 (CMS interop mandate)",
+          status: anthemStatus.status === "fulfilled" ? anthemStatus.value : "connecting",
+          records: null,
+          provides: ["Drug tier lookup", "Prior auth flags", "Copay/coinsurance", "Step therapy", "Quantity limits"],
+          endpoint: "https://fhir.anthem.com/FormularyItem",
+        } as any,
+      );
 
       res.json({ sources });
     } catch (err: any) {
