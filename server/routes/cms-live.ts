@@ -3,6 +3,7 @@ import {
   searchPlansByZip,
   getPlanDetails,
   getCountyPlans,
+  searchPlansLocal,
 } from "../services/cms-finder.service";
 
 export function registerCmsLiveRoutes(app: Express) {
@@ -20,22 +21,29 @@ export function registerCmsLiveRoutes(app: Express) {
         if (!/^\d{5}$/.test(zip)) {
           return res.status(400).json({ error: "Invalid ZIP code format. Must be 5 digits." });
         }
-        const plans = await searchPlansByZip(zip);
+        // Try CMS API first, fall back to local PBP data
+        let plans = await searchPlansByZip(zip);
+        if (plans.length === 0) {
+          plans = await searchPlansLocal(zip);
+        }
         return res.json({
           query: { zip },
           count: plans.length,
           plans,
-          source: plans.length > 0 ? plans[0].source : "none",
+          source: plans.length > 0 ? plans[0].source : "local",
         });
       }
 
       if (state && county) {
-        const plans = await getCountyPlans(state, county);
+        let plans = await getCountyPlans(state, county);
+        if (plans.length === 0) {
+          plans = await searchPlansLocal(undefined, state, county);
+        }
         return res.json({
           query: { state, county },
           count: plans.length,
           plans,
-          source: plans.length > 0 ? plans[0].source : "none",
+          source: plans.length > 0 ? plans[0].source : "local",
         });
       }
 

@@ -430,3 +430,48 @@ export async function checkCmsApiStatus(): Promise<"connected" | "connecting" | 
     return "unavailable";
   }
 }
+
+// ── Local fallback using our imported PBP data ──
+import { plans } from "@shared/schema";
+
+export async function searchPlansLocal(zipCode?: string, state?: string, county?: string): Promise<CMSPlan[]> {
+  try {
+    const conditions = [];
+    if (zipCode) {
+      // Try zip resolver first
+      try {
+        const { resolveZipToCounty } = await import("./zip-resolver.service");
+        const resolved = await resolveZipToCounty(zipCode);
+        if (resolved) {
+          conditions.push(eq(plans.county, resolved.county));
+          conditions.push(eq(plans.state, resolved.state));
+        }
+      } catch {
+        conditions.push(eq(plans.zipcode, zipCode));
+      }
+    }
+    if (state) conditions.push(eq(plans.state, state.toUpperCase()));
+    if (county) conditions.push(eq(plans.county, county.toUpperCase()));
+
+    if (conditions.length === 0) return [];
+
+    const rows = await db.select().from(plans).where(and(...conditions)).limit(100);
+
+    return rows.map(r => ({
+      contractId: r.contractId || "",
+      planId: r.planId || "",
+      planName: r.name,
+      organizationName: r.organizationName,
+      planType: (r.category || "").replace("PLAN_CATEGORY_", ""),
+      monthlyPremium: r.calculatedMonthlyPremium,
+      starRating: r.overallStarRating,
+      snpType: r.snpType,
+      state: r.state,
+      county: r.county,
+      source: "Cache" as const,
+    }));
+  } catch (err) {
+    console.error("[CMS Finder] Local fallback error:", err);
+    return [];
+  }
+}
