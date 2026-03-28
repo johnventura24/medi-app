@@ -48,6 +48,7 @@ import {
   Inbox,
   Database,
   LineChart,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -82,6 +83,7 @@ const intelligenceViews = [
   { title: "Battleground Map", url: "/battleground", icon: Swords },
   { title: "AEP War Room", url: "/warroom", icon: Activity },
   { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
+  { title: "Carrier Movements", url: "/carrier-movements", icon: ArrowRightLeft },
 ];
 
 const agentToolsViews = [

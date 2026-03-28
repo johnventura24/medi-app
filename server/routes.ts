@@ -33,6 +33,7 @@ import { registerHealthGapRoutes } from "./routes/health-gap";
 import { registerConsumerRoutes } from "./routes/consumer";
 import { registerLeadRoutes } from "./routes/leads";
 import { registerTrendRoutes } from "./routes/trends";
+import { registerCarrierMovementRoutes } from "./routes/carrier-movements";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 
 export async function registerRoutes(
@@ -732,6 +733,9 @@ export async function registerRoutes(
 
   // Register Trends & Timeline routes
   registerTrendRoutes(app);
+
+  // Register Carrier Movements routes
+  registerCarrierMovementRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
