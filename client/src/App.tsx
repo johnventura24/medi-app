@@ -31,8 +31,18 @@ import ClientDetail from "@/pages/ClientDetail";
 import SOADashboard from "@/pages/SOADashboard";
 import BenefitGridView from "@/pages/BenefitGridView";
 import MarketIntelligence from "@/pages/MarketIntelligence";
+import MoneyCalculator from "@/pages/MoneyCalculator";
+import HiddenGems from "@/pages/HiddenGems";
+import Archetypes from "@/pages/Archetypes";
+import BattlegroundMap from "@/pages/BattlegroundMap";
+import AEPWarRoom from "@/pages/AEPWarRoom";
+import HealthGapAnalysis from "@/pages/HealthGapAnalysis";
+import LeadDashboard from "@/pages/LeadDashboard";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
+
+// Lazy-load the consumer flow (standalone page)
+import ConsumerFlow from "@/pages/ConsumerFlow";
 
 function Router() {
   return (
@@ -59,6 +69,13 @@ function Router() {
       <Route path="/soa" component={SOADashboard} />
       <Route path="/benefit-grid" component={BenefitGridView} />
       <Route path="/intelligence" component={MarketIntelligence} />
+      <Route path="/calculator" component={MoneyCalculator} />
+      <Route path="/gems" component={HiddenGems} />
+      <Route path="/archetypes" component={Archetypes} />
+      <Route path="/battleground" component={BattlegroundMap} />
+      <Route path="/warroom" component={AEPWarRoom} />
+      <Route path="/health-gaps" component={HealthGapAnalysis} />
+      <Route path="/leads" component={LeadDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -93,9 +110,10 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Switch>
-              {/* Standalone auth pages — no sidebar/header */}
+              {/* Standalone pages — no sidebar/header */}
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
+              <Route path="/for-you" component={ConsumerFlow} />
 
               {/* All other routes use the sidebar layout */}
               <Route>

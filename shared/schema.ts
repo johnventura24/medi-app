@@ -509,6 +509,60 @@ export const aiExplanations = pgTable("ai_explanations", {
 export type AIExplanation = typeof aiExplanations.$inferSelect;
 export type InsertAIExplanation = typeof aiExplanations.$inferInsert;
 
+// ── Consumer Leads table (consumer plan discovery lead capture) ──
+
+export const consumerLeads = pgTable("consumer_leads", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  email: text("email"),
+  phone: text("phone"),
+  zipCode: text("zip_code").notNull(),
+  county: text("county"),
+  state: text("state"),
+  quizAnswers: jsonb("quiz_answers"), // { priority, seesSpecialist, medications, wantsExtras }
+  topPlanIds: jsonb("top_plan_ids"), // [planId1, planId2, planId3]
+  moneyOnTable: real("money_on_table"), // calculated savings amount
+  assignedAgentId: integer("assigned_agent_id").references(() => users.id),
+  status: text("status").notNull().default("new"), // new | contacted | enrolled | lost
+  source: text("source"), // 'organic' | 'referral' | 'ad'
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  createdAt: timestamp("created_at").defaultNow(),
+  contactedAt: timestamp("contacted_at"),
+}, (table) => [
+  index("idx_consumer_leads_zip").on(table.zipCode),
+  index("idx_consumer_leads_status").on(table.status),
+  index("idx_consumer_leads_agent").on(table.assignedAgentId),
+  index("idx_consumer_leads_created").on(table.createdAt),
+]);
+
+export const insertConsumerLeadSchema = createInsertSchema(consumerLeads).omit({
+  id: true,
+  createdAt: true,
+  contactedAt: true,
+});
+
+export type ConsumerLead = typeof consumerLeads.$inferSelect;
+export type InsertConsumerLead = z.infer<typeof insertConsumerLeadSchema>;
+
+// ── Lead Activity table (tracking actions on leads) ──
+
+export const leadActivity = pgTable("lead_activity", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => consumerLeads.id),
+  action: text("action").notNull(), // 'viewed_plans' | 'requested_agent' | 'agent_contacted' | 'enrolled'
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_lead_activity_lead").on(table.leadId),
+  index("idx_lead_activity_created").on(table.createdAt),
+]);
+
+export type LeadActivity = typeof leadActivity.$inferSelect;
+export type InsertLeadActivity = typeof leadActivity.$inferInsert;
+
 // ── TypeScript interfaces for API responses (kept compatible with frontend) ──
 
 export interface StateData {

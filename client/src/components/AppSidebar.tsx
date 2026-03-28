@@ -40,6 +40,12 @@ import {
   FileSpreadsheet,
   TrendingUp,
   BarChart3,
+  Gem,
+  Calculator,
+  Swords,
+  Activity,
+  HeartPulse,
+  Inbox,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -70,13 +76,23 @@ const targetingViews = [
 
 const intelligenceViews = [
   { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
+  { title: "Battleground Map", url: "/battleground", icon: Swords },
+  { title: "AEP War Room", url: "/warroom", icon: Activity },
+  { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
 ];
 
 const agentToolsViews = [
   { title: "Plan Finder", url: "/find", icon: Search },
   { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
+  { title: "Leads", url: "/leads", icon: Inbox },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "SOA Dashboard", url: "/soa", icon: FileCheck },
+];
+
+const powerToolsViews = [
+  { title: "Money Calculator", url: "/calculator", icon: Calculator },
+  { title: "Hidden Gems", url: "/gems", icon: Gem },
+  { title: "Archetypes", url: "/archetypes", icon: Users },
 ];
 
 const complianceViews = [
@@ -203,6 +219,28 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {intelligenceViews.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Power Tools</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {powerToolsViews.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

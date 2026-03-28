@@ -24,6 +24,14 @@ import { registerProviderRoutes } from "./routes/providers";
 import { registerAIRoutes } from "./routes/ai";
 import { registerBenefitGridRoutes } from "./routes/benefit-grid";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
+import { registerMoneyCalculatorRoutes } from "./routes/money-calculator";
+import { registerHiddenGemRoutes } from "./routes/hidden-gems";
+import { registerArchetypeRoutes } from "./routes/archetypes";
+import { registerBattlegroundRoutes } from "./routes/battleground";
+import { registerAEPWarRoomRoutes } from "./routes/aep-warroom";
+import { registerHealthGapRoutes } from "./routes/health-gap";
+import { registerConsumerRoutes } from "./routes/consumer";
+import { registerLeadRoutes } from "./routes/leads";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -705,6 +713,20 @@ export async function registerRoutes(
   registerValidationRoutes(app);
   registerBenefitGridRoutes(app);
   registerMarketIntelligenceRoutes(app);
+
+  // Register Power Tools: Money Calculator, Hidden Gems, Archetypes
+  registerMoneyCalculatorRoutes(app);
+  registerHiddenGemRoutes(app);
+  registerArchetypeRoutes(app);
+
+  // Register Geographic Intelligence: Battleground, War Room, Health Gaps
+  registerBattlegroundRoutes(app);
+  registerAEPWarRoomRoutes(app);
+  registerHealthGapRoutes(app);
+
+  // Register Consumer & Lead routes
+  registerConsumerRoutes(app);
+  registerLeadRoutes(app);
 
   // ── Health Check ──
   app.get('/api/health', async (_req, res) => {
