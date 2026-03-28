@@ -8,7 +8,10 @@ export function registerSOARoutes(app: Express) {
   // ── POST /api/soa ──
   app.post("/api/soa", authenticate, async (req, res) => {
     try {
-      const parsed = insertSOASchema.safeParse(req.body);
+      // Coerce date strings to Date objects before validation
+      const body = { ...req.body };
+      if (typeof body.soaDate === "string") body.soaDate = new Date(body.soaDate);
+      const parsed = insertSOASchema.safeParse(body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
       }

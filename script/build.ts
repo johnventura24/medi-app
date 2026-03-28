@@ -31,7 +31,6 @@ const allowlist = [
   "xlsx",
   "zod",
   "zod-validation-error",
-  "pdfkit",
   "@sentry/node",
   "csv-parse",
 ];
