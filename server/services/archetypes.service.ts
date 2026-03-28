@@ -196,20 +196,58 @@ function matchPlanToArchetype(p: any, criteria: ArchetypeCriteria): { matches: b
   return { matches, score };
 }
 
+// State name to abbreviation lookup
+const STATE_ABBR: Record<string, string> = {
+  "alabama":"AL","alaska":"AK","arizona":"AZ","arkansas":"AR","california":"CA",
+  "colorado":"CO","connecticut":"CT","delaware":"DE","district of columbia":"DC",
+  "florida":"FL","georgia":"GA","hawaii":"HI","idaho":"ID","illinois":"IL",
+  "indiana":"IN","iowa":"IA","kansas":"KS","kentucky":"KY","louisiana":"LA",
+  "maine":"ME","maryland":"MD","massachusetts":"MA","michigan":"MI","minnesota":"MN",
+  "mississippi":"MS","missouri":"MO","montana":"MT","nebraska":"NE","nevada":"NV",
+  "new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY",
+  "north carolina":"NC","north dakota":"ND","ohio":"OH","oklahoma":"OK","oregon":"OR",
+  "pennsylvania":"PA","puerto rico":"PR","rhode island":"RI","south carolina":"SC",
+  "south dakota":"SD","tennessee":"TN","texas":"TX","utah":"UT","vermont":"VT",
+  "virginia":"VA","washington":"WA","west virginia":"WV","wisconsin":"WI","wyoming":"WY",
+};
+
+function resolveState(input: string): string {
+  const upper = input.toUpperCase().trim();
+  if (upper.length === 2) return upper; // Already abbreviation
+  return STATE_ABBR[input.toLowerCase().trim()] || upper;
+}
+
 export async function getArchetypes(options: {
   zipCode?: string;
   county?: string;
   state?: string;
 }): Promise<ArchetypeResponse> {
-  const { zipCode, county, state } = options;
+  const { zipCode, county } = options;
+  let { state } = options;
+
+  // Resolve state name to abbreviation (handles "texas" → "TX")
+  if (state) state = resolveState(state);
 
   const conditions: any[] = [];
-  if (zipCode) conditions.push(eq(plans.zipcode, zipCode));
-  else if (county && state) {
+  if (zipCode) {
+    // Try zip_county_map first for better coverage
+    try {
+      const { resolveZipToCounty } = await import("../services/zip-resolver.service");
+      const resolved = await resolveZipToCounty(zipCode);
+      if (resolved) {
+        conditions.push(eq(plans.county, resolved.county));
+        conditions.push(eq(plans.state, resolved.state));
+      } else {
+        conditions.push(eq(plans.zipcode, zipCode));
+      }
+    } catch {
+      conditions.push(eq(plans.zipcode, zipCode));
+    }
+  } else if (county && state) {
     conditions.push(eq(plans.county, county.toUpperCase()));
-    conditions.push(eq(plans.state, state.toUpperCase()));
+    conditions.push(eq(plans.state, state));
   } else if (state) {
-    conditions.push(eq(plans.state, state.toUpperCase()));
+    conditions.push(eq(plans.state, state));
   }
 
   if (conditions.length === 0) {
