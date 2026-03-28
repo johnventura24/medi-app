@@ -110,7 +110,7 @@ export function NetworkStatusGrid({ npi, planIds }: NetworkStatusGridProps) {
                         <div className="flex items-center justify-center gap-1">
                           <Badge
                             variant="secondary"
-                            className="text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                            className="text-xs bg-muted text-muted-foreground"
                           >
                             Unknown
                           </Badge>

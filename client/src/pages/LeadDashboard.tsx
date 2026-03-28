@@ -56,7 +56,7 @@ const statusColors: Record<string, string> = {
   new: "bg-blue-100 text-blue-800",
   contacted: "bg-yellow-100 text-yellow-800",
   enrolled: "bg-green-100 text-green-800",
-  lost: "bg-gray-100 text-gray-600",
+  lost: "bg-muted text-muted-foreground",
 };
 
 const priorityLabels: Record<string, string> = {
@@ -216,7 +216,7 @@ export default function LeadDashboard() {
                       <td className="p-3">{lead.zipCode}</td>
                       <td className="p-3">
                         {lead.quizAnswers?.priority ? (
-                          <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                          <span className="text-xs bg-muted px-2 py-1 rounded-full">
                             {priorityLabels[lead.quizAnswers.priority] || lead.quizAnswers.priority}
                           </span>
                         ) : "-"}
@@ -329,9 +329,9 @@ export default function LeadDashboard() {
                 )}
 
                 {selectedLead.moneyOnTable && selectedLead.moneyOnTable > 0 && (
-                  <div className="bg-green-50 rounded-lg p-3 text-center">
-                    <p className="text-sm text-green-600">Money on Table</p>
-                    <p className="text-2xl font-bold text-green-700">${selectedLead.moneyOnTable.toLocaleString()}/year</p>
+                  <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-3 text-center">
+                    <p className="text-sm text-green-600 dark:text-green-400">Money on Table</p>
+                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">${selectedLead.moneyOnTable.toLocaleString()}/year</p>
                   </div>
                 )}
 

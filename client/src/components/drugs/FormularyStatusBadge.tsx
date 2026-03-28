@@ -25,7 +25,7 @@ export function FormularyStatusBadge({
       <Badge
         variant="secondary"
         className={cn(
-          "text-[10px] bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+          "text-[10px] bg-muted text-muted-foreground",
           className
         )}
       >

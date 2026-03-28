@@ -50,7 +50,7 @@ function statusBadgeClass(status: string): string {
     case "enrolled":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
     case "archived":
-      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+      return "bg-muted text-muted-foreground";
     default:
       return "";
   }
@@ -636,7 +636,7 @@ function SOATab({ clientId, clientName }: { clientId: string; clientName: string
                         "text-xs capitalize",
                         soa.status === "active"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          : "bg-muted text-muted-foreground"
                       )}
                     >
                       {soa.status}

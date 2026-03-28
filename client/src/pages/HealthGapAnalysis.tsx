@@ -101,8 +101,8 @@ export default function HealthGapAnalysisPage() {
 
   // Build the heatmap-style matrix data for the deep dive
   const buildHeatmapData = (gaps: HealthGap[]) => {
-    const conditions = [...new Set(gaps.map(g => g.conditionLabel))];
-    const benefits = [...new Set(gaps.map(g => g.benefitLabel))];
+    const conditions = Array.from(new Set(gaps.map(g => g.conditionLabel)));
+    const benefits = Array.from(new Set(gaps.map(g => g.benefitLabel)));
 
     return { conditions, benefits, gaps };
   };

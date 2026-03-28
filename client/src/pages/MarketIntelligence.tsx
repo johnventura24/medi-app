@@ -147,7 +147,7 @@ function getProspectScoreColor(score: number): string {
   if (score >= 80) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
   if (score >= 60) return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
   if (score >= 40) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-  return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+  return "bg-muted text-muted-foreground";
 }
 
 function getOpportunityBadgeVariant(opp: string): "default" | "destructive" | "secondary" | "outline" {
@@ -687,7 +687,7 @@ export default function MarketIntelligence() {
                         <Badge className={
                           angle.impactScore >= 80 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
                           angle.impactScore >= 60 ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
-                          "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                          "bg-muted text-muted-foreground"
                         }>
                           {angle.impactScore}
                         </Badge>

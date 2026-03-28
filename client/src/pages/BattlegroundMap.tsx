@@ -129,10 +129,10 @@ export default function BattlegroundMap() {
 
   // Build carrier color map from state data
   const carrierColorMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map: Record<string, string> = {};
     if (stateDetail?.carrierTerritories) {
-      stateDetail.carrierTerritories.forEach((ct, i) => {
-        map.set(ct.carrier, CARRIER_COLORS[i % CARRIER_COLORS.length]);
+      stateDetail.carrierTerritories.forEach((ct: any, i: number) => {
+        map[ct.carrier] = CARRIER_COLORS[i % CARRIER_COLORS.length];
       });
     }
     return map;
@@ -140,17 +140,20 @@ export default function BattlegroundMap() {
 
   // Build state color map from overview data
   const stateColorMap = useMemo(() => {
-    const map = new Map<string, { color: string; carrier: string; plans: number }>();
+    const map: Record<string, { color: string; carrier: string; plans: number }> = {};
     if (statesOverview) {
-      const carriers = [...new Set(statesOverview.map(s => s.topCarrier))];
-      const carrierIdx = new Map(carriers.map((c, i) => [c, i]));
-      statesOverview.forEach(s => {
-        const idx = carrierIdx.get(s.topCarrier) || 0;
-        map.set(s.state, {
+      const carrierSet: Record<string, boolean> = {};
+      statesOverview.forEach((s: any) => { carrierSet[s.topCarrier] = true; });
+      const carriers = Object.keys(carrierSet);
+      const carrierIdx: Record<string, number> = {};
+      carriers.forEach((c, i) => { carrierIdx[c] = i; });
+      statesOverview.forEach((s: any) => {
+        const idx = carrierIdx[s.topCarrier] || 0;
+        map[s.state] = {
           color: CARRIER_COLORS[idx % CARRIER_COLORS.length],
           carrier: s.topCarrier,
           plans: s.totalPlans,
-        });
+        };
       });
     }
     return map;
@@ -224,7 +227,7 @@ export default function BattlegroundMap() {
                     geographies.map((geo) => {
                       const stateName = geo.properties.name as string;
                       const stAbbr = STATE_NAME_TO_ABBR[stateName] || "";
-                      const info = stateColorMap.get(stAbbr);
+                      const info = stateColorMap[stAbbr];
                       return (
                         <Geography
                           key={geo.rsmKey}
@@ -274,19 +277,19 @@ export default function BattlegroundMap() {
                   <div className="space-y-3">
                     {(() => {
                       // Aggregate carrier stats
-                      const carrierMap = new Map<string, { statesWon: number; totalPlans: number }>();
-                      statesOverview.forEach(s => {
-                        const existing = carrierMap.get(s.topCarrier) || { statesWon: 0, totalPlans: 0 };
+                      const carrierObj: Record<string, { statesWon: number; totalPlans: number }> = {};
+                      statesOverview.forEach((s: any) => {
+                        const existing = carrierObj[s.topCarrier] || { statesWon: 0, totalPlans: 0 };
                         existing.statesWon++;
                         existing.totalPlans += s.totalPlans;
-                        carrierMap.set(s.topCarrier, existing);
+                        carrierObj[s.topCarrier] = existing;
                       });
-                      const sorted = [...carrierMap.entries()].sort((a, b) => b[1].statesWon - a[1].statesWon);
-                      const carriers = [...new Set(statesOverview.map(s => s.topCarrier))];
-                      const carrierIdx = new Map(carriers.map((c, i) => [c, i]));
+                      const sorted = Object.entries(carrierObj).sort((a, b) => b[1].statesWon - a[1].statesWon);
+                      const carrierIdxObj: Record<string, number> = {};
+                      sorted.forEach(([c], i) => { carrierIdxObj[c] = i; });
 
                       return sorted.slice(0, 15).map(([carrier, stats], i) => {
-                        const idx = carrierIdx.get(carrier) || 0;
+                        const idx = carrierIdxObj[carrier] || 0;
                         return (
                           <div key={carrier} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                             <div
@@ -339,7 +342,7 @@ export default function BattlegroundMap() {
               <ScrollArea className="h-[520px]">
                 <div className="space-y-2">
                   {stateDetail?.counties.map((county) => {
-                    const color = carrierColorMap.get(county.dominantCarrier.name) || "#64748b";
+                    const color = carrierColorMap[county.dominantCarrier.name] || "#64748b";
                     return (
                       <div
                         key={county.county}
@@ -393,7 +396,7 @@ export default function BattlegroundMap() {
               <ScrollArea className="h-[520px]">
                 <div className="space-y-3">
                   {stateDetail?.carrierTerritories.map((ct, i) => {
-                    const color = carrierColorMap.get(ct.carrier) || CARRIER_COLORS[i % CARRIER_COLORS.length];
+                    const color = carrierColorMap[ct.carrier] || CARRIER_COLORS[i % CARRIER_COLORS.length];
                     const pct = ct.totalCounties > 0 ? Math.round((ct.countiesWon / ct.totalCounties) * 100) : 0;
                     return (
                       <div key={ct.carrier} className="space-y-1.5">
@@ -466,7 +469,7 @@ export default function BattlegroundMap() {
                           {selectedCounty.topCarriers.slice(0, 8).map((c, i) => (
                             <Cell
                               key={c.name}
-                              fill={carrierColorMap.get(c.name) || CARRIER_COLORS[i % CARRIER_COLORS.length]}
+                              fill={carrierColorMap[c.name] || CARRIER_COLORS[i % CARRIER_COLORS.length]}
                             />
                           ))}
                         </Bar>

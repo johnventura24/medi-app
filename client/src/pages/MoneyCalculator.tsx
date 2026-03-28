@@ -178,7 +178,7 @@ function AlternativeCard({ alt, rank, onSelect }: { alt: any; rank: number; onSe
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star key={i} className={cn(
                   "h-4 w-4",
-                  i < alt.benefits.starRating ? "fill-amber-400 text-amber-400" : "text-gray-200"
+                  i < alt.benefits.starRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/70"
                 )} />
               ))}
               <span className="text-xs text-muted-foreground ml-1">{alt.benefits.starRating} stars</span>

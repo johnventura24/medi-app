@@ -130,7 +130,7 @@ export function CopayRangeChart({
             <span>Min-Max Range</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-gray-800 rounded-full border-2 border-white" />
+            <div className="w-3 h-3 bg-foreground rounded-full border-2 border-background" />
             <span>Average</span>
           </div>
         </div>

@@ -202,7 +202,7 @@ function SOADashboardContent() {
                                 "text-xs capitalize",
                                 soa.status === "active"
                                   ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                  : "bg-muted text-muted-foreground"
                               )}
                             >
                               {soa.status}

@@ -77,13 +77,13 @@ function StarRating({ rating }: { rating: number }) {
     } else if (i === full && half) {
       stars.push(<span key={i} className="text-yellow-400 text-xl" aria-hidden="true">&#9733;</span>);
     } else {
-      stars.push(<span key={i} className="text-gray-300 text-xl" aria-hidden="true">&#9734;</span>);
+      stars.push(<span key={i} className="text-gray-400 text-xl" aria-hidden="true">&#9734;</span>);
     }
   }
   return (
     <div className="flex items-center gap-0.5" role="img" aria-label={`${rating} out of 5 stars`}>
       {stars}
-      <span className="ml-1 text-sm text-gray-600">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-sm text-gray-700">{rating.toFixed(1)}</span>
     </div>
   );
 }
@@ -92,8 +92,8 @@ function StarRating({ rating }: { rating: number }) {
 
 function ConsumerTPMO() {
   return (
-    <div className="text-center px-4 py-4 border-t border-gray-200 bg-white/50">
-      <p className="text-xs text-gray-500 max-w-2xl mx-auto leading-relaxed">
+    <div className="text-center px-4 py-4 border-t border-gray-200 bg-white/80">
+      <p className="text-xs text-gray-600 max-w-2xl mx-auto leading-relaxed">
         We do not offer every plan available in your area. Currently we represent
         organizations which offer products in your area. Please contact{" "}
         <a href="https://www.medicare.gov" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">
@@ -214,7 +214,7 @@ export default function ConsumerFlow() {
   const quizComplete = priority !== null && seesSpecialist !== null && medications !== null && wantsExtras !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="light min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <AnimatePresence mode="wait">
         {screen === "hero" && (
           <HeroScreen
@@ -328,7 +328,7 @@ function HeroScreen({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl md:text-2xl text-gray-600 mb-10"
+            className="text-xl md:text-2xl text-gray-700 mb-10"
           >
             It's free. No pressure. Real data from CMS.
           </motion.p>
@@ -373,7 +373,7 @@ function HeroScreen({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-gray-500 text-lg"
+            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-gray-600 text-lg"
           >
             <span className="flex items-center gap-2">
               <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
@@ -452,13 +452,13 @@ function QuizScreen({
               className={`p-5 rounded-2xl border-2 text-left transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none hover:shadow-md ${
                 priority === opt.value
                   ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-blue-300"
+                  : "border-gray-300 bg-white hover:border-blue-300"
               }`}
               aria-pressed={priority === opt.value}
             >
               <span className="text-3xl block mb-2">{opt.icon}</span>
-              <span className="text-lg font-semibold text-gray-900 block">{opt.label}</span>
-              <span className="text-sm text-gray-500">{opt.desc}</span>
+              <span className="text-lg font-semibold text-gray-800 block">{opt.label}</span>
+              <span className="text-sm text-gray-600">{opt.desc}</span>
             </button>
           ))}
         </div>
@@ -475,7 +475,7 @@ function QuizScreen({
               className={`flex-1 py-5 px-8 text-xl font-semibold rounded-2xl border-2 transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none hover:shadow-md ${
                 seesSpecialist === val
                   ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-blue-300"
+                  : "border-gray-300 bg-white hover:border-blue-300"
               }`}
               aria-pressed={seesSpecialist === val}
             >
@@ -500,7 +500,7 @@ function QuizScreen({
               className={`flex-1 py-5 px-6 text-xl font-semibold rounded-2xl border-2 transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none hover:shadow-md ${
                 medications === opt.value
                   ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-blue-300"
+                  : "border-gray-300 bg-white hover:border-blue-300"
               }`}
               aria-pressed={medications === opt.value}
             >
@@ -524,7 +524,7 @@ function QuizScreen({
               className={`flex-1 py-5 px-6 text-xl font-semibold rounded-2xl border-2 transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none hover:shadow-md ${
                 wantsExtras === opt.value
                   ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-blue-300"
+                  : "border-gray-300 bg-white hover:border-blue-300"
               }`}
               aria-pressed={wantsExtras === opt.value}
             >
@@ -553,7 +553,7 @@ function QuizScreen({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back
           </button>
-          <div className="text-sm text-gray-500 font-medium">
+          <div className="text-sm text-gray-600 font-medium">
             Step 2 of 3 &middot; ZIP {zipCode}
           </div>
         </div>
@@ -561,7 +561,7 @@ function QuizScreen({
 
       {/* Progress bar */}
       <div className="max-w-md mx-auto w-full px-4 mb-8">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-blue-500 rounded-full"
             initial={{ width: "33%" }}
@@ -596,7 +596,7 @@ function QuizScreen({
                   key={i}
                   onClick={() => setQuizStep(i)}
                   className={`w-3 h-3 rounded-full transition-all ${
-                    i === quizStep ? "bg-blue-500 w-8" : "bg-gray-300"
+                    i === quizStep ? "bg-blue-500 w-8" : "bg-gray-400"
                   }`}
                   aria-label={`Go to question ${i + 1}`}
                 />
@@ -630,7 +630,7 @@ function QuizScreen({
             <button
               onClick={onSubmit}
               disabled={!quizComplete || loading}
-              className="bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xl font-semibold py-4 px-12 rounded-2xl shadow-lg hover:shadow-xl transition-all focus:ring-4 focus:ring-green-300 focus:outline-none"
+              className="bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xl font-semibold py-4 px-12 rounded-2xl shadow-lg hover:shadow-xl transition-all focus:ring-4 focus:ring-green-300 focus:outline-none"
             >
               {loading ? (
                 <span className="flex items-center gap-3">
@@ -705,7 +705,7 @@ function ResultsScreen({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back
           </button>
-          <div className="text-sm text-gray-500 font-medium">
+          <div className="text-sm text-gray-600 font-medium">
             Step 3 of 3 &middot; ZIP {zipCode}
           </div>
         </div>
@@ -713,7 +713,7 @@ function ResultsScreen({
 
       {/* Progress bar */}
       <div className="max-w-md mx-auto w-full px-4 mb-6">
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-300 rounded-full overflow-hidden">
           <div className="h-full bg-green-500 rounded-full w-full" />
         </div>
       </div>
@@ -728,7 +728,7 @@ function ResultsScreen({
               transition={{ duration: 0.5 }}
               className="text-center mb-10"
             >
-              <p className="text-xl text-gray-600 mb-2">
+              <p className="text-xl text-gray-700 mb-2">
                 Great news! Based on your ZIP <span className="font-bold">{zipCode}</span>:
               </p>
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-3xl p-8 md:p-10 shadow-xl">
@@ -739,7 +739,7 @@ function ResultsScreen({
                 </p>
                 <p className="text-lg md:text-xl opacity-90 mt-2">in value vs. Original Medicare</p>
               </div>
-              <p className="text-sm text-gray-500 mt-3">
+              <p className="text-sm text-gray-600 mt-3">
                 Based on {results.totalPlansAnalyzed} plans analyzed in {results.county}, {results.state}
               </p>
             </motion.div>
@@ -757,11 +757,11 @@ function ResultsScreen({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + idx * 0.15 }}
-                className="bg-white rounded-2xl border-2 border-gray-100 shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+                className="bg-white rounded-2xl border-2 border-gray-200 shadow-md hover:shadow-lg transition-shadow overflow-hidden"
               >
                 {/* Rank badge */}
                 <div className={`px-5 py-3 flex items-center justify-between ${
-                  idx === 0 ? "bg-blue-600 text-white" : "bg-gray-50 text-gray-700"
+                  idx === 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
                 }`}>
                   <span className="font-bold text-lg">
                     #{plan.rank} {idx === 0 ? "Best Match" : idx === 1 ? "Runner Up" : "Great Option"}
@@ -770,22 +770,22 @@ function ResultsScreen({
                 </div>
 
                 <div className="p-5 md:p-6">
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{plan.name}</h3>
-                  <p className="text-gray-500 text-lg mb-4">{plan.carrier} &middot; {plan.planType}</p>
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-1">{plan.name}</h3>
+                  <p className="text-gray-600 text-lg mb-4">{plan.carrier} &middot; {plan.planType}</p>
 
                   {/* Key metrics */}
                   <div className="grid grid-cols-3 gap-4 mb-5">
                     <div className="text-center p-3 bg-blue-50 rounded-xl">
                       <div className="text-2xl md:text-3xl font-bold text-blue-700">${plan.premium}</div>
-                      <div className="text-sm text-gray-600">per month</div>
+                      <div className="text-sm text-gray-700">per month</div>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-xl">
                       <div className="text-2xl md:text-3xl font-bold text-green-700">${plan.dental.toLocaleString()}</div>
-                      <div className="text-sm text-gray-600">dental</div>
+                      <div className="text-sm text-gray-700">dental</div>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-xl">
                       <div className="text-2xl md:text-3xl font-bold text-purple-700">${plan.otcPerYear}</div>
-                      <div className="text-sm text-gray-600">OTC/year</div>
+                      <div className="text-sm text-gray-700">OTC/year</div>
                     </div>
                   </div>
 
@@ -794,7 +794,7 @@ function ResultsScreen({
                     {plan.highlights.slice(0, 6).map((h, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full"
+                        className="inline-flex items-center gap-1 text-sm bg-gray-100 text-gray-800 px-3 py-1.5 rounded-full"
                       >
                         <svg className="w-4 h-4 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                         {h}
@@ -828,7 +828,7 @@ function ResultsScreen({
                 <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-2">
                   Want help choosing and enrolling?
                 </h2>
-                <p className="text-lg text-gray-600">
+                <p className="text-lg text-gray-700">
                   Talk to a licensed agent. It's <span className="font-semibold text-green-600">completely free</span>.
                 </p>
               </div>
@@ -836,7 +836,7 @@ function ResultsScreen({
               <div className="max-w-md mx-auto space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="first-name" className="block text-sm font-medium text-gray-800 mb-1">
                       First Name
                     </label>
                     <input
@@ -845,12 +845,12 @@ function ResultsScreen({
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
-                      className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                      className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
                       autoComplete="given-name"
                     />
                   </div>
                   <div>
-                    <label htmlFor="last-name" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="last-name" className="block text-sm font-medium text-gray-800 mb-1">
                       Last Name
                     </label>
                     <input
@@ -859,14 +859,14 @@ function ResultsScreen({
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Smith"
-                      className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                      className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
                       autoComplete="family-name"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="phone-input" className="block text-sm font-medium text-gray-800 mb-1">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -875,14 +875,14 @@ function ResultsScreen({
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="(555) 123-4567"
-                    className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                    className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
                     autoComplete="tel"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email-input" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span className="text-gray-400">(optional)</span>
+                  <label htmlFor="email-input" className="block text-sm font-medium text-gray-800 mb-1">
+                    Email <span className="text-gray-500">(optional)</span>
                   </label>
                   <input
                     id="email-input"
@@ -890,7 +890,7 @@ function ResultsScreen({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="john@example.com"
-                    className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                    className="w-full text-lg py-3 px-4 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
                     autoComplete="email"
                   />
                 </div>
@@ -898,7 +898,7 @@ function ResultsScreen({
                 <button
                   onClick={onRequestAgent}
                   disabled={!firstName || !lastName || !phone || submitting}
-                  className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xl font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all focus:ring-4 focus:ring-green-300 focus:outline-none"
+                  className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xl font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all focus:ring-4 focus:ring-green-300 focus:outline-none"
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-3">
@@ -914,7 +914,7 @@ function ResultsScreen({
                   <p className="text-red-500 text-center text-lg" role="alert">{error}</p>
                 )}
 
-                <p className="text-center text-sm text-gray-500 mt-4">
+                <p className="text-center text-sm text-gray-600 mt-4">
                   No obligation. No pressure. A licensed agent will help you compare plans and enroll.
                 </p>
               </div>
@@ -963,15 +963,15 @@ function ThankYouScreen({
             You're all set!
           </h1>
 
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-700 mb-8">
             A licensed Medicare agent will call you within <span className="font-bold text-blue-700">24 hours</span> to help you find the perfect plan.
           </p>
 
           {bestPlan && (
             <div className="bg-white rounded-2xl border-2 border-green-100 shadow-md p-6 mb-8 text-left">
-              <p className="text-sm text-gray-500 mb-1">Your top plan match</p>
-              <p className="text-xl font-bold text-gray-900">{bestPlan.name}</p>
-              <p className="text-gray-500">{bestPlan.carrier}</p>
+              <p className="text-sm text-gray-600 mb-1">Your top plan match</p>
+              <p className="text-xl font-bold text-gray-800">{bestPlan.name}</p>
+              <p className="text-gray-600">{bestPlan.carrier}</p>
               {results.moneyOnTable > 0 && (
                 <p className="text-green-600 font-semibold text-lg mt-2">
                   Potential savings: ${results.moneyOnTable.toLocaleString()}/year
@@ -993,13 +993,13 @@ function ThankYouScreen({
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
                     {i + 1}
                   </span>
-                  <span className="text-lg text-gray-700 pt-0.5">{step}</span>
+                  <span className="text-lg text-gray-800 pt-0.5">{step}</span>
                 </li>
               ))}
             </ol>
           </div>
 
-          <p className="text-gray-500 mt-8 text-lg">
+          <p className="text-gray-600 mt-8 text-lg">
             Questions? Call <span className="font-semibold">1-800-MEDICARE</span>
           </p>
         </div>
