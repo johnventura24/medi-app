@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/lib/ThemeProvider";
 import { AuthProvider } from "@/lib/AuthContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import Dashboard from "@/pages/Dashboard";
 import StateHeatmap from "@/pages/StateHeatmap";
 import CityReports from "@/pages/CityReports";
 import ZipRankings from "@/pages/ZipRankings";
@@ -41,6 +42,7 @@ import LeadDashboard from "@/pages/LeadDashboard";
 import DataSources from "@/pages/DataSources";
 import TrendsTimeline from "@/pages/TrendsTimeline";
 import CarrierMovements from "@/pages/CarrierMovements";
+import ACAMarketplace from "@/pages/ACAMarketplace";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -54,8 +56,9 @@ import { useAuth } from "@/hooks/useAuth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={StateHeatmap} />
-      <Route path="/dashboard" component={StateHeatmap} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard/states" component={StateHeatmap} />
       <Route path="/cities" component={CityReports} />
       <Route path="/zips" component={ZipRankings} />
       <Route path="/benefits" component={BenefitView} />
@@ -86,6 +89,7 @@ function Router() {
       <Route path="/leads" component={LeadDashboard} />
       <Route path="/trends" component={TrendsTimeline} />
       <Route path="/carrier-movements" component={CarrierMovements} />
+      <Route path="/aca" component={ACAMarketplace} />
       <Route path="/data-sources" component={DataSources} />
       <Route component={NotFound} />
     </Switch>

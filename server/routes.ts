@@ -36,6 +36,7 @@ import { registerTrendRoutes } from "./routes/trends";
 import { registerCarrierMovementRoutes } from "./routes/carrier-movements";
 import { registerCmsLiveRoutes } from "./routes/cms-live";
 import { registerFhirFormularyRoutes } from "./routes/fhir-formulary";
+import { registerACARoutes } from "./routes/aca";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -747,6 +748,9 @@ export async function registerRoutes(
   // Register FHIR Formulary routes
   registerFhirFormularyRoutes(app);
 
+  // Register ACA Marketplace routes
+  registerACARoutes(app);
+
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
     try {
@@ -773,6 +777,7 @@ export async function registerRoutes(
         plansWithCahps,
         providerQualityCount,
         aiExplanationsCount,
+        acaPlansCount,
       ] = await Promise.all([
         safeCount("SELECT count(*) FROM plans"),
         safeCount("SELECT count(*) FROM zip_county_map"),
@@ -786,6 +791,7 @@ export async function registerRoutes(
         safeCount("SELECT count(*) FROM plans WHERE overall_star_rating IS NOT NULL AND overall_star_rating > 0"),
         safeCount("SELECT count(*) FROM provider_quality"),
         safeCount("SELECT count(*) FROM ai_explanations"),
+        safeCount("SELECT count(*) FROM aca_plans"),
       ]);
 
       const sources = [
@@ -888,6 +894,15 @@ export async function registerRoutes(
           status: providerQualityCount !== null && providerQualityCount > 0 ? "connected" : "not_configured",
           records: providerQualityCount,
           provides: ["Provider quality scores", "Patient experience", "Specialty data"],
+          endpoint: null,
+        },
+        {
+          name: "ACA Marketplace Plans (QHP)",
+          type: "file_import",
+          description: "Affordable Care Act qualified health plans — individual market plans from Healthcare.gov",
+          status: acaPlansCount !== null && acaPlansCount > 0 ? "connected" : "not_configured",
+          records: acaPlansCount,
+          provides: ["QHP plan details", "Premiums by age band", "Metal levels", "Deductibles", "MOOP", "Issuer data"],
           endpoint: null,
         },
         {

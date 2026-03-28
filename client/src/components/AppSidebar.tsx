@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -14,97 +15,115 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Map,
   Building2,
   MapPin,
-  Stethoscope,
-  Pill,
-  CreditCard,
-  ShoppingCart,
-  Car,
-  DollarSign,
-  Building,
-  FileText,
-  Target,
-  Zap,
-  LayoutGrid,
-  ArrowLeftRight,
-  ShieldCheck,
-  Settings,
-  HelpCircle,
-  LogIn,
   Search,
   GitCompareArrows,
-  Users,
-  FileCheck,
-  FileSpreadsheet,
-  TrendingUp,
-  BarChart3,
-  Gem,
   Calculator,
+  Gem,
+  Users,
+  UserPlus,
+  FileCheck,
+  Inbox,
+  TrendingUp,
   Swords,
   Activity,
   HeartPulse,
-  Inbox,
-  Database,
-  LineChart,
   ArrowRightLeft,
+  LineChart,
+  LayoutGrid,
+  ArrowLeftRight,
+  ShieldCheck,
+  FileSpreadsheet,
+  Database,
+  Settings,
+  HelpCircle,
+  LogIn,
+  Target,
+  Home,
+  ChevronDown,
+  Users as UsersIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-const geographyViews = [
-  { title: "State Heatmap", url: "/dashboard", icon: Map },
-  { title: "City Reports", url: "/cities", icon: Building2 },
-  { title: "ZIP Rankings", url: "/zips", icon: MapPin },
-];
+interface NavItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
-const benefitViews = [
-  { title: "All Benefits", url: "/benefits", icon: Zap },
-  { title: "Dental", url: "/benefits/dental", icon: Stethoscope },
-  { title: "OTC", url: "/benefits/otc", icon: Pill },
-  { title: "Flex Card", url: "/benefits/flex-card", icon: CreditCard },
-  { title: "Groceries", url: "/benefits/groceries", icon: ShoppingCart },
-  { title: "Transportation", url: "/benefits/transportation", icon: Car },
-];
+interface NavGroup {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+  defaultOpen: boolean;
+}
 
-const carrierViews = [
-  { title: "Carrier Comparison", url: "/carriers", icon: Building },
-  { title: "Plan Comparison", url: "/plans", icon: FileText },
-];
-
-const targetingViews = [
-  { title: "Opportunity Score", url: "/opportunity", icon: Target },
-  { title: "Best Angles", url: "/recommendations", icon: Zap },
-];
-
-const intelligenceViews = [
-  { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
-  { title: "Trends & Timeline", url: "/trends", icon: LineChart },
-  { title: "Battleground Map", url: "/battleground", icon: Swords },
-  { title: "AEP War Room", url: "/warroom", icon: Activity },
-  { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
-  { title: "Carrier Movements", url: "/carrier-movements", icon: ArrowRightLeft },
-];
-
-const agentToolsViews = [
-  { title: "Plan Finder", url: "/find", icon: Search },
-  { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
-  { title: "Leads", url: "/leads", icon: Inbox },
-  { title: "Clients", url: "/clients", icon: Users },
-  { title: "SOA Dashboard", url: "/soa", icon: FileCheck },
-];
-
-const powerToolsViews = [
-  { title: "Money Calculator", url: "/calculator", icon: Calculator },
-  { title: "Hidden Gems", url: "/gems", icon: Gem },
-  { title: "Archetypes", url: "/archetypes", icon: Users },
-];
-
-const complianceViews = [
-  { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
-  { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
-  { title: "Data Validation", url: "/validation", icon: ShieldCheck },
-  { title: "Benefit Grid", url: "/benefit-grid", icon: FileSpreadsheet },
+const navGroups: NavGroup[] = [
+  {
+    label: "Explore",
+    icon: MapPin,
+    defaultOpen: true,
+    items: [
+      { title: "State Overview", url: "/dashboard/states", icon: Map },
+      { title: "County Reports", url: "/cities", icon: Building2 },
+      { title: "ZIP Rankings", url: "/zips", icon: MapPin },
+      { title: "ACA Marketplace", url: "/aca", icon: ShieldCheck },
+    ],
+  },
+  {
+    label: "Find & Compare",
+    icon: Search,
+    defaultOpen: true,
+    items: [
+      { title: "Plan Finder", url: "/find", icon: Search },
+      { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
+      { title: "Money Calculator", url: "/calculator", icon: Calculator },
+      { title: "Hidden Gems", url: "/gems", icon: Gem },
+    ],
+  },
+  {
+    label: "Clients",
+    icon: Users,
+    defaultOpen: false,
+    items: [
+      { title: "My Clients", url: "/clients", icon: Users },
+      { title: "New Client", url: "/clients/new", icon: UserPlus },
+      { title: "SOA Dashboard", url: "/soa", icon: FileCheck },
+      { title: "Leads", url: "/leads", icon: Inbox },
+    ],
+  },
+  {
+    label: "Intelligence",
+    icon: TrendingUp,
+    defaultOpen: true,
+    items: [
+      { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
+      { title: "Battleground Map", url: "/battleground", icon: Swords },
+      { title: "Carrier Movements", url: "/carrier-movements", icon: ArrowRightLeft },
+      { title: "AEP War Room", url: "/warroom", icon: Activity },
+      { title: "Trends", url: "/trends", icon: LineChart },
+      { title: "Archetypes", url: "/archetypes", icon: UsersIcon },
+      { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
+    ],
+  },
+  {
+    label: "Compliance",
+    icon: ShieldCheck,
+    defaultOpen: false,
+    items: [
+      { title: "Benefit Grid", url: "/benefit-grid", icon: FileSpreadsheet },
+      { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
+      { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
+      { title: "Data Validation", url: "/validation", icon: ShieldCheck },
+    ],
+  },
 ];
 
 export function AppSidebar() {
@@ -113,7 +132,21 @@ export function AppSidebar() {
 
   const isActive = (url: string) => {
     if (url === "/dashboard") return location === "/" || location === "/dashboard";
-    return location.startsWith(url);
+    if (url === "/dashboard/states") return location === "/dashboard/states";
+    return location === url || (url !== "/" && location.startsWith(url + "/"));
+  };
+
+  // Track which groups are open — initialize from defaultOpen
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    navGroups.forEach((g) => {
+      initial[g.label] = g.defaultOpen;
+    });
+    return initial;
+  });
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   return (
@@ -131,181 +164,69 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Dashboard — always visible at top */}
         <SidebarGroup>
-          <SidebarGroupLabel>Geography Views</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {geographyViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/dashboard")}
+                  data-testid="nav-dashboard"
+                >
+                  <Link href="/dashboard">
+                    <Home className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Benefit Views</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {benefitViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Carrier & Plans</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {carrierViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Targeting</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {targetingViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Intelligence</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {intelligenceViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Power Tools</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {powerToolsViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Agent Tools</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {agentToolsViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Compliance</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {complianceViews.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Collapsible nav groups */}
+        {navGroups.map((group) => (
+          <Collapsible
+            key={group.label}
+            open={openGroups[group.label]}
+            onOpenChange={() => toggleGroup(group.label)}
+          >
+            <SidebarGroup>
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="cursor-pointer select-none hover:text-foreground transition-colors">
+                  <span className="flex items-center gap-1.5 flex-1">
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                      openGroups[group.label] ? "" : "-rotate-90"
+                    }`}
+                  />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((navItem) => (
+                      <SidebarMenuItem key={navItem.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive(navItem.url)}
+                          data-testid={`nav-${navItem.title.toLowerCase().replace(/\s+/g, "-")}`}
+                        >
+                          <Link href={navItem.url}>
+                            <navItem.icon className="h-4 w-4" />
+                            <span>{navItem.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="p-4">
@@ -319,7 +240,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild data-testid="nav-settings">
+            <SidebarMenuButton asChild isActive={isActive("/settings")} data-testid="nav-settings">
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>

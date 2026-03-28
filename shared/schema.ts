@@ -937,3 +937,36 @@ export const cmsSbFieldOrder = [
   // Referral/Auth
   'requiresPcpReferral', 'priorAuthNotes',
 ] as const;
+
+// ── ACA Marketplace Plans table ──
+
+export const acaPlans = pgTable("aca_plans", {
+  id: serial("id").primaryKey(),
+  planId: text("plan_id").notNull(), // HIOS plan ID
+  planName: text("plan_name").notNull(),
+  issuerName: text("issuer_name").notNull(),
+  metalLevel: text("metal_level"), // Bronze, Silver, Gold, Platinum, Catastrophic
+  planType: text("plan_type"), // HMO, PPO, EPO, POS
+  state: text("state").notNull(),
+  county: text("county"),
+  fips: text("fips"),
+  premiumAge27: real("premium_age_27"),
+  premiumAge40: real("premium_age_40"),
+  premiumAge60: real("premium_age_60"),
+  deductibleIndividual: real("deductible_individual"),
+  deductibleFamily: real("deductible_family"),
+  moopIndividual: real("moop_individual"),
+  moopFamily: real("moop_family"),
+  ehbPct: real("ehb_pct"), // essential health benefits percentage
+  hsaEligible: boolean("hsa_eligible").default(false),
+  childOnly: boolean("child_only").default(false),
+  planYear: integer("plan_year"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_aca_state").on(table.state),
+  index("idx_aca_county").on(table.county, table.state),
+  index("idx_aca_issuer").on(table.issuerName),
+  index("idx_aca_metal").on(table.metalLevel),
+]);
+
+export type ACAPlan = typeof acaPlans.$inferSelect;
