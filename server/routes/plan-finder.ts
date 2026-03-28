@@ -51,14 +51,14 @@ export function registerPlanFinderRoutes(app: Express) {
       const maxSpecialistCopay = parseNum(req.query.maxSpecialistCopay);
       const minDental = parseNum(req.query.minDental);
       const minVision = parseNum(req.query.minVision);
-      const minOtc = parseNum(req.query.minOtc);
-      const hasTransportation = parseBool(req.query.hasTransportation);
-      const hasMealBenefit = parseBool(req.query.hasMealBenefit);
-      const hasFitnessBenefit = parseBool(req.query.hasFitnessBenefit);
-      const hasTelehealth = parseBool(req.query.hasTelehealth);
+      const minOtc = parseNum(req.query.minOtc) ?? parseNum(req.query.minOtcPerQuarter);
+      const hasTransportation = parseBool(req.query.hasTransportation) ?? parseBool(req.query.transportation);
+      const hasMealBenefit = parseBool(req.query.hasMealBenefit) ?? parseBool(req.query.mealBenefit);
+      const hasFitnessBenefit = parseBool(req.query.hasFitnessBenefit) ?? parseBool(req.query.fitness);
+      const hasTelehealth = parseBool(req.query.hasTelehealth) ?? parseBool(req.query.telehealth);
       const minStarRating = parseNum(req.query.minStarRating);
       const maxDrugDeductible = parseNum(req.query.maxDrugDeductible);
-      const hasPartbGiveback = parseBool(req.query.hasPartbGiveback);
+      const hasPartbGiveback = parseBool(req.query.hasPartbGiveback) ?? parseBool(req.query.partBGiveback);
       const planType = req.query.planType as string | undefined;
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 25));
@@ -249,7 +249,8 @@ export function registerPlanFinderRoutes(app: Express) {
 
         return {
           id: r.id,
-          planName: r.name,
+          name: r.name,
+          planName: r.name, // backward compat
           carrier: r.organizationName,
           planType: (r.category || "").replace("PLAN_CATEGORY_", ""),
           premium: r.calculatedMonthlyPremium ?? 0,
@@ -257,15 +258,25 @@ export function registerPlanFinderRoutes(app: Express) {
           moop: moopVal,
           pcpCopay: r.pcpCopayMin ?? 0,
           specialistCopay: r.specialistCopayMin ?? 0,
+          dental: r.dentalCoverageLimit ?? 0,
           dentalCoverageLimit: r.dentalCoverageLimit ?? 0,
+          vision: r.visionAllowance ?? 0,
           visionAllowance: r.visionAllowance ?? 0,
+          otcPerQuarter: r.otcAmountPerQuarter ?? 0,
           otcAmountPerQuarter: r.otcAmountPerQuarter ?? null,
+          transportation: r.hasTransportation ?? false,
           hasTransportation: r.hasTransportation ?? false,
+          mealBenefit: r.hasMealBenefit ?? false,
           hasMealBenefit: r.hasMealBenefit ?? false,
+          fitness: r.hasFitnessBenefit ?? false,
           hasFitnessBenefit: r.hasFitnessBenefit ?? false,
+          telehealth: r.hasTelehealth ?? false,
           hasTelehealth: r.hasTelehealth ?? false,
+          inHomeSupport: r.hasInHomeSupport ?? false,
           starRating: r.overallStarRating ?? null,
+          overallStarRating: r.overallStarRating ?? null,
           drugDeductible: r.drugDeductible ?? null,
+          partBGiveback: r.partbGiveback ?? null,
           partbGiveback: r.partbGiveback ?? null,
           state: r.state,
           county: r.county,
@@ -273,6 +284,21 @@ export function registerPlanFinderRoutes(app: Express) {
           matchScore,
           matchedCriteria,
           unmatchedCriteria,
+          // Extended detail fields
+          erCopay: r.emergencyCopay ?? 0,
+          dentalPreventiveCovered: r.dentalPreventiveCovered ?? null,
+          dentalComprehensiveCovered: r.dentalComprehensiveCovered ?? null,
+          visionExamCopay: r.visionExamCopay ?? null,
+          hearingAidAllowance: r.hearingAidAllowance ?? null,
+          telehealthCopay: r.telehealthCopay ?? null,
+          flexCardAmount: r.flexCardAmount ?? null,
+          groceryAllowanceAmount: r.groceryAllowanceAmount ?? null,
+          transportationAmountPerYear: r.transportationAmountPerYear ?? null,
+          mealBenefitAmount: r.mealBenefitAmount ?? null,
+          tier1CopayPreferred: r.tier1CopayPreferred ?? null,
+          tier2CopayPreferred: r.tier2CopayPreferred ?? null,
+          tier3CopayPreferred: r.tier3CopayPreferred ?? null,
+          requiresPcpReferral: r.requiresPcpReferral ?? null,
         };
       });
 
@@ -294,7 +320,9 @@ export function registerPlanFinderRoutes(app: Express) {
         page,
         limit,
         criteriaUsed: totalCriteria,
+        totalCriteria,
         zipResolved,
+        location: zipResolved, // alias for frontend compatibility
       });
     } catch (err: any) {
       console.error("Error in plan finder:", err.message);
