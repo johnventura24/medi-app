@@ -20,6 +20,7 @@ import {
   Ear,
   Heart
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 interface BenefitDetailData {
   benefitType: string;
@@ -104,22 +105,18 @@ export default function BenefitDetailView() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 mb-2">
         <Link href="/benefits">
           <Button variant="ghost" size="icon" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-primary/10 text-primary">
-            {icon}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-benefit-title">{displayName} Benefits</h1>
-            <p className="text-muted-foreground">Detailed analysis across states and ZIP codes</p>
-          </div>
-        </div>
       </div>
+      <PageHeader
+        title={`${displayName} Benefits`}
+        description="Detailed analysis across states and ZIP codes for this benefit type."
+        helpText="Review which states and ZIP codes offer the richest benefits. Use this data to target your marketing efforts."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

@@ -21,6 +21,7 @@ import {
   LogOut,
   Loader2,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 interface SavedSearch {
   id: number;
@@ -89,6 +90,10 @@ function ProfileContent() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <PageHeader
+        title="My Profile"
+        description="Your account, saved searches, and favorite plans."
+      />
       {/* User Info Card */}
       <Card>
         <CardHeader>

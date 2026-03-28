@@ -5,6 +5,7 @@ import { TargetingRecommendations } from "@/components/TargetingRecommendations"
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TargetingRecommendation } from "@shared/schema";
 import { Target, Zap, TrendingUp, MapPin } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Recommendations() {
   const { data: recommendations = [], isLoading, isError } = useQuery<TargetingRecommendation[]>({
@@ -57,6 +58,11 @@ export default function Recommendations() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="Targeting Recommendations"
+        description="Data-driven targeting opportunities ranked by potential impact."
+        helpText="Each recommendation includes a score and location. Higher scores indicate stronger opportunities for outreach."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Targeting Opportunities"

@@ -489,6 +489,24 @@ export const providerCache = pgTable("provider_cache", {
 export type ProviderCacheEntry = typeof providerCache.$inferSelect;
 export type InsertProviderCacheEntry = typeof providerCache.$inferInsert;
 
+// ── Provider Network Cache table (FHIR / carrier network verification cache) ──
+
+export const providerNetworkCache = pgTable("provider_network_cache", {
+  id: serial("id").primaryKey(),
+  npi: text("npi").notNull(),
+  carrier: text("carrier").notNull(),
+  contractId: text("contract_id"),
+  inNetwork: boolean("in_network"),
+  source: text("source").notNull(), // "FHIR API" | "Cache" | "Unknown"
+  verifiedAt: timestamp("verified_at").defaultNow(),
+}, (table) => [
+  index("idx_pnc_npi").on(table.npi),
+  uniqueIndex("uq_pnc_npi_carrier_contract").on(table.npi, table.carrier, table.contractId),
+]);
+
+export type ProviderNetworkCacheEntry = typeof providerNetworkCache.$inferSelect;
+export type InsertProviderNetworkCacheEntry = typeof providerNetworkCache.$inferInsert;
+
 // ── AI Explanations table (cached AI-generated plan summaries) ──
 
 export const aiExplanations = pgTable("ai_explanations", {

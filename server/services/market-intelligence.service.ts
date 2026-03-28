@@ -491,8 +491,14 @@ export async function getCarrierMarketShare(state?: string): Promise<CarrierMark
   if (state) conditions.push(eq(plans.state, state.toUpperCase()));
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const totalResult = await db.select({ total: count() }).from(plans).where(whereClause);
+  // Use enrollment_count for real market share when available, fall back to plan count
+  const totalResult = await db.select({
+    total: count(),
+    totalEnrollment: sql<number>`coalesce(sum(enrollment_count), 0)`.as("total_enrollment"),
+  }).from(plans).where(whereClause);
   const totalPlans = Number(totalResult[0]?.total || 1);
+  const totalEnrollment = Number(totalResult[0]?.totalEnrollment || 0);
+  const useEnrollment = totalEnrollment > 0;
 
   const rows = await db.select({
     org: plans.organizationName,
@@ -503,19 +509,26 @@ export async function getCarrierMarketShare(state?: string): Promise<CarrierMark
     otcCount: sql<number>`count(*) filter (where ${plans.hasOtc} = true)`.as("otc_count"),
     avgPremium: avg(plans.calculatedMonthlyPremium).as("avg_premium"),
     avgStar: avg(plans.overallStarRating).as("avg_star"),
+    totalEnrollment: sql<number>`coalesce(sum(enrollment_count), 0)`.as("total_enrollment"),
   })
     .from(plans)
     .where(whereClause)
     .groupBy(plans.organizationName)
-    .orderBy(desc(sql`count(*)`))
+    .orderBy(useEnrollment ? desc(sql`coalesce(sum(enrollment_count), 0)`) : desc(sql`count(*)`))
     .limit(30);
 
   return rows.map((r) => {
     const pc = Number(r.planCount);
+    const enrollment = Number(r.totalEnrollment) || 0;
+    // Use real enrollment for market share when available, otherwise fall back to plan count
+    const marketShare = useEnrollment && enrollment > 0
+      ? Math.round((enrollment / totalEnrollment) * 10000) / 100
+      : Math.round((pc / totalPlans) * 10000) / 100;
+
     return {
       carrier: r.org,
       planCount: pc,
-      marketShare: Math.round((pc / totalPlans) * 10000) / 100,
+      marketShare,
       counties: Number(r.countyCount),
       states: Number(r.stateCount),
       avgDental: Math.round(Number(r.avgDental) || 0),

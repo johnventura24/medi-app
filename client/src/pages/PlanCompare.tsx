@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AIComparisonNarrative } from "@/components/ai/AIComparisonNarrative";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Types ──
 
@@ -401,39 +402,37 @@ export default function PlanCompare() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Plan Comparison</h1>
-          <p className="text-sm text-muted-foreground">
-            Comparing {plans.length} plan{plans.length !== 1 ? "s" : ""} side by side
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-2 mr-4">
-            <Switch
-              checked={differencesOnly}
-              onCheckedChange={setDifferencesOnly}
-              id="diff-toggle"
-            />
-            <Label htmlFor="diff-toggle" className="text-sm cursor-pointer">
-              Differences Only
-            </Label>
+      <PageHeader
+        title="Plan Comparison"
+        description="Side-by-side comparison of up to 6 plans with best/worst highlighting."
+        helpText="Green cells = best value. Red cells = worst. Toggle 'Differences Only' to hide identical rows."
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 mr-4">
+              <Switch
+                checked={differencesOnly}
+                onCheckedChange={setDifferencesOnly}
+                id="diff-toggle"
+              />
+              <Label htmlFor="diff-toggle" className="text-sm cursor-pointer">
+                Differences Only
+              </Label>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportCsv}>
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf}>
+              <FileText className="h-4 w-4 mr-1" />
+              PDF
+            </Button>
           </div>
-          <Button variant="outline" size="sm" onClick={handleShare}>
-            <Share2 className="h-4 w-4 mr-1" />
-            Share
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportCsv}>
-            <Download className="h-4 w-4 mr-1" />
-            CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportPdf}>
-            <FileText className="h-4 w-4 mr-1" />
-            PDF
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Plan Summary Badges */}
       <div className="flex flex-wrap gap-2">

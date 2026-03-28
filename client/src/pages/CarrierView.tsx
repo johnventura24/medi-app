@@ -11,6 +11,7 @@ import { BenefitComparisonBar } from "@/components/charts/BenefitComparisonBar";
 import type { CarrierData, NationalAverages } from "@shared/schema";
 import { Building, Users, MapPin, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function CarrierView() {
   const { data: carrierData = [], isLoading, isError } = useQuery<CarrierData[]>({
@@ -156,6 +157,11 @@ export default function CarrierView() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="Carrier Analysis"
+        description="Market share and benefit comparison across 301 Medicare Advantage carriers."
+        helpText="Compare carriers on dental, OTC, vision, and flex card benefits. Market share is based on plan count."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Total Carriers"

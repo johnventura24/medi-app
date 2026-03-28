@@ -9,6 +9,7 @@ import { StarRatingDistribution } from "@/components/charts/StarRatingDistributi
 import type { CityData, PlanData } from "@shared/schema";
 import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function CityReports() {
   const { data: cityData = [], isLoading, isError } = useQuery<CityData[]>({
@@ -143,6 +144,11 @@ export default function CityReports() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="County Reports"
+        description="Plan availability and benefit comparison at the county level. See which carriers dominate each area."
+        helpText="Sort any column by clicking the header. Click Export to download this data as CSV."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Cities Analyzed"

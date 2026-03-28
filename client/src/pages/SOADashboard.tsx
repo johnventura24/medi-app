@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSOA, type SOARecord } from "@/hooks/useRecommendations";
+import { PageHeader } from "@/components/PageHeader";
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "--";
@@ -76,8 +77,11 @@ function SOADashboardContent() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <h1 className="text-3xl font-bold tracking-tight">Scope of Appointments</h1>
+      <PageHeader
+        title="Scope of Appointments"
+        description="Track SOA compliance. Never miss an expiration."
+        helpText="Telephonic SOAs expire 48 hours after signing. The alert banner warns you when SOAs are about to expire."
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

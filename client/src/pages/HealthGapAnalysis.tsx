@@ -27,6 +27,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { PageHeader } from "@/components/PageHeader";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN",
@@ -118,19 +119,13 @@ export default function HealthGapAnalysisPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      <PageHeader
+        title="Health x Benefits Gap Analysis"
+        description="Where chronic conditions meet coverage gaps. Find the marketing angles nobody else sees."
+        helpText="Red cells = high condition rate but low benefit coverage. These gaps represent opportunities for carriers and marketing messaging."
+      />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="p-2 bg-rose-100 dark:bg-rose-950/30 rounded-lg">
-              <HeartPulse className="h-7 w-7 text-rose-600 dark:text-rose-400" />
-            </div>
-            Health x Benefits Gap Analysis
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Where chronic conditions meet coverage gaps
-          </p>
-        </div>
+        <div />
         <Select value={selectedState} onValueChange={(v) => {
           setSelectedState(v === "all" ? "" : v);
           setSelectedCounty(null);

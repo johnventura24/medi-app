@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClients, type ClientData } from "@/hooks/useClients";
+import { PageHeader } from "@/components/PageHeader";
 
 const STATUS_TABS = [
   { label: "All", value: "all" },
@@ -98,14 +99,17 @@ function ClientListContent() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">My Clients</h1>
-        <Button onClick={() => navigate("/clients/new")}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Client
-        </Button>
-      </div>
+      <PageHeader
+        title="My Clients"
+        description="Manage your beneficiary clients. Track intake, recommendations, and enrollment status."
+        helpText="Click a client to see their profile, plan recommendations, and compliance records."
+        actions={
+          <Button onClick={() => navigate("/clients/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Client
+          </Button>
+        }
+      />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

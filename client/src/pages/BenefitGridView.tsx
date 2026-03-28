@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/PageHeader";
 
 interface ExportLog {
   id: number;
@@ -78,19 +79,12 @@ export default function BenefitGridView() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <FileSpreadsheet className="h-7 w-7 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight">Benefit Grid Export</h1>
-          </div>
-          <p className="text-muted-foreground">
-            Generate compliance-ready benefit grids matching carrier submission templates
-          </p>
-        </div>
-        <BenefitGridExport />
-      </div>
+      <PageHeader
+        title="Benefit Grid Export"
+        description="Generate compliance-ready benefit grids matching carrier submission templates."
+        helpText="Select a carrier and state, preview the row counts, then download. The XLSX matches your exact template format."
+        actions={<BenefitGridExport />}
+      />
 
       {/* Sheet description cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

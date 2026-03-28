@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { PlanData } from "@shared/schema";
 import { FileText, DollarSign, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function PlanView() {
   const { data: planData = [], isLoading, isError } = useQuery<PlanData[]>({
@@ -58,6 +59,11 @@ export default function PlanView() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="Plan Browser"
+        description="Browse individual Medicare Advantage plans with full benefit details."
+        helpText="Filter by state, carrier, or plan type. Click any plan for complete details."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Plans to Compare"

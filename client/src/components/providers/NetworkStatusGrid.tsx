@@ -10,13 +10,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Stethoscope, AlertTriangle, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Stethoscope, AlertTriangle, ExternalLink, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useProviderSearch";
 
 interface NetworkStatusGridProps {
   npi: string;
   planIds: number[];
+}
+
+function formatVerifiedDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+function sourceLabel(source: string): string {
+  switch (source) {
+    case "FHIR API":
+      return "Verified via FHIR";
+    case "Cache":
+      return "Cached result";
+    default:
+      return "Not verified";
+  }
 }
 
 export function NetworkStatusGrid({ npi, planIds }: NetworkStatusGridProps) {
@@ -78,63 +108,108 @@ export function NetworkStatusGrid({ npi, planIds }: NetworkStatusGridProps) {
                   <TableHead className="text-xs text-center">
                     Network Status
                   </TableHead>
+                  <TableHead className="text-xs text-center">
+                    Source
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {statuses.map((status) => (
-                  <TableRow key={status.planId}>
-                    <TableCell className="text-sm font-medium">
-                      {status.planName}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {status.carrier}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {status.inNetwork === true && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        >
-                          In-Network
-                        </Badge>
-                      )}
-                      {status.inNetwork === false && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        >
-                          Out-of-Network
-                        </Badge>
-                      )}
-                      {status.inNetwork === null && (
-                        <div className="flex items-center justify-center gap-1">
-                          <Badge
-                            variant="secondary"
-                            className="text-xs bg-muted text-muted-foreground"
-                          >
-                            Unknown
-                          </Badge>
-                          {status.carrierWebsite && (
+                {statuses.map((status) => {
+                  const verifyUrl = status.carrierUrl || status.carrierWebsite;
+                  const verified = formatVerifiedDate(status.verifiedAt);
+
+                  return (
+                    <TableRow key={status.planId}>
+                      <TableCell className="text-sm font-medium">
+                        {status.planName}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {status.carrier}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {status.inNetwork === true && (
+                          <div className="flex items-center justify-center gap-1">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            >
+                              In-Network
+                            </Badge>
+                          </div>
+                        )}
+                        {status.inNetwork === false && (
+                          <div className="flex items-center justify-center gap-1">
+                            <XCircle className="h-4 w-4 text-red-600" />
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                            >
+                              Out-of-Network
+                            </Badge>
+                          </div>
+                        )}
+                        {status.inNetwork === null && (
+                          <div className="flex items-center justify-center gap-1">
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-muted text-muted-foreground"
+                            >
+                              Unknown
+                            </Badge>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-col items-center gap-0.5">
+                          {status.source && status.source !== "Unknown" ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-[10px] text-muted-foreground cursor-help">
+                                    {sourceLabel(status.source)}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {verified
+                                    ? `Last verified: ${verified}`
+                                    : "Verification date unavailable"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : verifyUrl ? (
                             <a
-                              href={status.carrierWebsite}
+                              href={verifyUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline inline-flex items-center gap-0.5"
+                              className="text-[10px] text-primary hover:underline inline-flex items-center gap-0.5"
                             >
-                              Verify
+                              Verify at carrier website
                               <ExternalLink className="h-3 w-3" />
                             </a>
-                          )}
-                          {!status.carrierWebsite && (
+                          ) : (
                             <span className="text-[10px] text-muted-foreground">
                               Verify with carrier
                             </span>
                           )}
+                          {/* Show verify link even for known statuses so users can double-check */}
+                          {status.source && status.source !== "Unknown" && verifyUrl && (
+                            <a
+                              href={verifyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] text-primary/70 hover:underline inline-flex items-center gap-0.5"
+                            >
+                              Verify
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
                         </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

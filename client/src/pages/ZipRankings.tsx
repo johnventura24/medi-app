@@ -9,6 +9,7 @@ import { DesirabilityHistogram } from "@/components/charts/DesirabilityHistogram
 import type { ZipData } from "@shared/schema";
 import { MapPin, Target, Star, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function ZipRankings() {
   const { data: zipData = [], isLoading, isError } = useQuery<ZipData[]>({
@@ -71,6 +72,11 @@ export default function ZipRankings() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="ZIP Code Rankings"
+        description="ZIP codes ranked by plan density and benefit richness. Higher scores mean more plan options with better benefits."
+        helpText="The desirability score factors in plan count, dental coverage, and supplemental benefit availability."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="ZIP Codes Analyzed"

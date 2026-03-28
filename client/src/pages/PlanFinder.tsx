@@ -40,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePlanFinder, type FinderCriteria, type FinderPlanResult } from "@/hooks/usePlanFinder";
 import { AIPlanExplainer } from "@/components/ai/AIPlanExplainer";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Slider Filter Component ──
 
@@ -618,15 +619,11 @@ export default function PlanFinder() {
 
   return (
     <div className="p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <Search className="h-6 w-6 text-primary" />
-        <div>
-          <h1 className="text-2xl font-bold">Benefit-Based Plan Finder</h1>
-          <p className="text-sm text-muted-foreground">
-            Search Medicare Advantage plans by specific benefit dollar amounts
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Plan Finder"
+        description="Search for plans by specific benefit criteria. The #1 tool for matching clients to plans."
+        helpText="Enter a ZIP code and set your criteria. Plans are ranked by how many criteria they match. Green checkmarks = criteria met."
+      />
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Panel: Search Criteria */}

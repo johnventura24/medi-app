@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Inbox, Phone, UserCheck, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Lead {
   id: number;
@@ -133,10 +134,11 @@ export default function LeadDashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Lead Dashboard</h1>
-        <p className="text-muted-foreground">Manage consumer leads from the plan discovery flow</p>
-      </div>
+      <PageHeader
+        title="Consumer Leads"
+        description="Manage leads from the consumer plan finder. Contact, enroll, track."
+        helpText="New leads appear automatically when consumers request agent help. Mark leads as contacted -> enrolled to track your pipeline."
+      />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

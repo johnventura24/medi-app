@@ -11,6 +11,7 @@ import { BenefitComparisonBar } from "@/components/charts/BenefitComparisonBar";
 import { PremiumDistributionChart } from "@/components/charts/PremiumDistributionChart";
 import type { StateData, NationalAverages, BenefitType, CarrierData, PlanData } from "@shared/schema";
 import { Heart, DollarSign, MapPin, TrendingUp, Stethoscope, Pill, CreditCard, ShoppingCart } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function StateHeatmap() {
   const [selectedBenefit, setSelectedBenefit] = useState<BenefitType>("Dental");
@@ -107,6 +108,11 @@ export default function StateHeatmap() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="National Overview"
+        description="Medicare Advantage plan landscape across all 50 states. Click any state to drill into county-level data."
+        helpText="The heatmap shows benefit intensity by state. Darker colors = richer benefits. Use the filters to focus on specific benefit types."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Total Plans Analyzed"

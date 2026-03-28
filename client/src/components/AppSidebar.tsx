@@ -50,7 +50,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 
 const geographyViews = [
-  { title: "State Heatmap", url: "/", icon: Map },
+  { title: "State Heatmap", url: "/dashboard", icon: Map },
   { title: "City Reports", url: "/cities", icon: Building2 },
   { title: "ZIP Rankings", url: "/zips", icon: MapPin },
 ];
@@ -107,7 +107,7 @@ export function AppSidebar() {
   const { user, isAuthenticated } = useAuth();
 
   const isActive = (url: string) => {
-    if (url === "/") return location === "/";
+    if (url === "/dashboard") return location === "/" || location === "/dashboard";
     return location.startsWith(url);
   };
 

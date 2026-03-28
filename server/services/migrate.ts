@@ -229,6 +229,19 @@ export async function ensureTables(): Promise<void> {
         details JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS provider_network_cache (
+        id SERIAL PRIMARY KEY,
+        npi TEXT NOT NULL,
+        carrier TEXT NOT NULL,
+        contract_id TEXT,
+        in_network BOOLEAN,
+        source TEXT NOT NULL,
+        verified_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(npi, carrier, contract_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_pnc_npi ON provider_network_cache(npi);
     `);
     console.log("[migrate] All tables ensured");
   } catch (err: any) {

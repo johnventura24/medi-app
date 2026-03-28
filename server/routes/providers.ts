@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { searchProviders, getProviderByNpi } from "../services/nppes.service";
+import { checkProviderNetwork } from "../services/fhir-provider.service";
 import { db } from "../db";
 import { plans } from "@shared/schema";
 import { inArray } from "drizzle-orm";
@@ -87,8 +88,7 @@ export function registerProviderRoutes(app: Express) {
   });
 
   // ── GET /api/providers/:npi/network ──
-  // Placeholder: check if a provider is in-network for given plans
-  // Real FHIR integration is planned for 2027
+  // Check if a provider is in-network for given plans via carrier FHIR APIs
   app.get("/api/providers/:npi/network", async (req, res) => {
     try {
       const { npi } = req.params;
@@ -117,19 +117,35 @@ export function registerProviderRoutes(app: Express) {
           id: plans.id,
           name: plans.name,
           organizationName: plans.organizationName,
+          contractId: plans.contractId,
         })
         .from(plans)
         .where(inArray(plans.id, planIds));
 
-      const results = matchedPlans.map((plan) => ({
-        planId: plan.id,
-        planName: plan.name,
+      // Build plan inputs for the FHIR service
+      const planInputs = matchedPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
         carrier: plan.organizationName,
-        inNetwork: null,
-        source: "FHIR integration pending — verify at carrier website",
+        contractId: plan.contractId || "",
       }));
 
-      res.json({ npi, results });
+      // Check network status via FHIR Provider Directory APIs
+      const networkResults = await checkProviderNetwork(npi, planInputs);
+
+      // Return in the shape the frontend expects: { npi, statuses: [...] }
+      res.json({
+        npi,
+        statuses: networkResults.map((r) => ({
+          planId: r.planId,
+          planName: r.planName,
+          carrier: r.carrier,
+          inNetwork: r.inNetwork,
+          source: r.source,
+          verifiedAt: r.verifiedAt,
+          carrierUrl: r.carrierUrl,
+        })),
+      });
     } catch (err: any) {
       console.error("Provider network check error:", err.message);
       res.status(500).json({ error: "Provider network check failed" });

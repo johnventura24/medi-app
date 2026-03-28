@@ -1,19 +1,15 @@
 import { FileUpload } from "@/components/FileUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings as SettingsIcon, Database, RefreshCw } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Settings() {
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-md bg-primary/10 text-primary">
-          <SettingsIcon className="h-6 w-6" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">Manage data imports and application settings</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="Import data and manage application settings."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FileUpload />

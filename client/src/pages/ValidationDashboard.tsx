@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 interface ValidationSummary {
   totalPlans: number;
@@ -165,7 +166,11 @@ export default function ValidationDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Data Validation</h1>
+      <PageHeader
+        title="Data Validation"
+        description="Automated quality checks on plan data. Catch errors before they reach compliance."
+        helpText="Run validation to scan all plans against CMS rules. Click any issue to see the affected plan."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

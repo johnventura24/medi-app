@@ -31,6 +31,7 @@ import {
   Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Pie Chart Colors ──
 
@@ -258,6 +259,11 @@ export default function Archetypes() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
+      <PageHeader
+        title="Beneficiary Archetypes"
+        description="Six common Medicare beneficiary profiles with ideal plan matches for each."
+        helpText="Enter a ZIP to see which archetypes are most common in that area and the top 3 plans for each type."
+      />
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

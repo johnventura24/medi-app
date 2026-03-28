@@ -41,6 +41,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Types ──
 
@@ -373,17 +374,14 @@ export default function MarketIntelligence() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* ── Header ── */}
+      <PageHeader
+        title="Market Intelligence"
+        description="Comprehensive market analysis — underserved markets, competitive gaps, and marketing opportunities."
+        helpText="Use the tabs to explore different aspects of the market. Export opportunity lists as CSV for your sales team."
+      />
+      {/* ── Filter ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            Market Intelligence
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Identify underserved markets, competitive gaps, and sales opportunities
-          </p>
-        </div>
+        <div />
         <div className="flex items-center gap-3">
           <Select value={stateFilter} onValueChange={setStateFilter}>
             <SelectTrigger className="w-[180px]">

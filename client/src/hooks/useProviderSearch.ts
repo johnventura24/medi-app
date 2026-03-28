@@ -17,6 +17,10 @@ export interface NetworkStatus {
   planName: string;
   carrier: string;
   inNetwork: boolean | null; // null = unknown
+  source: string; // "FHIR API" | "Cache" | "Unknown"
+  verifiedAt: string | null;
+  carrierUrl?: string;
+  /** @deprecated use carrierUrl */
   carrierWebsite?: string;
 }
 

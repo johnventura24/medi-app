@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useClients, type ClientMedication, type ClientDoctor, type BenefitWeights } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
+import { PageHeader } from "@/components/PageHeader";
 
 const STEPS = [
   "Demographics",
@@ -247,8 +248,12 @@ function ClientIntakeContent() {
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight">New Client Intake</h1>
       </div>
+      <PageHeader
+        title="New Client Intake"
+        description="5-step form to capture a beneficiary's needs. The foundation for smart plan matching."
+        helpText="Complete all 5 steps: demographics, health profile, medications, benefit priorities, and review. The scoring engine uses this data to rank plans."
+      />
 
       <StepIndicator currentStep={step} steps={STEPS} />
 

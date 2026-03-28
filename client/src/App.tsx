@@ -40,14 +40,19 @@ import HealthGapAnalysis from "@/pages/HealthGapAnalysis";
 import LeadDashboard from "@/pages/LeadDashboard";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
+import LandingPage from "@/pages/LandingPage";
+import PricingPage from "@/pages/PricingPage";
 
 // Lazy-load the consumer flow (standalone page)
 import ConsumerFlow from "@/pages/ConsumerFlow";
+
+import { useAuth } from "@/hooks/useAuth";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={StateHeatmap} />
+      <Route path="/dashboard" component={StateHeatmap} />
       <Route path="/cities" component={CityReports} />
       <Route path="/zips" component={ZipRankings} />
       <Route path="/benefits" component={BenefitView} />
@@ -103,6 +108,25 @@ function AppLayout() {
   );
 }
 
+/**
+ * Root route component: shows LandingPage for unauthenticated visitors,
+ * redirects authenticated users to the dashboard.
+ */
+function RootRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null; // Avoid flash while checking auth
+  }
+
+  if (isAuthenticated) {
+    // Render the full app layout with the dashboard as default
+    return <AppLayout />;
+  }
+
+  return <LandingPage />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -114,6 +138,10 @@ function App() {
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
               <Route path="/for-you" component={ConsumerFlow} />
+              <Route path="/pricing" component={PricingPage} />
+
+              {/* Landing page for unauthenticated, dashboard for authenticated */}
+              <Route path="/" component={RootRoute} />
 
               {/* All other routes use the sidebar layout */}
               <Route>

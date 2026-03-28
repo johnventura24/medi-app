@@ -37,6 +37,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 interface FieldChange {
   field: string;
@@ -182,7 +183,11 @@ export default function ChangeReportView() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Year-over-Year Plan Changes</h1>
+      <PageHeader
+        title="Year-over-Year Changes"
+        description="Track what changed between plan years. Essential for ANOC season and client retention."
+        helpText="Green = improvement (lower cost or better benefit). Red = worse. New/terminated plans are listed separately."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

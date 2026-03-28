@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { db } from "../db";
 import { plans } from "@shared/schema";
 import { sql, eq, and, gte, lte, ilike, or, count } from "drizzle-orm";
+import { resolveZipToAllCounties } from "../services/zip-resolver.service";
 
 /**
  * Parse dollar strings like "$1,234" or "$1,234.00" to a number.
@@ -62,17 +63,24 @@ export function registerPlanFinderRoutes(app: Express) {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 25));
 
-      // ── Step 1: Resolve ZIP to county + state ──
-      const zipRows = await db
-        .selectDistinct({ county: plans.county, state: plans.state })
-        .from(plans)
-        .where(eq(plans.zipcode, zip))
-        .limit(10);
+      // ── Step 1: Resolve ZIP to county + state using zip_county_map (33,000+ ZIPs) ──
+      const resolvedCounties = await resolveZipToAllCounties(zip);
+
+      let zipRows: { county: string; state: string }[];
+      if (resolvedCounties.length > 0) {
+        zipRows = resolvedCounties.map(c => ({ county: c.county, state: c.state }));
+      } else {
+        // Legacy fallback: try plans table
+        zipRows = await db
+          .selectDistinct({ county: plans.county, state: plans.state })
+          .from(plans)
+          .where(eq(plans.zipcode, zip))
+          .limit(10);
+      }
 
       let zipResolved: { county: string; state: string } | null = null;
 
-      // Build the location filter: if ZIP matches rows, use those counties;
-      // otherwise fall back to exact ZIP match (which will return 0 rows).
+      // Build the location filter
       let locationCondition;
       if (zipRows.length > 0) {
         zipResolved = { county: zipRows[0].county, state: zipRows[0].state };
@@ -82,7 +90,6 @@ export function registerPlanFinderRoutes(app: Express) {
             eq(plans.state, zipRows[0].state)
           );
         } else {
-          // ZIP spans multiple counties — use OR across all combos
           locationCondition = or(
             ...zipRows.map((r) =>
               and(eq(plans.county, r.county), eq(plans.state, r.state))
@@ -90,7 +97,7 @@ export function registerPlanFinderRoutes(app: Express) {
           );
         }
       } else {
-        // ZIP not found in data — still filter by it (will yield 0 rows)
+        // ZIP not found — still filter by it (will yield 0 rows)
         locationCondition = eq(plans.zipcode, zip);
       }
 

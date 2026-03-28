@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── Animated Counter Component ──
 
@@ -288,6 +289,11 @@ export default function MoneyCalculator() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
+      <PageHeader
+        title="Money Left on the Table"
+        description="Calculate how much a beneficiary could save by switching plans. The most powerful sales tool in Medicare."
+        helpText="Enter a current plan or details. The calculator compares against every available alternative and shows total potential value."
+      />
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

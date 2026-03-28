@@ -3,6 +3,7 @@ import { db } from "../db";
 import { plans, consumerLeads, leadActivity, users } from "@shared/schema";
 import { sql, eq, and, or, asc, desc, count } from "drizzle-orm";
 import { z } from "zod";
+import { resolveZipToCounty, resolveZipToAllCounties } from "../services/zip-resolver.service";
 
 // ── Validation schemas ──
 
@@ -45,22 +46,29 @@ export function registerConsumerRoutes(app: Express) {
 
       const { zipCode, priority, seesSpecialist, medications, wantsExtras } = parsed.data;
 
-      // Resolve ZIP to county + state
-      // First try exact ZIP match
-      let zipRows = await db
-        .selectDistinct({ county: plans.county, state: plans.state })
-        .from(plans)
-        .where(eq(plans.zipcode, zipCode))
-        .limit(10);
+      // Resolve ZIP to county + state using zip_county_map (33,000+ ZIPs)
+      const allCounties = await resolveZipToAllCounties(zipCode);
 
-      // If no exact match, try ZIP prefix (first 3 digits = same area)
-      if (zipRows.length === 0) {
-        const zipPrefix = zipCode.substring(0, 3);
+      // If zip_county_map has no result, fall back to plans table
+      let zipRows: { county: string; state: string }[];
+      if (allCounties.length > 0) {
+        zipRows = allCounties.map(c => ({ county: c.county, state: c.state }));
+      } else {
+        // Legacy fallback: try plans table
         zipRows = await db
           .selectDistinct({ county: plans.county, state: plans.state })
           .from(plans)
-          .where(sql`${plans.zipcode} LIKE ${zipPrefix + '%'}`)
+          .where(eq(plans.zipcode, zipCode))
           .limit(10);
+
+        if (zipRows.length === 0) {
+          const zipPrefix = zipCode.substring(0, 3);
+          zipRows = await db
+            .selectDistinct({ county: plans.county, state: plans.state })
+            .from(plans)
+            .where(sql`${plans.zipcode} LIKE ${zipPrefix + '%'}`)
+            .limit(10);
+        }
       }
 
       // If still no match, return helpful error
@@ -267,15 +275,21 @@ export function registerConsumerRoutes(app: Express) {
 
       const data = parsed.data;
 
-      // Resolve state from ZIP
-      const zipRows = await db
-        .selectDistinct({ county: plans.county, state: plans.state })
-        .from(plans)
-        .where(eq(plans.zipcode, data.zipCode))
-        .limit(1);
+      // Resolve state from ZIP using zip_county_map
+      const zipResolution = await resolveZipToCounty(data.zipCode);
+      let resolvedState: string | null = zipResolution?.state || null;
+      let resolvedCounty: string | null = zipResolution?.county || null;
 
-      const resolvedState = zipRows[0]?.state || null;
-      const resolvedCounty = zipRows[0]?.county || null;
+      // Legacy fallback if zip_county_map has no result
+      if (!resolvedState) {
+        const fallbackRows = await db
+          .selectDistinct({ county: plans.county, state: plans.state })
+          .from(plans)
+          .where(eq(plans.zipcode, data.zipCode))
+          .limit(1);
+        resolvedState = fallbackRows[0]?.state || null;
+        resolvedCounty = fallbackRows[0]?.county || null;
+      }
 
       // Try to find an agent in the same state (round-robin by least leads)
       let assignedAgentId: number | null = null;

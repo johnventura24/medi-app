@@ -20,6 +20,7 @@ import {
   CheckCircle,
   Shield,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN",
@@ -128,23 +129,13 @@ export default function AEPWarRoom() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      <PageHeader
+        title="AEP War Room"
+        description="Real-time command center for Medicare enrollment periods. Know what's happening in your market."
+        helpText="Hot plans are the best-value plans in your state. Alerts flag counties with limited options or changing benefits."
+      />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg relative">
-              <Activity className="h-7 w-7 text-primary" />
-              <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
-              </span>
-            </div>
-            AEP War Room
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Command center for enrollment period strategy
-          </p>
-        </div>
+        <div />
         <Select value={selectedState} onValueChange={(v) => setSelectedState(v === "all" ? "" : v)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="All States" />

@@ -30,6 +30,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { PageHeader } from "@/components/PageHeader";
 
 // US states TopoJSON
 const GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
@@ -174,19 +175,13 @@ export default function BattlegroundMap() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      <PageHeader
+        title="Carrier Battleground"
+        description="Interactive map showing which carrier dominates each state and county."
+        helpText="Click a state to see county-level carrier territories. Click a county for vulnerability analysis and competitive intelligence."
+      />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Map className="h-7 w-7 text-primary" />
-            </div>
-            Carrier Battleground
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Geographic competitive intelligence — who dominates where
-          </p>
-        </div>
+        <div />
         <div className="flex items-center gap-3">
           <Select value={selectedState} onValueChange={(v) => {
             setSelectedState(v === "all" ? "" : v);

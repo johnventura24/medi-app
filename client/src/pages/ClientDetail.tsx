@@ -40,6 +40,7 @@ import { DrugCostEstimator } from "@/components/drugs/DrugCostEstimator";
 import { ProviderSearchInput } from "@/components/providers/ProviderSearchInput";
 import { NetworkStatusGrid } from "@/components/providers/NetworkStatusGrid";
 import type { ProviderResult } from "@/hooks/useProviderSearch";
+import { PageHeader } from "@/components/PageHeader";
 
 function statusBadgeClass(status: string): string {
   switch (status) {
@@ -815,35 +816,33 @@ function ClientDetailContent() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/clients")}>
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{clientName}</h1>
-          <Badge
-            variant="secondary"
-            className={cn("capitalize text-xs", statusBadgeClass(client.status ?? "intake"))}
-          >
-            {(client.status ?? "intake").replace("_", " ")}
-          </Badge>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-          <Button size="sm" onClick={() => {
-            const tabEl = document.querySelector('[data-value="recommendations"]') as HTMLElement;
-            tabEl?.click();
-          }}>
-            <Sparkles className="h-4 w-4 mr-1" />
-            Get Recommendations
-          </Button>
-        </div>
+      <div className="flex items-center gap-3 mb-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/clients")}>
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back
+        </Button>
       </div>
+      <PageHeader
+        title={clientName}
+        description="Complete view of a client with recommendations, drug costs, and compliance tracking."
+        helpText="Click 'Get Recommendations' to run the scoring engine. Review drug costs and provider network status in the tabs."
+        badge={(client.status ?? "intake").replace("_", " ")}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            <Button size="sm" onClick={() => {
+              const tabEl = document.querySelector('[data-value="recommendations"]') as HTMLElement;
+              tabEl?.click();
+            }}>
+              <Sparkles className="h-4 w-4 mr-1" />
+              Get Recommendations
+            </Button>
+          </div>
+        }
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview">

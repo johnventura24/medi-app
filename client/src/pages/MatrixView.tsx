@@ -38,6 +38,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 interface CarrierOption {
   name: string;
@@ -296,7 +297,11 @@ export default function MatrixView() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Carrier Benefits Matrix</h1>
+      <PageHeader
+        title="Carrier Benefits Matrix"
+        description="Side-by-side benefit grid for a carrier across counties. The compliance team's best friend."
+        helpText="Select a carrier and state, then generate the matrix. Green = best in row, Red = worst. Export as CSV or PDF."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

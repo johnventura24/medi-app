@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 // ── State Options ──
 
@@ -210,6 +211,11 @@ export default function HiddenGems() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
+      <PageHeader
+        title="Hidden Gems"
+        description="Plans in the top 10% of benefits from carriers with less than 10% market share. The plans nobody's talking about."
+        helpText="These are objectively great plans from smaller carriers that most agents overlook. Gem score = benefit quality x inverse market share."
+      />
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

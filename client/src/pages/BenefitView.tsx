@@ -12,6 +12,7 @@ import { CopayRangeChart } from "@/components/charts/CopayRangeChart";
 import { SupplementalBenefitsPie } from "@/components/charts/SupplementalBenefitsPie";
 import type { StateData, NationalAverages, BenefitType, PlanData } from "@shared/schema";
 import { Stethoscope, Pill, CreditCard, ShoppingCart, Car, Eye, Ear, Heart } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function BenefitView() {
   const [selectedBenefit, setSelectedBenefit] = useState<BenefitType>("Dental");
@@ -189,6 +190,11 @@ export default function BenefitView() {
 
   return (
     <div className="p-6 space-y-6">
+      <PageHeader
+        title="Benefit Analysis"
+        description="National breakdown of supplemental benefits — dental, OTC, vision, transportation, and more."
+        helpText="Click any benefit card to see state-by-state details and top ZIP codes for that benefit."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Avg Dental Allowance"
