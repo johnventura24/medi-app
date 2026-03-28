@@ -42,6 +42,7 @@ import {
   Radar,
 } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Types ──
 
@@ -357,6 +358,65 @@ export default function MarketIntelligence() {
     setSelectedCountyState(st);
   }, []);
 
+  // Top 5 Actions generated from data
+  const topActions = useMemo((): InsightItem[] => {
+    const items: InsightItem[] = [];
+
+    // Best underserved market
+    const topUnderserved = underserved.length > 0
+      ? [...underserved].sort((a, b) => b.gapScore - a.gapScore)[0]
+      : null;
+    if (topUnderserved) {
+      items.push({
+        icon: "target",
+        text: `Launch ${topUnderserved.suggestedAngle.toLowerCase()} campaign in ${topUnderserved.county}, ${topUnderserved.state} — gap score ${topUnderserved.gapScore}.`,
+        priority: "high",
+      });
+    }
+
+    // Second underserved
+    const second = underserved.length > 1
+      ? [...underserved].sort((a, b) => b.gapScore - a.gapScore)[1]
+      : null;
+    if (second) {
+      items.push({
+        icon: "opportunity",
+        text: `Expand into ${second.county}, ${second.state} — only ${second.carrierCount} carriers, avg dental $${second.avgDental.toLocaleString()}.`,
+        priority: "high",
+      });
+    }
+
+    // Most dominant carrier to watch
+    if (marketShare.length > 0) {
+      const top = marketShare[0];
+      items.push({
+        icon: "warning",
+        text: `Watch out: ${top.carrier} holds ${top.marketShare}% market share across ${top.counties} counties — differentiate aggressively.`,
+        priority: "medium",
+      });
+    }
+
+    // High-gap counties
+    if (highGapCount > 5) {
+      items.push({
+        icon: "alert",
+        text: `${highGapCount} counties scored 60+ on gap analysis — these are your highest-priority markets for outreach.`,
+        priority: "high",
+      });
+    }
+
+    // Marketing angle
+    if (topAngle && topAngle !== "N/A") {
+      items.push({
+        icon: "trend",
+        text: `"${topAngle}" is the top marketing angle across ${underserved.length} analyzed markets — make it your lead message.`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [underserved, marketShare, highGapCount, topAngle]);
+
   // ── Loading State ──
 
   if (loadingUnderserved && loadingMarketShare) {
@@ -379,6 +439,15 @@ export default function MarketIntelligence() {
         description="Comprehensive market analysis — underserved markets, competitive gaps, and marketing opportunities."
         helpText="Use the tabs to explore different aspects of the market. Export opportunity lists as CSV for your sales team."
       />
+
+      {topActions.length > 0 && (
+        <InsightBox
+          title="Top 5 Actions Right Now"
+          insights={topActions}
+          variant="briefing"
+        />
+      )}
+
       {/* ── Filter ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div />

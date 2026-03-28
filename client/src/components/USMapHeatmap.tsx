@@ -67,12 +67,12 @@ function USMapHeatmapComponent({
   };
 
   const getIntensityColor = (value: number): string => {
-    if (value >= 90) return "hsl(217, 91%, 60%)";
-    if (value >= 85) return "hsl(217, 85%, 55%)";
-    if (value >= 80) return "hsl(217, 75%, 50%)";
-    if (value >= 70) return "hsl(217, 65%, 45%)";
-    if (value >= 60) return "hsl(217, 55%, 40%)";
-    return "hsl(217, 45%, 35%)";
+    if (value >= 90) return "hsl(220, 90%, 50%)";
+    if (value >= 80) return "hsl(220, 78%, 56%)";
+    if (value >= 70) return "hsl(220, 65%, 62%)";
+    if (value >= 60) return "hsl(220, 52%, 70%)";
+    if (value >= 40) return "hsl(220, 38%, 78%)";
+    return "hsl(220, 25%, 86%)";
   };
 
   const getBenefitAmount = (state: StateData, benefit: BenefitType): string => {
@@ -186,21 +186,34 @@ function USMapHeatmapComponent({
           </div>
         )}
 
-        <div className="absolute bottom-4 right-4 bg-card border rounded-md p-3 shadow-sm">
-          <p className="text-xs font-medium mb-2">Coverage Intensity</p>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(var(--muted))" }} title="No Data" />
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(217, 45%, 35%)" }} />
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(217, 55%, 40%)" }} />
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(217, 65%, 45%)" }} />
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(217, 75%, 50%)" }} />
-            <div className="w-4 h-4 rounded" style={{ background: "hsl(217, 91%, 60%)" }} />
-          </div>
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-            <span>Low</span>
-            <span>High</span>
+        {/* Legend */}
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-medium text-muted-foreground mr-1">{selectedBenefit} Coverage:</p>
+            <div className="flex items-center gap-0.5">
+              <div className="w-6 h-3 rounded-sm" style={{ background: "hsl(var(--muted))" }} />
+              <span className="text-[10px] text-muted-foreground mx-0.5">N/A</span>
+            </div>
+            {[
+              { color: "hsl(220, 25%, 86%)", label: "<40%" },
+              { color: "hsl(220, 38%, 78%)", label: "40%" },
+              { color: "hsl(220, 52%, 70%)", label: "60%" },
+              { color: "hsl(220, 65%, 62%)", label: "70%" },
+              { color: "hsl(220, 78%, 56%)", label: "80%" },
+              { color: "hsl(220, 90%, 50%)", label: "90%+" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-0.5">
+                <div className="w-6 h-3 rounded-sm" style={{ background: item.color }} />
+                <span className="text-[10px] text-muted-foreground">{item.label}</span>
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* Help text */}
+        <p className="text-xs text-muted-foreground mt-3 px-1">
+          Darker shades indicate higher {selectedBenefit.toLowerCase()} coverage rates. Hover over a state for key metrics. Click to drill into county-level data.
+        </p>
       </CardContent>
     </Card>
   );

@@ -10,6 +10,7 @@ import type { CityData, PlanData } from "@shared/schema";
 import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
 import { ExportButton } from "@/components/ExportButton";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 export default function CityReports() {
   const { data: cityData = [], isLoading, isError } = useQuery<CityData[]>({
@@ -47,6 +48,59 @@ export default function CityReports() {
       .map((p) => p.overallStarRating ?? 0)
       .filter((r) => r > 0);
   }, [planData]);
+
+  const cityInsights = useMemo((): InsightItem[] => {
+    if (cityData.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Most competitive county
+    const mostCarriers = [...cityData].sort((a, b) => (b.carrierCount ?? 0) - (a.carrierCount ?? 0))[0];
+    if (mostCarriers) {
+      items.push({
+        icon: "alert",
+        text: `Most competitive: ${mostCarriers.city}, ${mostCarriers.stateAbbr} with ${mostCarriers.carrierCount} carriers and ${mostCarriers.planCount} plans.`,
+        priority: "high",
+      });
+    }
+
+    // County with highest dental but few carriers
+    const highDentalLowCarriers = [...cityData]
+      .filter((c) => (c.maxDental ?? 0) > 0 && (c.carrierCount ?? 0) <= 4)
+      .sort((a, b) => (b.maxDental ?? 0) - (a.maxDental ?? 0));
+    if (highDentalLowCarriers.length > 0) {
+      const c = highDentalLowCarriers[0];
+      items.push({
+        icon: "opportunity",
+        text: `Opportunity: ${c.city}, ${c.stateAbbr} — $${(c.maxDental ?? 0).toLocaleString()} max dental but only ${c.carrierCount} carriers competing.`,
+        priority: "high",
+      });
+    }
+
+    // County where one carrier dominates
+    const dominated = cityData.filter(
+      (c) => c.topCarrier && (c.carrierCount ?? 0) >= 3
+    );
+    if (dominated.length > 0) {
+      const c = dominated[0];
+      items.push({
+        icon: "warning",
+        text: `${c.topCarrier} leads ${c.city}, ${c.stateAbbr} — vulnerability for competitors with stronger dental or OTC.`,
+        priority: "medium",
+      });
+    }
+
+    // Low plan count counties
+    const underserved = cityData.filter((c) => (c.planCount ?? 0) < 5 && (c.planCount ?? 0) > 0);
+    if (underserved.length > 0) {
+      items.push({
+        icon: "target",
+        text: `${underserved.length} counties have fewer than 5 plans — first-mover advantage for new plan offerings.`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [cityData]);
 
   const columns: Column<CityData>[] = [
     { key: "city", header: "City", sortable: true },
@@ -174,6 +228,13 @@ export default function CityReports() {
           icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
         />
       </div>
+
+      {cityInsights.length > 0 && (
+        <InsightBox
+          title="Action Items — County Reports"
+          insights={cityInsights}
+        />
+      )}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

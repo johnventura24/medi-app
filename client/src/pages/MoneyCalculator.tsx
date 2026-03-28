@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, animate, useMotionValue, useTransform } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── Animated Counter Component ──
 
@@ -286,6 +287,63 @@ export default function MoneyCalculator() {
   const maxSavingsComponent = savings
     ? Math.max(savings.premiumSavings, savings.dentalGain, savings.otcGain, savings.visionGain, savings.drugSavings, savings.givebackGain, 1)
     : 1;
+
+  const calcInsights = useMemo((): InsightItem[] => {
+    if (!result || !savings) return [];
+    const items: InsightItem[] = [];
+    const county = result.currentPlan?.county || "your county";
+    const state = result.currentPlan?.state || "";
+
+    if (savings.totalValue > 0) {
+      items.push({
+        icon: "alert",
+        text: `On average, beneficiaries in ${county}${state ? `, ${state}` : ""} leave $${savings.totalValue.toLocaleString()} on the table annually.`,
+        priority: "high",
+      });
+
+      // Biggest savings component
+      const components = [
+        { name: "premium savings", val: savings.premiumSavings },
+        { name: "dental coverage", val: savings.dentalGain },
+        { name: "OTC benefits", val: savings.otcGain },
+        { name: "vision coverage", val: savings.visionGain },
+        { name: "drug cost savings", val: savings.drugSavings },
+        { name: "Part B giveback", val: savings.givebackGain },
+      ].filter((c) => c.val > 0).sort((a, b) => b.val - a.val);
+
+      if (components.length > 0) {
+        items.push({
+          icon: "target",
+          text: `The biggest savings come from ${components[0].name} ($${components[0].val.toLocaleString()}/yr) — lead with that in your pitch.`,
+          priority: "high",
+        });
+      }
+
+      if (components.length > 1) {
+        items.push({
+          icon: "opportunity",
+          text: `Secondary value: ${components[1].name} adds $${components[1].val.toLocaleString()}/yr — mention this to close the deal.`,
+          priority: "medium",
+        });
+      }
+    } else {
+      items.push({
+        icon: "trend",
+        text: `This beneficiary has a strong plan — focus on service quality and care coordination rather than benefit comparison.`,
+        priority: "low",
+      });
+    }
+
+    if (result.topAlternatives && result.topAlternatives.length > 0) {
+      items.push({
+        icon: "trend",
+        text: `${result.topAlternatives.length} better alternatives found out of ${result.countyStats?.totalPlans || 0} plans — you have options to present.`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [result, savings]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
@@ -588,6 +646,13 @@ export default function MoneyCalculator() {
                 )}
               </div>
             </div>
+          )}
+
+          {calcInsights.length > 0 && (
+            <InsightBox
+              title="What This Means for Your Client"
+              insights={calcInsights}
+            />
           )}
 
           {/* Top Alternatives */}

@@ -31,6 +31,7 @@ import {
   Cell,
 } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // US states TopoJSON
 const GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
@@ -170,6 +171,57 @@ export default function BattlegroundMap() {
     setSelectedCounty(null);
     setSheetOpen(false);
   };
+
+  // Battleground insights when a state is selected
+  const battleInsights = useMemo((): InsightItem[] => {
+    if (!stateDetail) return [];
+    const items: InsightItem[] = [];
+    const counties = stateDetail.counties || [];
+    const territories = stateDetail.carrierTerritories || [];
+
+    // Dominant carrier
+    if (territories.length > 0) {
+      const top = territories[0];
+      const pct = top.totalCounties > 0 ? Math.round((top.countiesWon / top.totalCounties) * 100) : 0;
+      items.push({
+        icon: "warning",
+        text: `Dominant carrier: ${top.carrier} controls ${pct}% of counties (${top.countiesWon}/${top.totalCounties}) in ${selectedState}.`,
+        priority: "high",
+      });
+    }
+
+    // Vulnerability: county with most vulnerabilities
+    const vulnCounty = [...counties].sort((a, b) => b.vulnerabilities.length - a.vulnerabilities.length)[0];
+    if (vulnCounty && vulnCounty.vulnerabilities.length > 0) {
+      items.push({
+        icon: "alert",
+        text: `Vulnerability: ${vulnCounty.county} — ${vulnCounty.vulnerabilities.length} weaknesses identified in ${vulnCounty.dominantCarrier.name}'s position.`,
+        priority: "high",
+      });
+    }
+
+    // Low-plan counties
+    const lowPlan = counties.filter((c) => c.totalPlans < 5);
+    if (lowPlan.length > 0) {
+      items.push({
+        icon: "opportunity",
+        text: `${lowPlan.length} counties have fewer than 5 plans — first-mover advantage available.`,
+        priority: "medium",
+      });
+    }
+
+    // Opportunity counties
+    const oppCounty = [...counties].sort((a, b) => b.opportunities.length - a.opportunities.length)[0];
+    if (oppCounty && oppCounty.opportunities.length > 0) {
+      items.push({
+        icon: "target",
+        text: `Best opportunity: ${oppCounty.county} has ${oppCounty.opportunities.length} actionable gaps to exploit.`,
+        priority: "medium",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [stateDetail, selectedState]);
 
   const isLoading = statesLoading || stateLoading;
 
@@ -417,6 +469,13 @@ export default function BattlegroundMap() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {selectedState && battleInsights.length > 0 && (
+        <InsightBox
+          title={`Action Items — ${stateDetail?.stateName || selectedState}`}
+          insights={battleInsights}
+        />
       )}
 
       {/* ── County Deep Dive Sheet ── */}

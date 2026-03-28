@@ -39,6 +39,7 @@ import AEPWarRoom from "@/pages/AEPWarRoom";
 import HealthGapAnalysis from "@/pages/HealthGapAnalysis";
 import LeadDashboard from "@/pages/LeadDashboard";
 import DataSources from "@/pages/DataSources";
+import TrendsTimeline from "@/pages/TrendsTimeline";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/warroom" component={AEPWarRoom} />
       <Route path="/health-gaps" component={HealthGapAnalysis} />
       <Route path="/leads" component={LeadDashboard} />
+      <Route path="/trends" component={TrendsTimeline} />
       <Route path="/data-sources" component={DataSources} />
       <Route component={NotFound} />
     </Switch>

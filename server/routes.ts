@@ -32,6 +32,8 @@ import { registerAEPWarRoomRoutes } from "./routes/aep-warroom";
 import { registerHealthGapRoutes } from "./routes/health-gap";
 import { registerConsumerRoutes } from "./routes/consumer";
 import { registerLeadRoutes } from "./routes/leads";
+import { registerTrendRoutes } from "./routes/trends";
+import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -728,6 +730,9 @@ export async function registerRoutes(
   registerConsumerRoutes(app);
   registerLeadRoutes(app);
 
+  // Register Trends & Timeline routes
+  registerTrendRoutes(app);
+
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
     try {
@@ -886,6 +891,36 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("Error fetching data sources:", err.message);
       res.status(500).json({ error: "Failed to fetch data sources" });
+    }
+  });
+
+  // ── GET /api/insights ──
+  app.get("/api/insights", async (req, res) => {
+    try {
+      const { state, county } = req.query;
+      if (county && state && typeof county === "string" && typeof state === "string") {
+        const insights = await getCountyInsights(county, state.toUpperCase());
+        return res.json(insights);
+      }
+      if (state && typeof state === "string") {
+        const insights = await getStateInsights(state.toUpperCase());
+        return res.json(insights);
+      }
+      return res.status(400).json({ error: "State parameter required" });
+    } catch (err: any) {
+      console.error("Error generating insights:", err.message);
+      res.status(500).json({ error: "Failed to generate insights" });
+    }
+  });
+
+  // ── GET /api/insights/national ──
+  app.get("/api/insights/national", async (_req, res) => {
+    try {
+      const insights = await getNationalInsights();
+      res.json(insights);
+    } catch (err: any) {
+      console.error("Error generating national insights:", err.message);
+      res.status(500).json({ error: "Failed to generate national insights" });
     }
   });
 

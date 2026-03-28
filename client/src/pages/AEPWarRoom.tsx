@@ -21,6 +21,7 @@ import {
   Shield,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN",
@@ -111,6 +112,61 @@ export default function AEPWarRoom() {
   const isAEPLive = countdown?.currentPeriod === "AEP";
   const isOEPLive = countdown?.currentPeriod === "OEP";
 
+  // Morning Briefing insights
+  const morningBriefing: InsightItem[] = [];
+  if (countdown) {
+    const period = countdown.currentPeriod;
+    if (period === "AEP") {
+      morningBriefing.push({
+        icon: "alert",
+        text: "AEP is LIVE — every day counts. Prioritize hot plans and county alerts below.",
+        priority: "high",
+      });
+    } else if (period === "OEP") {
+      morningBriefing.push({
+        icon: "alert",
+        text: "OEP is active — focus on beneficiaries who missed AEP or want to switch.",
+        priority: "high",
+      });
+    } else {
+      morningBriefing.push({
+        icon: "trend",
+        text: `${countdown.daysUntilAEP} days until AEP — use this time to study hot plans and prep county-level talking points.`,
+        priority: "medium",
+      });
+    }
+  }
+  if (hotPlans.length > 0) {
+    morningBriefing.push({
+      icon: "target",
+      text: `${hotPlans.length} hot plans identified — these are the highest-value plans your agents should know today.`,
+      priority: "high",
+    });
+  }
+  if (alerts.length > 0) {
+    const critical = alerts.filter((a) => a.severity === "critical").length;
+    morningBriefing.push({
+      icon: "warning",
+      text: `${alerts.length} county alerts${critical > 0 ? ` (${critical} critical)` : ""} — counties with limited options or declining benefits need attention.`,
+      priority: critical > 0 ? "high" : "medium",
+    });
+  }
+  if (opportunities.length > 0) {
+    const topOpp = opportunities[0];
+    morningBriefing.push({
+      icon: "opportunity",
+      text: `Top opportunity: ${topOpp.location}, ${topOpp.state} (score: ${topOpp.score}) — ${topOpp.opportunity.toLowerCase()}.`,
+      priority: "medium",
+    });
+  }
+  if (snapshot) {
+    morningBriefing.push({
+      icon: "trend",
+      text: `Market overview: ${snapshot.totalPlans.toLocaleString()} plans, ${snapshot.carrierCount} carriers, ${snapshot.countyCount} counties${selectedState ? ` in ${selectedState}` : ""}.`,
+      priority: "low",
+    });
+  }
+
   const severityIcon = (severity: string) => {
     switch (severity) {
       case "critical": return <AlertTriangle className="h-3.5 w-3.5 text-red-500" />;
@@ -160,6 +216,14 @@ export default function AEPWarRoom() {
         </div>
       ) : (
         <>
+          {morningBriefing.length > 0 && (
+            <InsightBox
+              title="Morning Briefing"
+              insights={morningBriefing.slice(0, 5)}
+              variant="briefing"
+            />
+          )}
+
           {/* Countdown Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* AEP Card */}

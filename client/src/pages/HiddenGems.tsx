@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 // ── State Options ──
 
@@ -209,6 +210,51 @@ export default function HiddenGems() {
     enabled: !!selectedState,
   });
 
+  const gemInsights = useMemo((): InsightItem[] => {
+    if (!data || !data.gems || data.gems.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Summary
+    const uniqueCounties = new Set(data.gems.map((g: any) => g.plan.county));
+    items.push({
+      icon: "trend",
+      text: `Found ${data.totalGems} hidden gems across ${uniqueCounties.size} counties in ${data.stateName} — plans most agents overlook.`,
+      priority: "medium",
+    });
+
+    // Top gem
+    const topGem = data.gems[0];
+    if (topGem) {
+      const ranks: string[] = [];
+      if (topGem.benefitRank.dental <= 3) ranks.push(`#${topGem.benefitRank.dental} in dental`);
+      if (topGem.benefitRank.otc <= 3) ranks.push(`#${topGem.benefitRank.otc} in OTC`);
+      items.push({
+        icon: "target",
+        text: `Top gem: "${topGem.plan.name}" by ${topGem.plan.carrier}${ranks.length > 0 ? ` — ranks ${ranks.join(", ")}` : ""} with only ${topGem.carrierMarketShare}% market share.`,
+        priority: "high",
+      });
+    }
+
+    // Agent differentiation
+    items.push({
+      icon: "opportunity",
+      text: "Agents who recommend hidden gems differentiate from the competition — these plans have top-tier benefits from under-the-radar carriers.",
+      priority: "medium",
+    });
+
+    // Best premium value
+    const zeroPremium = data.gems.filter((g: any) => g.plan.premium === 0);
+    if (zeroPremium.length > 0) {
+      items.push({
+        icon: "alert",
+        text: `${zeroPremium.length} hidden gems have $0 premiums — no cost barrier for beneficiaries to switch.`,
+        priority: "high",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [data]);
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       <PageHeader
@@ -321,6 +367,13 @@ export default function HiddenGems() {
               <p className="text-sm text-muted-foreground">State</p>
             </div>
           </motion.div>
+
+          {gemInsights.length > 0 && (
+            <InsightBox
+              title={`Hidden Gems Insights — ${data.stateName}`}
+              insights={gemInsights}
+            />
+          )}
 
           {data.gems.length === 0 ? (
             <div className="text-center py-12">

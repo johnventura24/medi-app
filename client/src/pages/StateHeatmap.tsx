@@ -12,6 +12,7 @@ import { PremiumDistributionChart } from "@/components/charts/PremiumDistributio
 import type { StateData, NationalAverages, BenefitType, CarrierData, PlanData } from "@shared/schema";
 import { Heart, DollarSign, MapPin, TrendingUp, Stethoscope, Pill, CreditCard, ShoppingCart } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
 export default function StateHeatmap() {
   const [selectedBenefit, setSelectedBenefit] = useState<BenefitType>("Dental");
@@ -32,6 +33,51 @@ export default function StateHeatmap() {
   const { data: planData = [] } = useQuery<PlanData[]>({
     queryKey: ["/api/plans"],
   });
+
+  const { data: nationalInsights = [] } = useQuery<InsightItem[]>({
+    queryKey: ["/api/insights/national"],
+  });
+
+  // Auto-generate client-side insights from state data
+  const autoInsights = useMemo((): InsightItem[] => {
+    if (stateData.length === 0) return [];
+    const items: InsightItem[] = [];
+
+    // Highest dental state
+    const highDental = [...stateData].sort((a, b) => (b.avgDentalAllowance ?? 0) - (a.avgDentalAllowance ?? 0))[0];
+    if (highDental && (highDental.avgDentalAllowance ?? 0) > 0) {
+      items.push({
+        icon: "target",
+        text: `Target ${highDental.abbreviation} (${highDental.name}) — highest dental coverage at $${(highDental.avgDentalAllowance ?? 0).toLocaleString()} avg. Lead with dental messaging.`,
+        priority: "high",
+      });
+    }
+
+    // Low OTC states
+    const lowOtc = stateData.filter((s) => (s.otcCoverage ?? 0) < 50 && (s.planCount ?? 0) > 10);
+    if (lowOtc.length > 0) {
+      const first = lowOtc.sort((a, b) => (a.otcCoverage ?? 0) - (b.otcCoverage ?? 0))[0];
+      items.push({
+        icon: "opportunity",
+        text: `${first.abbreviation} has low OTC coverage (${first.otcCoverage ?? 0}%) — lead with OTC messaging to differentiate.`,
+        priority: "medium",
+      });
+    }
+
+    // Most competitive market
+    const mostPlans = [...stateData].sort((a, b) => (b.planCount ?? 0) - (a.planCount ?? 0))[0];
+    if (mostPlans) {
+      items.push({
+        icon: "alert",
+        text: `${mostPlans.abbreviation} is the most competitive market with ${(mostPlans.planCount ?? 0).toLocaleString()} plans — focus on differentiation over breadth.`,
+        priority: "high",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [stateData]);
+
+  const combinedInsights = nationalInsights.length > 0 ? nationalInsights : autoInsights;
 
   const isLoading = statesLoading || averagesLoading;
 
@@ -153,6 +199,13 @@ export default function StateHeatmap() {
         />
         <FilterPanel filters={filters} onFiltersChange={setFilters} />
       </div>
+
+      {combinedInsights.length > 0 && (
+        <InsightBox
+          title="Action Items — National Overview"
+          insights={combinedInsights}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <BenefitCard

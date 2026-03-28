@@ -47,6 +47,7 @@ import {
   HeartPulse,
   Inbox,
   Database,
+  LineChart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -77,6 +78,7 @@ const targetingViews = [
 
 const intelligenceViews = [
   { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
+  { title: "Trends & Timeline", url: "/trends", icon: LineChart },
   { title: "Battleground Map", url: "/battleground", icon: Swords },
   { title: "AEP War Room", url: "/warroom", icon: Activity },
   { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
