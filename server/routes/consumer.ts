@@ -46,14 +46,26 @@ export function registerConsumerRoutes(app: Express) {
       const { zipCode, priority, seesSpecialist, medications, wantsExtras } = parsed.data;
 
       // Resolve ZIP to county + state
-      const zipRows = await db
+      // First try exact ZIP match
+      let zipRows = await db
         .selectDistinct({ county: plans.county, state: plans.state })
         .from(plans)
         .where(eq(plans.zipcode, zipCode))
         .limit(10);
 
+      // If no exact match, try ZIP prefix (first 3 digits = same area)
       if (zipRows.length === 0) {
-        return res.status(404).json({ error: "No plans found for this ZIP code. Please check your ZIP and try again." });
+        const zipPrefix = zipCode.substring(0, 3);
+        zipRows = await db
+          .selectDistinct({ county: plans.county, state: plans.state })
+          .from(plans)
+          .where(sql`${plans.zipcode} LIKE ${zipPrefix + '%'}`)
+          .limit(10);
+      }
+
+      // If still no match, return helpful error
+      if (zipRows.length === 0) {
+        return res.status(404).json({ error: "No plans found for this ZIP code. Try a nearby ZIP code or check the number." });
       }
 
       const resolvedCounty = zipRows[0].county;
