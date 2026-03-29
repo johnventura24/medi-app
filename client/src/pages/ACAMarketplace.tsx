@@ -953,7 +953,7 @@ function SubsidyMapTab() {
 // ══════════════════════════════════════════════════════
 
 export default function ACAMarketplace() {
-  const [selectedState, setSelectedState] = useState<string>("CA");
+  const [selectedState, setSelectedState] = useState<string>("FL");
   const [selectedCounty, setSelectedCounty] = useState<string>("");
   const [selectedMetal, setSelectedMetal] = useState<string>("all");
 

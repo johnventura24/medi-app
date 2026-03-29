@@ -119,22 +119,10 @@ function AppLayout() {
 }
 
 /**
- * Root route component: shows LandingPage for unauthenticated visitors,
- * redirects authenticated users to the dashboard.
+ * Root route — always shows the dashboard (no login required for browsing)
  */
 function RootRoute() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return null; // Avoid flash while checking auth
-  }
-
-  if (isAuthenticated) {
-    // Render the full app layout with the dashboard as default
-    return <AppLayout />;
-  }
-
-  return <LandingPage />;
+  return <AppLayout />;
 }
 
 function App() {
@@ -149,6 +137,7 @@ function App() {
               <Route path="/register" component={RegisterPage} />
               <Route path="/for-you" component={ConsumerFlow} />
               <Route path="/pricing" component={PricingPage} />
+              <Route path="/welcome" component={LandingPage} />
 
               {/* Landing page for unauthenticated, dashboard for authenticated */}
               <Route path="/" component={RootRoute} />
