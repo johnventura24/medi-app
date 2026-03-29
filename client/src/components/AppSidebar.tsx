@@ -49,6 +49,8 @@ import {
   Home,
   ChevronDown,
   Users as UsersIcon,
+  ClipboardCheck,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -82,6 +84,8 @@ const navGroups: NavGroup[] = [
     icon: Search,
     defaultOpen: true,
     items: [
+      { title: "Eligibility Check", url: "/eligibility", icon: ClipboardCheck },
+      { title: "Smart Match", url: "/smart-match", icon: Zap },
       { title: "Plan Finder", url: "/find", icon: Search },
       { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
       { title: "Money Calculator", url: "/calculator", icon: Calculator },

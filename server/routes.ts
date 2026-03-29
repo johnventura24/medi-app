@@ -37,6 +37,9 @@ import { registerCarrierMovementRoutes } from "./routes/carrier-movements";
 import { registerCmsLiveRoutes } from "./routes/cms-live";
 import { registerFhirFormularyRoutes } from "./routes/fhir-formulary";
 import { registerACARoutes } from "./routes/aca";
+import { registerEligibilityRoutes } from "./routes/eligibility";
+import { registerSmartMatchRoutes } from "./routes/smart-match";
+import { registerEnrollmentLinkRoutes } from "./routes/enrollment-links";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -750,6 +753,11 @@ export async function registerRoutes(
 
   // Register ACA Marketplace routes
   registerACARoutes(app);
+
+  // Register Eligibility, Smart Match, and Enrollment Link routes
+  registerEligibilityRoutes(app);
+  registerSmartMatchRoutes(app);
+  registerEnrollmentLinkRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {

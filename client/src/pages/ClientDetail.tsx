@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { MedicationList, type MedicationEntry } from "@/components/drugs/MedicationList";
 import { DrugCostEstimator } from "@/components/drugs/DrugCostEstimator";
 import { ProviderSearchInput } from "@/components/providers/ProviderSearchInput";
+import { EnrollmentButton } from "@/components/EnrollmentButton";
 import { NetworkStatusGrid } from "@/components/providers/NetworkStatusGrid";
 import type { ProviderResult } from "@/hooks/useProviderSearch";
 import { PageHeader } from "@/components/PageHeader";
@@ -189,6 +190,9 @@ function PlanCard({ plan }: { plan: RecommendedPlan }) {
                 </AlertDescription>
               </Alert>
             )}
+
+            {/* Enrollment */}
+            <EnrollmentButton carrier={plan.carrier} size="sm" />
           </div>
         </div>
       </CardContent>

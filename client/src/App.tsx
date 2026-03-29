@@ -43,6 +43,8 @@ import DataSources from "@/pages/DataSources";
 import TrendsTimeline from "@/pages/TrendsTimeline";
 import CarrierMovements from "@/pages/CarrierMovements";
 import ACAMarketplace from "@/pages/ACAMarketplace";
+import EligibilityCheck from "@/pages/EligibilityCheck";
+import SmartMatch from "@/pages/SmartMatch";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -90,6 +92,8 @@ function Router() {
       <Route path="/trends" component={TrendsTimeline} />
       <Route path="/carrier-movements" component={CarrierMovements} />
       <Route path="/aca" component={ACAMarketplace} />
+      <Route path="/eligibility" component={EligibilityCheck} />
+      <Route path="/smart-match" component={SmartMatch} />
       <Route path="/data-sources" component={DataSources} />
       <Route component={NotFound} />
     </Switch>

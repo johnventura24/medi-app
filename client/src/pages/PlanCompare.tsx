@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AIComparisonNarrative } from "@/components/ai/AIComparisonNarrative";
+import { EnrollmentButton } from "@/components/EnrollmentButton";
 import { PageHeader } from "@/components/PageHeader";
 import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
@@ -408,6 +409,9 @@ export default function PlanCompare() {
                         {plan.name}
                       </span>
                       <span className="text-xs text-muted-foreground">{plan.carrier}</span>
+                      <div className="mt-1">
+                        <EnrollmentButton carrier={plan.carrier} state={plan.state} size="sm" />
+                      </div>
                       <button
                         onClick={() => removePlan(plan.id)}
                         className="text-xs text-muted-foreground hover:text-destructive mt-0.5"

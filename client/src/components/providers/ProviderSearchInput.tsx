@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Stethoscope, Loader2, MapPin, Phone } from "lucide-react";
+import { Stethoscope, Loader2, MapPin, Phone, Info } from "lucide-react";
 import { useProviderSearch, type ProviderResult } from "@/hooks/useProviderSearch";
 import { cn } from "@/lib/utils";
 
@@ -126,9 +127,22 @@ export function ProviderSearchInput({ onSelect }: ProviderSearchInputProps) {
                 <p className="text-sm font-semibold">
                   Dr. {selectedProvider.name}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {selectedProvider.specialty}
-                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {selectedProvider.specialty && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedProvider.specialty}
+                    </Badge>
+                  )}
+                </div>
+                {/* Specialty Note */}
+                {selectedProvider.specialtyNote && (
+                  <div className="flex items-start gap-1.5 mt-1.5 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                    <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                      {selectedProvider.specialtyNote}
+                    </p>
+                  </div>
+                )}
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" />
                   {selectedProvider.address}, {selectedProvider.city},{" "}

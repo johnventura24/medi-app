@@ -6,22 +6,51 @@ export interface ProviderResult {
   npi: string;
   name: string;
   specialty: string;
+  specialtyNote?: string | null;
   address: string;
   city: string;
   state: string;
   phone?: string;
 }
 
+export interface ConfidenceFactor {
+  factor: string;
+  impact: "positive" | "negative" | "neutral";
+  detail: string;
+}
+
 export interface NetworkStatus {
   planId: number;
   planName: string;
   carrier: string;
-  inNetwork: boolean | null; // null = unknown
-  source: string; // "FHIR API" | "Cache" | "Unknown"
-  verifiedAt: string | null;
+  confidence: number; // 0-100
+  confidenceLevel: "high" | "medium" | "low" | "unknown";
+  factors: ConfidenceFactor[];
+  verificationUrl: string;
+  recommendation: string;
+  // Backward compatibility
+  inNetwork: boolean | null;
+  /** @deprecated use verificationUrl */
   carrierUrl?: string;
-  /** @deprecated use carrierUrl */
+  /** @deprecated use verificationUrl */
   carrierWebsite?: string;
+}
+
+export interface NetworkStatusResponse {
+  npi: string;
+  provider: {
+    name: string;
+    specialty: string | null;
+    specialtyNote: string | null;
+    address: {
+      line1: string | null;
+      city: string | null;
+      state: string | null;
+      zip: string | null;
+    };
+    phone: string | null;
+  } | null;
+  statuses: NetworkStatus[];
 }
 
 export function useProviderSearch(debounceMs = 400) {
@@ -41,7 +70,7 @@ export function useProviderSearch(debounceMs = 400) {
     };
   }, [query, debounceMs]);
 
-  const { data, isLoading } = useQuery<{ results: ProviderResult[] }>({
+  const { data, isLoading } = useQuery<{ providers: ProviderResult[] }>({
     queryKey: ["/api/providers/search", debouncedQuery, stateFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -62,7 +91,7 @@ export function useProviderSearch(debounceMs = 400) {
     setQuery,
     stateFilter,
     setStateFilter,
-    results: data?.results ?? [],
+    results: data?.providers ?? [],
     isLoading: isLoading && debouncedQuery.length >= 2,
   };
 }
@@ -70,7 +99,7 @@ export function useProviderSearch(debounceMs = 400) {
 export function useNetworkStatus(npi: string, planIds: number[]) {
   const { token } = useAuth();
 
-  return useQuery<{ statuses: NetworkStatus[] }>({
+  return useQuery<NetworkStatusResponse>({
     queryKey: ["/api/providers", npi, "network", planIds.join(",")],
     queryFn: async () => {
       const res = await fetch(

@@ -1,6 +1,10 @@
 import type { Express } from "express";
 import { searchProviders, getProviderByNpi } from "../services/nppes.service";
-import { checkProviderNetwork } from "../services/fhir-provider.service";
+import {
+  calculateProviderConfidence,
+  getSpecialtyNote,
+  type PlanConfidenceInput,
+} from "../services/provider-confidence.service";
 import { db } from "../db";
 import { plans } from "@shared/schema";
 import { inArray } from "drizzle-orm";
@@ -35,6 +39,7 @@ export function registerProviderRoutes(app: Express) {
           lastName: p.lastName || null,
           organizationName: p.organizationName || null,
           specialty: p.specialty || null,
+          specialtyNote: getSpecialtyNote(p.specialty) || null,
           address: {
             line1: p.addressLine1 || null,
             city: p.city || null,
@@ -73,6 +78,7 @@ export function registerProviderRoutes(app: Express) {
         lastName: provider.lastName || null,
         organizationName: provider.organizationName || null,
         specialty: provider.specialty || null,
+        specialtyNote: getSpecialtyNote(provider.specialty) || null,
         address: {
           line1: provider.addressLine1 || null,
           city: provider.city || null,
@@ -88,7 +94,8 @@ export function registerProviderRoutes(app: Express) {
   });
 
   // ── GET /api/providers/:npi/network ──
-  // Check if a provider is in-network for given plans via carrier FHIR APIs
+  // Check provider network status with confidence scoring for given plans.
+  // Returns confidence scores with explainable factors instead of binary in/out.
   app.get("/api/providers/:npi/network", async (req, res) => {
     try {
       const { npi } = req.params;
@@ -111,39 +118,75 @@ export function registerProviderRoutes(app: Express) {
         return res.status(400).json({ error: "At least one valid planId is required" });
       }
 
-      // Fetch plan info for the requested IDs
+      // Fetch plan info including planType, state, and county for confidence scoring
       const matchedPlans = await db
         .select({
           id: plans.id,
           name: plans.name,
           organizationName: plans.organizationName,
           contractId: plans.contractId,
+          planType: plans.planType,
+          state: plans.state,
+          county: plans.county,
         })
         .from(plans)
         .where(inArray(plans.id, planIds));
 
-      // Build plan inputs for the FHIR service
-      const planInputs = matchedPlans.map((plan) => ({
+      // Build plan inputs for the confidence scoring service
+      const planInputs: PlanConfidenceInput[] = matchedPlans.map((plan) => ({
         id: plan.id,
         name: plan.name,
         carrier: plan.organizationName,
         contractId: plan.contractId || "",
+        planType: plan.planType || "",
+        state: plan.state,
+        county: plan.county,
       }));
 
-      // Check network status via FHIR Provider Directory APIs
-      const networkResults = await checkProviderNetwork(npi, planInputs);
+      // Calculate confidence scores (includes FHIR checks internally)
+      const { provider, confidences } = await calculateProviderConfidence(
+        npi,
+        planInputs
+      );
 
-      // Return in the shape the frontend expects: { npi, statuses: [...] }
+      // Build provider info for the response
+      const providerInfo = provider
+        ? {
+            name:
+              [provider.firstName, provider.lastName].filter(Boolean).join(" ") ||
+              provider.organizationName ||
+              "Unknown",
+            specialty: provider.specialty || null,
+            specialtyNote: getSpecialtyNote(provider.specialty) || null,
+            address: {
+              line1: provider.addressLine1 || null,
+              city: provider.city || null,
+              state: provider.state || null,
+              zip: provider.zip || null,
+            },
+            phone: provider.phone || null,
+          }
+        : null;
+
       res.json({
         npi,
-        statuses: networkResults.map((r) => ({
-          planId: r.planId,
-          planName: r.planName,
-          carrier: r.carrier,
-          inNetwork: r.inNetwork,
-          source: r.source,
-          verifiedAt: r.verifiedAt,
-          carrierUrl: r.carrierUrl,
+        provider: providerInfo,
+        statuses: confidences.map((c) => ({
+          planId: c.planId,
+          planName: c.planName,
+          carrier: c.carrier,
+          confidence: c.confidence,
+          confidenceLevel: c.confidenceLevel,
+          factors: c.factors,
+          verificationUrl: c.verificationUrl,
+          recommendation: c.recommendation,
+          // Keep backward compatibility: derive inNetwork from confidence
+          inNetwork:
+            c.confidenceLevel === "high"
+              ? true
+              : c.confidenceLevel === "unknown"
+                ? null
+                : null,
         })),
       });
     } catch (err: any) {

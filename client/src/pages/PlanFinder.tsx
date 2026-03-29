@@ -40,6 +40,8 @@ import {
 import { cn } from "@/lib/utils";
 import { usePlanFinder, type FinderCriteria, type FinderPlanResult } from "@/hooks/usePlanFinder";
 import { AIPlanExplainer } from "@/components/ai/AIPlanExplainer";
+import { InlineDoctorCheck } from "@/components/providers/InlineDoctorCheck";
+import { EnrollmentButton } from "@/components/EnrollmentButton";
 import { PageHeader } from "@/components/PageHeader";
 import { InsightBox, type InsightItem } from "@/components/InsightBox";
 
@@ -283,7 +285,7 @@ function PlanCard({ plan, isCompareSelected, onToggleCompare }: PlanCardProps) {
         )}
 
         {/* Actions Row */}
-        <div className="flex items-center justify-between pt-1 border-t">
+        <div className="flex items-center justify-between pt-1 border-t gap-2 flex-wrap">
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={isCompareSelected}
@@ -291,22 +293,25 @@ function PlanCard({ plan, isCompareSelected, onToggleCompare }: PlanCardProps) {
             />
             <Label className="text-sm cursor-pointer">Compare</Label>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs"
-          >
-            {expanded ? (
-              <>
-                Less <ChevronUp className="h-3 w-3 ml-1" />
-              </>
-            ) : (
-              <>
-                Details <ChevronDown className="h-3 w-3 ml-1" />
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <EnrollmentButton carrier={plan.carrier} state={plan.state} size="sm" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+              className="text-xs"
+            >
+              {expanded ? (
+                <>
+                  Less <ChevronUp className="h-3 w-3 ml-1" />
+                </>
+              ) : (
+                <>
+                  Details <ChevronDown className="h-3 w-3 ml-1" />
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Expanded Details */}
@@ -336,6 +341,11 @@ function PlanCard({ plan, isCompareSelected, onToggleCompare }: PlanCardProps) {
               {plan.tier3CopayPreferred !== null && plan.tier3CopayPreferred !== undefined && (
                 <DetailItem label="Tier 3 Copay (Pref)" value={`$${plan.tier3CopayPreferred}`} />
               )}
+            </div>
+
+            {/* Inline Doctor Network Check */}
+            <div className="border-t pt-3">
+              <InlineDoctorCheck planId={plan.id} />
             </div>
 
             {/* AI Plan Explainer */}
