@@ -32,13 +32,10 @@ export function registerACARoutes(app: Express) {
     }
   });
 
-  // GET /api/aca/summary?state={ST}
+  // GET /api/aca/summary?state={ST} — state optional for nationwide
   app.get("/api/aca/summary", async (req, res) => {
     try {
-      const { state } = req.query;
-      if (!state || typeof state !== "string") {
-        return res.status(400).json({ error: "state query parameter is required" });
-      }
+      const state = typeof req.query.state === "string" ? req.query.state : undefined;
       const summary = await getACAMarketSummary(state);
       res.json(summary);
     } catch (err: any) {

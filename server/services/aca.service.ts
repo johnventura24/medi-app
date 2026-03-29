@@ -203,8 +203,8 @@ export async function searchACAPlans(options: {
 
 // ── ACA Market Summary ──
 
-export async function getACAMarketSummary(state: string): Promise<ACAMarketSummary> {
-  const stateUpper = state.toUpperCase();
+export async function getACAMarketSummary(state?: string): Promise<ACAMarketSummary> {
+  const whereClause = state ? eq(acaPlans.state, state.toUpperCase()) : undefined;
 
   const [
     totalResult,
@@ -215,41 +215,41 @@ export async function getACAMarketSummary(state: string): Promise<ACAMarketSumma
     avgCostResult,
     planTypeResult,
   ] = await Promise.all([
-    // Total plans (distinct plan_id in state)
-    db.select({ total: count() }).from(acaPlans).where(eq(acaPlans.state, stateUpper)),
+    // Total plans
+    db.select({ total: count() }).from(acaPlans).where(whereClause),
 
     // Distinct issuers
-    db.select({ issuers: countDistinct(acaPlans.issuerName) }).from(acaPlans).where(eq(acaPlans.state, stateUpper)),
+    db.select({ issuers: countDistinct(acaPlans.issuerName) }).from(acaPlans).where(whereClause),
 
     // Metal level distribution
     db.select({
       metal: acaPlans.metalLevel,
       cnt: count(),
-    }).from(acaPlans).where(eq(acaPlans.state, stateUpper)).groupBy(acaPlans.metalLevel),
+    }).from(acaPlans).where(whereClause).groupBy(acaPlans.metalLevel),
 
     // Avg premiums by metal
     db.select({
       metal: acaPlans.metalLevel,
       avgPrem: avg(acaPlans.premiumAge40),
-    }).from(acaPlans).where(eq(acaPlans.state, stateUpper)).groupBy(acaPlans.metalLevel),
+    }).from(acaPlans).where(whereClause).groupBy(acaPlans.metalLevel),
 
     // Top issuers
     db.select({
       name: acaPlans.issuerName,
       planCount: count(),
-    }).from(acaPlans).where(eq(acaPlans.state, stateUpper)).groupBy(acaPlans.issuerName).orderBy(desc(count())).limit(10),
+    }).from(acaPlans).where(whereClause).groupBy(acaPlans.issuerName).orderBy(desc(count())).limit(10),
 
     // Avg deductible and MOOP
     db.select({
       avgDed: avg(acaPlans.deductibleIndividual),
       avgMoop: avg(acaPlans.moopIndividual),
-    }).from(acaPlans).where(eq(acaPlans.state, stateUpper)),
+    }).from(acaPlans).where(whereClause),
 
     // Plan type distribution
     db.select({
       planType: acaPlans.planType,
       cnt: count(),
-    }).from(acaPlans).where(eq(acaPlans.state, stateUpper)).groupBy(acaPlans.planType),
+    }).from(acaPlans).where(whereClause).groupBy(acaPlans.planType),
   ]);
 
   const metalDistribution: Record<string, number> = {};
@@ -300,6 +300,7 @@ export async function getACAMarketSummary(state: string): Promise<ACAMarketSumma
 // ── Compare ACA vs Medicare Advantage ──
 
 export async function compareACAvsMA(state: string, county: string): Promise<ACAvsMAComparison> {
+  const stateFilter = eq(acaPlans.state, state.toUpperCase());
   const stateUpper = state.toUpperCase();
 
   const [acaResult, maResult] = await Promise.all([
@@ -311,7 +312,7 @@ export async function compareACAvsMA(state: string, county: string): Promise<ACA
       issuers: countDistinct(acaPlans.issuerName),
     }).from(acaPlans).where(
       and(
-        eq(acaPlans.state, stateUpper),
+        stateFilter,
         ilike(acaPlans.county, `%${county}%`),
       )
     ),
@@ -411,7 +412,7 @@ export async function calculateSubsidy(options: {
   const fplPercent = Math.round((income / fplBase) * 100);
 
   // Get all plans for location
-  const conditions = [eq(acaPlans.state, stateUpper)];
+  const conditions = [eq(acaPlans.state, state.toUpperCase())];
   if (county) {
     conditions.push(ilike(acaPlans.county, `%${county}%`));
   }

@@ -953,7 +953,7 @@ function SubsidyMapTab() {
 // ══════════════════════════════════════════════════════
 
 export default function ACAMarketplace() {
-  const [selectedState, setSelectedState] = useState<string>("FL");
+  const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCounty, setSelectedCounty] = useState<string>("");
   const [selectedMetal, setSelectedMetal] = useState<string>("all");
 
@@ -978,15 +978,15 @@ export default function ACAMarketplace() {
     enabled: !!selectedState,
   });
 
-  // Fetch summary
+  // Fetch summary (works nationwide when no state selected)
   const { data: summary, isLoading: summaryLoading } = useQuery<ACAMarketSummary>({
-    queryKey: ["/api/aca/summary", selectedState],
+    queryKey: ["/api/aca/summary", selectedState || "nationwide"],
     queryFn: async () => {
-      const res = await fetch(`/api/aca/summary?state=${selectedState}`);
+      const params = selectedState ? `?state=${selectedState}` : "";
+      const res = await fetch(`/api/aca/summary${params}`);
       if (!res.ok) throw new Error("Failed to fetch summary");
       return res.json();
     },
-    enabled: !!selectedState,
   });
 
   // Fetch plans
@@ -1003,7 +1003,6 @@ export default function ACAMarketplace() {
       if (!res.ok) throw new Error("Failed to fetch plans");
       return res.json();
     },
-    enabled: !!selectedState,
   });
 
   // Fetch comparison (only when county is selected)
@@ -1070,11 +1069,12 @@ export default function ACAMarketplace() {
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-muted-foreground">State</label>
-              <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setSelectedCounty(""); }}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select state" />
+              <Select value={selectedState || "nationwide"} onValueChange={(v) => { setSelectedState(v === "nationwide" ? "" : v); setSelectedCounty(""); }}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Nationwide" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="nationwide">🇺🇸 All States (Nationwide)</SelectItem>
                   {(states || []).map((st) => (
                     <SelectItem key={st} value={st}>
                       {STATE_NAMES[st] || st} ({st})
