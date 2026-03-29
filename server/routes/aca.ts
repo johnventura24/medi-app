@@ -5,6 +5,10 @@ import {
   compareACAvsMA,
   getACAStates,
   getACACounties,
+  calculateSubsidy,
+  getCarrierCoverageAnalysis,
+  getCarrierRankings,
+  getSubsidyMap,
 } from "../services/aca.service";
 
 export function registerACARoutes(app: Express) {
@@ -81,6 +85,69 @@ export function registerACARoutes(app: Express) {
     } catch (err: any) {
       console.error("Error fetching ACA counties:", err.message);
       res.status(500).json({ error: "Failed to fetch ACA counties" });
+    }
+  });
+
+  // POST /api/aca/subsidy — calculate premium subsidy
+  app.post("/api/aca/subsidy", async (req, res) => {
+    try {
+      const { income, householdSize, age, state, county } = req.body;
+      if (!income || !householdSize || !age || !state) {
+        return res.status(400).json({
+          error: "income, householdSize, age, and state are required",
+        });
+      }
+      const result = await calculateSubsidy({
+        income: Number(income),
+        householdSize: Number(householdSize),
+        age: Number(age),
+        state: String(state),
+        county: county ? String(county) : undefined,
+      });
+      res.json(result);
+    } catch (err: any) {
+      console.error("Error calculating subsidy:", err.message);
+      res.status(500).json({ error: "Failed to calculate subsidy" });
+    }
+  });
+
+  // GET /api/aca/carrier-analysis?carrier={name}
+  app.get("/api/aca/carrier-analysis", async (req, res) => {
+    try {
+      const { carrier } = req.query;
+      const result = await getCarrierCoverageAnalysis(
+        typeof carrier === "string" ? carrier : undefined
+      );
+      res.json(result);
+    } catch (err: any) {
+      console.error("Error fetching carrier analysis:", err.message);
+      res.status(500).json({ error: "Failed to fetch carrier analysis" });
+    }
+  });
+
+  // GET /api/aca/carrier-rankings?metalLevel={silver}&state={ST}
+  app.get("/api/aca/carrier-rankings", async (req, res) => {
+    try {
+      const { metalLevel, state } = req.query;
+      const result = await getCarrierRankings({
+        metalLevel: typeof metalLevel === "string" ? metalLevel : undefined,
+        state: typeof state === "string" ? state : undefined,
+      });
+      res.json(result);
+    } catch (err: any) {
+      console.error("Error fetching carrier rankings:", err.message);
+      res.status(500).json({ error: "Failed to fetch carrier rankings" });
+    }
+  });
+
+  // GET /api/aca/subsidy-map
+  app.get("/api/aca/subsidy-map", async (_req, res) => {
+    try {
+      const result = await getSubsidyMap();
+      res.json(result);
+    } catch (err: any) {
+      console.error("Error fetching subsidy map:", err.message);
+      res.status(500).json({ error: "Failed to fetch subsidy map" });
     }
   });
 }
