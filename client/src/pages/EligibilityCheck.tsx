@@ -170,19 +170,29 @@ function StepBasicInfo({
         />
       </div>
 
-      <YesNo
-        label="Do you have Medicare Part A (Hospital Insurance)?"
-        value={input.hasPartA}
-        onChange={(v) => setInput((prev) => ({ ...prev, hasPartA: v }))}
-        helpText="Part A covers inpatient hospital stays, skilled nursing, and hospice."
-      />
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Do you have Medicare Part A (Hospital Insurance)?</Label>
+        <p className="text-xs text-muted-foreground">
+          🏥 Part A covers inpatient hospital stays, skilled nursing, and hospice. Most people get it automatically at 65 — <strong>look at your red, white & blue Medicare card for "HOSPITAL (PART A)"</strong>.
+        </p>
+        <YesNo
+          label=""
+          value={input.hasPartA}
+          onChange={(v) => setInput((prev) => ({ ...prev, hasPartA: v }))}
+        />
+      </div>
 
-      <YesNo
-        label="Do you have Medicare Part B (Medical Insurance)?"
-        value={input.hasPartB}
-        onChange={(v) => setInput((prev) => ({ ...prev, hasPartB: v }))}
-        helpText="Part B covers doctor visits, outpatient care, and preventive services."
-      />
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Do you have Medicare Part B (Medical Insurance)?</Label>
+        <p className="text-xs text-muted-foreground">
+          👨‍⚕️ Part B covers doctor visits, outpatient care, and preventive services. You pay a monthly premium (~$185/month in 2026). <strong>Look at your Medicare card for "MEDICAL (PART B)"</strong>.
+        </p>
+        <YesNo
+          label=""
+          value={input.hasPartB}
+          onChange={(v) => setInput((prev) => ({ ...prev, hasPartB: v }))}
+        />
+      </div>
     </div>
   );
 }
@@ -203,28 +213,76 @@ function StepCoverage({
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Label className="text-sm font-medium">What coverage do you currently have?</Label>
-        <Select
-          value={input.currentCoverage}
-          onValueChange={(v) =>
-            setInput((prev) => ({
-              ...prev,
-              currentCoverage: v as EligibilityInput["currentCoverage"],
-            }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select your coverage" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No coverage</SelectItem>
-            <SelectItem value="original_medicare">Original Medicare (Parts A & B only)</SelectItem>
-            <SelectItem value="medicare_advantage">Medicare Advantage plan</SelectItem>
-            <SelectItem value="employer">Employer / Union coverage</SelectItem>
-            <SelectItem value="medicaid">Medicaid only</SelectItem>
-          </SelectContent>
-        </Select>
+        <p className="text-xs text-muted-foreground">Tap the option that matches your situation. Not sure? Look at your Medicare card.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            {
+              value: "original_medicare",
+              title: "Original Medicare",
+              description: "Red, white & blue Medicare card. You have Part A (hospital) and Part B (medical) from the government.",
+              hint: "Your card says 'Medicare Health Insurance' with a red and blue stripe",
+              emoji: "🏛️",
+            },
+            {
+              value: "medicare_advantage",
+              title: "Medicare Advantage Plan",
+              description: "A private plan (like Humana, UHC, Aetna) that covers everything Medicare covers, plus extras.",
+              hint: "Your card has a private insurance company name on it, not just 'Medicare'",
+              emoji: "⭐",
+            },
+            {
+              value: "employer",
+              title: "Employer / Union Coverage",
+              description: "Health insurance through your job, your spouse's job, or a retiree plan.",
+              hint: "You get this through work or a pension/retirement package",
+              emoji: "💼",
+            },
+            {
+              value: "medicaid",
+              title: "Medicaid Only",
+              description: "State-funded health coverage for people with limited income. Different from Medicare.",
+              hint: "Your card has your state's Medicaid program name on it",
+              emoji: "🏥",
+            },
+            {
+              value: "none",
+              title: "No Coverage / Not Sure",
+              description: "I don't have any health coverage right now, or I'm not sure what I have.",
+              hint: "That's okay — we'll help you figure out what you qualify for",
+              emoji: "❓",
+            },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() =>
+                setInput((prev) => ({
+                  ...prev,
+                  currentCoverage: option.value as EligibilityInput["currentCoverage"],
+                }))
+              }
+              className={`text-left p-4 rounded-lg border-2 transition-all ${
+                input.currentCoverage === option.value
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/40 hover:bg-muted/50"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">{option.emoji}</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{option.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
+                  <p className="text-xs text-primary/70 mt-1 italic">{option.hint}</p>
+                </div>
+                {input.currentCoverage === option.value && (
+                  <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {input.currentCoverage === "medicare_advantage" && (

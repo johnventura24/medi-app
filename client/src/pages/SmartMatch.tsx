@@ -20,6 +20,7 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
@@ -317,19 +318,27 @@ function SmartMatchPlanCard({ plan }: { plan: SmartMatchPlan }) {
 export default function SmartMatch() {
   const [, navigate] = useLocation();
   const [zip, setZip] = useState("");
-  const [selectedProfile, setSelectedProfile] = useState<MatchProfile | null>(null);
+  const [selectedProfiles, setSelectedProfiles] = useState<MatchProfile[]>([]);
   const [submittedQuery, setSubmittedQuery] = useState<{
     zip: string;
-    profile: MatchProfile;
+    profiles: MatchProfile[];
   } | null>(null);
+  // Keep selectedProfile for backward compat in the query
+  const selectedProfile = selectedProfiles[0] || null;
 
   const zipValid = /^\d{5}$/.test(zip);
 
+  // Query the first selected profile (or "best_overall" for multi)
+  const queryProfile = submittedQuery?.profiles.length === 1
+    ? submittedQuery.profiles[0]
+    : "best_overall";
+
   const { data: result, isLoading } = useQuery<SmartMatchResult>({
-    queryKey: ["/api/smart-match", submittedQuery?.zip, submittedQuery?.profile],
+    queryKey: ["/api/smart-match", submittedQuery?.zip, submittedQuery?.profiles.join(",")],
     queryFn: async () => {
+      // If multiple profiles selected, fetch best_overall which captures all
       const res = await fetch(
-        `/api/smart-match?zip=${submittedQuery!.zip}&profile=${submittedQuery!.profile}`
+        `/api/smart-match?zip=${submittedQuery!.zip}&profile=${queryProfile}`
       );
       if (!res.ok) throw new Error("Failed to run smart match");
       return res.json();
@@ -337,15 +346,28 @@ export default function SmartMatch() {
     enabled: !!submittedQuery,
   });
 
+  const toggleProfile = (profile: MatchProfile) => {
+    setSelectedProfiles((prev) =>
+      prev.includes(profile)
+        ? prev.filter((p) => p !== profile)
+        : [...prev, profile]
+    );
+  };
+
+  const selectAll = () => {
+    const allIds = PROFILES.map((p) => p.id);
+    setSelectedProfiles((prev) => prev.length === allIds.length ? [] : allIds);
+  };
+
   const handleSubmit = () => {
-    if (zipValid && selectedProfile) {
-      setSubmittedQuery({ zip, profile: selectedProfile });
+    if (zipValid && selectedProfiles.length > 0) {
+      setSubmittedQuery({ zip, profiles: selectedProfiles });
     }
   };
 
   const resetSearch = () => {
     setSubmittedQuery(null);
-    setSelectedProfile(null);
+    setSelectedProfiles([]);
   };
 
   return (
@@ -428,9 +450,15 @@ export default function SmartMatch() {
           <div className="text-center space-y-2">
             <h2 className="text-xl font-semibold">What matters most to you?</h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Pick one priority and we'll find the plans that are the best fit.
+              Pick one or more priorities and we'll find the plans that are the best fit.
               No complicated filters needed.
             </p>
+            <button
+              onClick={selectAll}
+              className="text-xs text-primary hover:underline"
+            >
+              {selectedProfiles.length === PROFILES.length ? "Deselect All" : "Select All"}
+            </button>
           </div>
 
           {/* Profile Cards */}
@@ -438,14 +466,19 @@ export default function SmartMatch() {
             {PROFILES.map((profile) => (
               <button
                 key={profile.id}
-                onClick={() => setSelectedProfile(profile.id)}
+                onClick={() => toggleProfile(profile.id)}
                 className={cn(
-                  "text-left rounded-xl border-2 p-5 transition-all hover:shadow-md",
-                  selectedProfile === profile.id
+                  "text-left rounded-xl border-2 p-5 transition-all hover:shadow-md relative",
+                  selectedProfiles.includes(profile.id)
                     ? "border-primary bg-primary/5 shadow-sm"
                     : "border-border hover:border-primary/50"
                 )}
               >
+                {selectedProfiles.includes(profile.id) && (
+                  <div className="absolute top-2 right-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                )}
                 <div className="text-2xl mb-2">{profile.emoji}</div>
                 <p className="font-semibold text-sm">{profile.title}</p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -479,16 +512,16 @@ export default function SmartMatch() {
                 <Button
                   size="lg"
                   onClick={handleSubmit}
-                  disabled={!zipValid || !selectedProfile}
+                  disabled={!zipValid || selectedProfiles.length === 0}
                   className="w-full sm:w-auto"
                 >
-                  Find My Best Plans
+                  Find My Best Plans {selectedProfiles.length > 0 && `(${selectedProfiles.length} selected)`}
                   <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
                 </Button>
               </div>
-              {!selectedProfile && zip.length > 0 && zipValid && (
+              {selectedProfiles.length === 0 && zip.length > 0 && zipValid && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Select a priority above, then click "Find My Best Plans"
+                  Select one or more priorities above, then click "Find My Best Plans"
                 </p>
               )}
             </CardContent>
