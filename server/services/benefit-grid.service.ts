@@ -190,23 +190,24 @@ function buildFlexRows(allPlans: PlanRow[]): any[][] {
   const dataRows: any[][] = [];
 
   for (const p of allPlans) {
-    // Only include plans flagged as having supplemental benefits
-    // NOTE: Dollar amounts are NOT from CMS PBP filings — they are estimates.
-    // The has_meal_benefit boolean IS from the CMS PBP b13 file.
-    const hasFlex = p.hasMealBenefit;
-    if (!hasFlex) continue;
+    // Only include plans with verified flex/supplemental benefit data
+    // Plans need either a real flex_card_amount from CMS PBP or has_meal_benefit flag
+    const hasVerifiedFlex = (p.flexCardAmount && p.flexCardAmount > 0);
+    const hasMealFlag = p.hasMealBenefit;
+    if (!hasVerifiedFlex && !hasMealFlag) continue;
 
     const ssbci =
       p.snpType && p.snpType.toUpperCase().includes("SNP")
         ? "See Evidence of Coverage for SSBCI chronic condition qualifiers"
         : "None";
 
-    const amount = p.flexCardAmount || p.mealBenefitAmount || 0;
-    const frequency = p.flexCardFrequency || (p.mealBenefitAmount ? "annually" : "See SB");
+    // Only show dollar amount if we have real CMS PBP data
+    const amount = p.flexCardAmount || 0;
+    const frequency = p.flexCardFrequency || "See SB";
 
     const details = amount > 0
       ? `This plan offers a spending allowance of $${amount} ${frequency} for supplemental benefits.`
-      : "This plan offers supplemental flex/meal benefits. See Evidence of Coverage for specific amounts.";
+      : "This plan may offer supplemental benefits. Verify specific flex/meal benefit details in the plan's Summary of Benefits and Evidence of Coverage.";
 
     dataRows.push([
       p.county,
