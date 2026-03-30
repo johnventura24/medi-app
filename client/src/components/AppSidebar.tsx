@@ -52,6 +52,9 @@ import {
   ClipboardCheck,
   Zap,
   Stethoscope,
+  Award,
+  Calendar,
+  Printer,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -66,6 +69,8 @@ interface NavGroup {
   icon: React.ComponentType<{ className?: string }>;
   items: NavItem[];
   defaultOpen: boolean;
+  /** Which roles can see this group. undefined = everyone */
+  roles?: Array<"admin" | "compliance" | "agent" | "viewer">;
 }
 
 const navGroups: NavGroup[] = [
@@ -73,6 +78,7 @@ const navGroups: NavGroup[] = [
     label: "Explore",
     icon: MapPin,
     defaultOpen: true,
+    // Always visible to everyone
     items: [
       { title: "State Overview", url: "/dashboard/states", icon: Map },
       { title: "County Reports", url: "/cities", icon: Building2 },
@@ -86,6 +92,7 @@ const navGroups: NavGroup[] = [
     label: "Find & Compare",
     icon: Search,
     defaultOpen: true,
+    // Always visible to everyone
     items: [
       { title: "Keep My Doctor", url: "/keep-my-doctor", icon: Stethoscope },
       { title: "Eligibility Check", url: "/eligibility", icon: ClipboardCheck },
@@ -100,6 +107,7 @@ const navGroups: NavGroup[] = [
     label: "Clients",
     icon: Users,
     defaultOpen: false,
+    roles: ["admin", "agent"],
     items: [
       { title: "My Clients", url: "/clients", icon: Users },
       { title: "New Client", url: "/clients/new", icon: UserPlus },
@@ -111,6 +119,7 @@ const navGroups: NavGroup[] = [
     label: "Intelligence",
     icon: TrendingUp,
     defaultOpen: true,
+    roles: ["admin", "compliance"],
     items: [
       { title: "Market Intelligence", url: "/intelligence", icon: TrendingUp },
       { title: "Battleground Map", url: "/battleground", icon: Swords },
@@ -119,17 +128,33 @@ const navGroups: NavGroup[] = [
       { title: "Trends", url: "/trends", icon: LineChart },
       { title: "Archetypes", url: "/archetypes", icon: UsersIcon },
       { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
+      { title: "Carrier Scorecards", url: "/scorecards", icon: Award },
     ],
   },
   {
     label: "Compliance",
     icon: ShieldCheck,
     defaultOpen: false,
+    roles: ["admin", "compliance"],
     items: [
       { title: "Benefit Grid", url: "/benefit-grid", icon: FileSpreadsheet },
       { title: "Matrix View", url: "/matrix", icon: LayoutGrid },
       { title: "Change Report", url: "/changes", icon: ArrowLeftRight },
       { title: "Data Validation", url: "/validation", icon: ShieldCheck },
+      { title: "Plan Cheatsheets", url: "/cheatsheets", icon: Printer },
+      { title: "Regulatory Calendar", url: "/regulatory", icon: Calendar },
+    ],
+  },
+  {
+    label: "Admin",
+    icon: Settings,
+    defaultOpen: false,
+    roles: ["admin"],
+    items: [
+      { title: "Audit Logs", url: "/admin/audit", icon: ShieldCheck },
+      { title: "User Management", url: "/admin/users", icon: Users },
+      { title: "API Keys", url: "/admin/api-keys", icon: Settings },
+      { title: "System Health", url: "/admin/health", icon: Activity },
     ],
   },
 ];
@@ -137,12 +162,23 @@ const navGroups: NavGroup[] = [
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, isAuthenticated } = useAuth();
+  const role = user?.role || "viewer";
 
   const isActive = (url: string) => {
     if (url === "/dashboard") return location === "/" || location === "/dashboard";
     if (url === "/dashboard/states") return location === "/dashboard/states";
     return location === url || (url !== "/" && location.startsWith(url + "/"));
   };
+
+  // Filter nav groups based on user role
+  const visibleGroups = navGroups.filter((group) => {
+    // Groups without role restrictions are visible to everyone
+    if (!group.roles) return true;
+    // If user is not authenticated, only show unrestricted groups
+    if (!isAuthenticated) return false;
+    // Show group if user's role is in the allowed list
+    return group.roles.includes(role as any);
+  });
 
   // Track which groups are open — initialize from defaultOpen
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
@@ -192,8 +228,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Collapsible nav groups */}
-        {navGroups.map((group) => (
+        {/* Collapsible nav groups — filtered by role */}
+        {visibleGroups.map((group) => (
           <Collapsible
             key={group.label}
             open={openGroups[group.label]}

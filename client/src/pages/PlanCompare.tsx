@@ -250,6 +250,31 @@ export default function PlanCompare() {
     window.open(`/api/export/csv?scope=comparison&format=pdf&ids=${ids}`, "_blank");
   };
 
+  const handleGenerateReport = async () => {
+    if (plans.length === 0) return;
+    try {
+      const res = await fetch("/api/reports/comparison", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plans: plans.map((p) => p.id),
+          clientName: "Client",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to generate report");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Comparison_Report_${new Date().toISOString().split("T")[0]}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: "Report Generated", description: "Client comparison report has been downloaded." });
+    } catch {
+      toast({ title: "Error", description: "Failed to generate comparison report", variant: "destructive" });
+    }
+  };
+
   // Determine which rows differ
   const rowValues = useMemo(() => {
     const map: Record<string, unknown[]> = {};
@@ -504,6 +529,12 @@ export default function PlanCompare() {
               <FileText className="h-4 w-4 mr-1" />
               PDF
             </Button>
+            {plans.length >= 2 && (
+              <Button size="sm" onClick={handleGenerateReport}>
+                <FileText className="h-4 w-4 mr-1" />
+                Generate Client Report
+              </Button>
+            )}
           </div>
         }
       />

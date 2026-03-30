@@ -48,6 +48,13 @@ import SmartMatch from "@/pages/SmartMatch";
 import ACAEligibility from "@/pages/ACAEligibility";
 import ACASmartMatch from "@/pages/ACASmartMatch";
 import KeepMyDoctor from "@/pages/KeepMyDoctor";
+import PlanCheatsheets from "@/pages/PlanCheatsheets";
+import CarrierScorecards from "@/pages/CarrierScorecards";
+import RegulatoryCalendar from "@/pages/RegulatoryCalendar";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminAuditLog from "@/pages/AdminAuditLog";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -57,6 +64,15 @@ import PricingPage from "@/pages/PricingPage";
 import ConsumerFlow from "@/pages/ConsumerFlow";
 
 import { useAuth } from "@/hooks/useAuth";
+
+/** Guards a route so only users with matching roles can access it */
+function AuthGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
+  if (!isAuthenticated || !user || !roles.includes(user.role)) {
+    return <NotFound />;
+  }
+  return <>{children}</>;
+}
 
 function Router() {
   return (
@@ -100,7 +116,24 @@ function Router() {
       <Route path="/eligibility" component={EligibilityCheck} />
       <Route path="/smart-match" component={SmartMatch} />
       <Route path="/keep-my-doctor" component={KeepMyDoctor} />
+      <Route path="/cheatsheets" component={PlanCheatsheets} />
+      <Route path="/scorecards" component={CarrierScorecards} />
+      <Route path="/regulatory" component={RegulatoryCalendar} />
       <Route path="/data-sources" component={DataSources} />
+      <Route path="/admin/users">
+        {() => (
+          <AuthGuard roles={["admin"]}>
+            <AdminUsers />
+          </AuthGuard>
+        )}
+      </Route>
+      <Route path="/admin/audit">
+        {() => (
+          <AuthGuard roles={["admin"]}>
+            <AdminAuditLog />
+          </AuthGuard>
+        )}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -148,6 +181,8 @@ function App() {
               <Route path="/for-you" component={ConsumerFlow} />
               <Route path="/pricing" component={PricingPage} />
               <Route path="/welcome" component={LandingPage} />
+              <Route path="/privacy" component={Privacy} />
+              <Route path="/terms" component={Terms} />
 
               {/* Landing page for unauthenticated, dashboard for authenticated */}
               <Route path="/" component={RootRoute} />

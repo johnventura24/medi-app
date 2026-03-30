@@ -43,6 +43,12 @@ import { registerEnrollmentLinkRoutes } from "./routes/enrollment-links";
 import { registerACAEligibilityRoutes } from "./routes/aca-eligibility";
 import { registerACASmartMatchRoutes } from "./routes/aca-smart-match";
 import { registerDoctorFirstRoutes } from "./routes/doctor-first";
+import { registerAdminRoutes } from "./routes/admin";
+import { registerApiKeyRoutes } from "./routes/api-keys";
+import { registerCheatsheetRoutes } from "./routes/cheatsheets";
+import { registerCarrierScorecardRoutes } from "./routes/carrier-scorecards";
+import { registerComparisonReportRoutes } from "./routes/comparison-report";
+import { registerRegulatoryRoutes } from "./routes/regulatory";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -768,6 +774,16 @@ export async function registerRoutes(
 
   // Doctor-first matching
   registerDoctorFirstRoutes(app);
+
+  // SOC2 compliance: Admin and API key management
+  registerAdminRoutes(app);
+  registerApiKeyRoutes(app);
+
+  // Plan Cheatsheets, Carrier Scorecards, Comparison Reports, Regulatory Alerts
+  registerCheatsheetRoutes(app);
+  registerCarrierScorecardRoutes(app);
+  registerComparisonReportRoutes(app);
+  registerRegulatoryRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {

@@ -19,6 +19,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import DashboardAdmin from "./DashboardAdmin";
+import DashboardFMO from "./DashboardFMO";
+import DashboardAgent from "./DashboardAgent";
 
 interface SummaryData {
   totalPlans: number;
@@ -97,6 +100,15 @@ function formatNumber(n: number): string {
 
 export default function Dashboard() {
   const { user, isAuthenticated } = useAuth();
+
+  // Route to role-specific dashboards
+  if (isAuthenticated && user) {
+    if (user.role === "admin") return <DashboardAdmin />;
+    if (user.role === "compliance") return <DashboardFMO />;
+    if (user.role === "agent") return <DashboardAgent />;
+  }
+
+  // Default dashboard for viewers and unauthenticated users
 
   const { data: summary } = useQuery<SummaryData>({
     queryKey: ["/api/summary"],

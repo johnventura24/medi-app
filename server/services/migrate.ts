@@ -242,8 +242,102 @@ export async function ensureTables(): Promise<void> {
       );
 
       CREATE INDEX IF NOT EXISTS idx_pnc_npi ON provider_network_cache(npi);
+
+      -- ═══ SOC2 Compliance Tables ═══
+
+      -- Audit logs (immutable — no UPDATE/DELETE allowed via application)
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+        user_id INTEGER,
+        user_email TEXT,
+        user_role TEXT,
+        action TEXT NOT NULL,
+        resource TEXT NOT NULL,
+        resource_id TEXT,
+        ip_address TEXT NOT NULL,
+        user_agent TEXT,
+        details JSONB DEFAULT '{}',
+        status TEXT NOT NULL DEFAULT 'success',
+        risk_level TEXT NOT NULL DEFAULT 'low'
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_risk ON audit_logs(risk_level);
+
+      -- Active sessions (for concurrent session management)
+      CREATE TABLE IF NOT EXISTS active_sessions (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT NOT NULL,
+        ip_address TEXT,
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        expires_at TIMESTAMP NOT NULL,
+        last_activity_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sessions_user ON active_sessions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_sessions_token ON active_sessions(token_hash);
+      CREATE INDEX IF NOT EXISTS idx_sessions_expires ON active_sessions(expires_at);
+
+      -- Password history (for password reuse prevention)
+      CREATE TABLE IF NOT EXISTS password_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_pw_history_user ON password_history(user_id);
+
+      -- Login attempts (for account lockout)
+      CREATE TABLE IF NOT EXISTS login_attempts (
+        id SERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        success BOOLEAN NOT NULL DEFAULT false,
+        attempted_at TIMESTAMP DEFAULT NOW(),
+        ip_address TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts(email);
+      CREATE INDEX IF NOT EXISTS idx_login_attempts_time ON login_attempts(attempted_at DESC);
+
+      -- Refresh tokens
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        revoked BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
+
+      -- API keys (for enterprise customers)
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        key_hash TEXT NOT NULL UNIQUE,
+        key_prefix TEXT,
+        user_id INTEGER,
+        scopes JSONB DEFAULT '["read"]',
+        expires_at TIMESTAMP NOT NULL,
+        created_by INTEGER,
+        created_at TIMESTAMP DEFAULT NOW(),
+        last_used_at TIMESTAMP,
+        is_active BOOLEAN DEFAULT true
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+      CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);
     `);
-    console.log("[migrate] All tables ensured");
+    console.log("[migrate] All tables ensured (including SOC2 compliance tables)");
   } catch (err: any) {
     console.log("[migrate] Error ensuring tables:", err.message);
     // Non-fatal — tables may already exist with different schemas

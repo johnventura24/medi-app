@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +20,8 @@ import {
   Zap,
   CheckCircle,
   Shield,
+  Calendar,
+  ChevronRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { InsightBox, type InsightItem } from "@/components/InsightBox";
@@ -472,6 +475,9 @@ export default function AEPWarRoom() {
             </Card>
           </div>
 
+          {/* Regulatory Alerts Section */}
+          <RegulatoryAlertsSection />
+
           {/* Footer */}
           <div className="text-center text-xs text-muted-foreground py-4 border-t">
             Data source: CMS CY2026 PBP | Last updated: {new Date().toLocaleDateString("en-US", {
@@ -481,6 +487,72 @@ export default function AEPWarRoom() {
         </>
       )}
     </div>
+  );
+}
+
+// ── Regulatory Alerts Section ──
+
+interface RegulatoryAlert {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  impact: "high" | "medium" | "low";
+  category: string;
+}
+
+function RegulatoryAlertsSection() {
+  const { data: alerts } = useQuery<RegulatoryAlert[]>({
+    queryKey: ["/api/regulatory/alerts?upcoming=true&days=90"],
+  });
+
+  if (!alerts || alerts.length === 0) return null;
+
+  const impactColor: Record<string, string> = {
+    high: "bg-red-100 text-red-700",
+    medium: "bg-yellow-100 text-yellow-700",
+    low: "bg-gray-100 text-gray-600",
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Upcoming Regulatory Dates
+          </CardTitle>
+          <Link href="/regulatory">
+            <Badge variant="outline" className="cursor-pointer hover:bg-muted text-xs">
+              View All <ChevronRight className="h-3 w-3 ml-0.5" />
+            </Badge>
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {alerts.slice(0, 5).map((alert) => {
+            const daysUntil = Math.ceil(
+              (new Date(alert.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+            );
+            return (
+              <div key={alert.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                <Badge className={`text-[10px] ${impactColor[alert.impact] || impactColor.low}`}>
+                  {daysUntil}d
+                </Badge>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{alert.title}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {new Date(alert.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{alert.impact}</Badge>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
