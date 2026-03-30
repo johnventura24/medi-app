@@ -84,8 +84,9 @@ async function getCachedNetworkStatus(
   npi: string,
   carrier: string,
   contractId: string | null
-): Promise<{ inNetwork: boolean | null; source: string; verifiedAt: Date } | null> {
+): Promise<{ inNetwork: boolean | null; source: string; originalSource: string; verifiedAt: Date } | null> {
   try {
+    // First try exact match on contractId
     const conditions = [
       eq(providerNetworkCache.npi, npi),
       eq(providerNetworkCache.carrier, carrier),
@@ -96,11 +97,24 @@ async function getCachedNetworkStatus(
       conditions.push(sql`${providerNetworkCache.contractId} IS NULL`);
     }
 
-    const rows = await db
+    let rows = await db
       .select()
       .from(providerNetworkCache)
       .where(and(...conditions))
       .limit(1);
+
+    // Fallback: if contractId was specified but no match, try carrier-level (null contractId)
+    if (rows.length === 0 && contractId) {
+      rows = await db
+        .select()
+        .from(providerNetworkCache)
+        .where(and(
+          eq(providerNetworkCache.npi, npi),
+          eq(providerNetworkCache.carrier, carrier),
+          sql`${providerNetworkCache.contractId} IS NULL`
+        ))
+        .limit(1);
+    }
 
     if (rows.length === 0) return null;
 
@@ -113,6 +127,7 @@ async function getCachedNetworkStatus(
     return {
       inNetwork: row.inNetwork,
       source: "Cache",
+      originalSource: row.source,
       verifiedAt,
     };
   } catch (err) {
@@ -293,20 +308,29 @@ export async function checkProviderNetwork(
 
       // Check cache first (use the first plan's contractId as representative)
       const representativeContractId = carrierPlanList[0]?.contractId || null;
-      const cached = await getCachedNetworkStatus(
+      let cached = await getCachedNetworkStatus(
         npi,
         carrier,
         representativeContractId
       );
+
+      // Also try the canonical carrier key (e.g., "UnitedHealthcare" for "UnitedHealthcare Insurance Company")
+      if (!cached && carrierKey && carrierKey !== carrier) {
+        cached = await getCachedNetworkStatus(
+          npi,
+          carrierKey,
+          representativeContractId
+        );
+      }
 
       let inNetwork: boolean | null = null;
       let source = "Unknown";
       let verifiedAt: string | null = null;
 
       if (cached) {
-        // Use cached result
+        // Use cached result — preserve original source for scoring differentiation
         inNetwork = cached.inNetwork;
-        source = cached.source === "Cache" ? "Cache" : cached.source;
+        source = cached.originalSource || (cached.source === "Cache" ? "Cache" : cached.source);
         verifiedAt = cached.verifiedAt.toISOString();
       } else {
         // Try FHIR endpoint for this carrier

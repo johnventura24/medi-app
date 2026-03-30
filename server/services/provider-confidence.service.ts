@@ -77,7 +77,7 @@ const SPECIALIST_SPECIALTIES = [
 // In a production system, this would come from a county-level database.
 
 const CARRIER_MARKET_SHARE: Record<string, number> = {
-  unitedealthcare: 29,
+  unitedhealthcare: 29,
   uhc: 29,
   united: 29,
   humana: 18,
@@ -266,35 +266,49 @@ export async function calculateProviderConfidence(
     const factors: ConfidenceFactor[] = [];
     let score = 25; // base prior
 
-    // ── Factor 1: FHIR API result (+50 / -50 / 0) ──
+    // ── Factor 1: Network verification result (+50 / -30 / +10 / 0) ──
     const fhirResult = fhirMap.get(plan.id);
     if (fhirResult) {
+      const src = fhirResult.source || "";
       if (fhirResult.inNetwork === true) {
+        // Confirmed in-network (FHIR API or FHIR_bulk)
         score += 50;
         factors.push({
-          factor: "FHIR Directory Check",
+          factor: "Network Verification",
           impact: "positive",
-          detail: `Provider found in ${plan.carrier}'s electronic provider directory.`,
+          detail: src.includes("FHIR")
+            ? `Provider confirmed in ${plan.carrier}'s electronic provider directory.`
+            : `Provider found in ${plan.carrier}'s provider network cache.`,
         });
       } else if (fhirResult.inNetwork === false) {
-        score -= 50;
+        // Confirmed out-of-network
+        score -= 30;
         factors.push({
-          factor: "FHIR Directory Check",
+          factor: "Network Verification",
           impact: "negative",
           detail: `Provider not found in ${plan.carrier}'s electronic provider directory.`,
         });
+      } else if (src === "inferred") {
+        // Inferred association: provider is in same state as carrier's service area
+        // and has a Medicare-relevant specialty — mild positive signal
+        score += 10;
+        factors.push({
+          factor: "Network Verification",
+          impact: "positive",
+          detail: `Provider is in ${plan.carrier}'s service area with a Medicare-relevant specialty. Not yet independently verified.`,
+        });
       } else {
         factors.push({
-          factor: "FHIR Directory Check",
+          factor: "Network Verification",
           impact: "neutral",
           detail: `${plan.carrier}'s electronic provider directory was unavailable or returned no results.`,
         });
       }
     } else {
       factors.push({
-        factor: "FHIR Directory Check",
+        factor: "Network Verification",
         impact: "neutral",
-        detail: "Electronic provider directory check was not available for this carrier.",
+        detail: "No network verification data available for this carrier.",
       });
     }
 
