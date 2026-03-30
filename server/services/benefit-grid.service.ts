@@ -201,8 +201,12 @@ function buildFlexRows(allPlans: PlanRow[]): any[][] {
         ? "See Evidence of Coverage for SSBCI chronic condition qualifiers"
         : "None";
 
-    // Use cautious language — direct users to verify amounts in the EOC
-    const details = "This plan offers supplemental benefits (meal/grocery/flex card). See the plan's Evidence of Coverage and Summary of Benefits for specific benefit amounts, allowances, and disbursement details.";
+    const amount = p.flexCardAmount || p.mealBenefitAmount || 0;
+    const frequency = p.flexCardFrequency || (p.mealBenefitAmount ? "annually" : "See SB");
+
+    const details = amount > 0
+      ? `This plan offers a spending allowance of $${amount} ${frequency} for supplemental benefits.`
+      : "This plan offers supplemental flex/meal benefits. See Evidence of Coverage for specific amounts.";
 
     dataRows.push([
       p.county,
@@ -214,8 +218,8 @@ function buildFlexRows(allPlans: PlanRow[]): any[][] {
       p.name,
       details,
       ssbci,
-      "See EOC",
-      "See EOC",
+      amount > 0 ? amount : "See EOC",
+      amount > 0 ? frequency : "See EOC",
       "Summary of Benefits",
     ]);
   }
@@ -243,9 +247,10 @@ function buildOtcRows(allPlans: PlanRow[]): any[][] {
   for (const p of allPlans) {
     if (!p.hasOtc) continue;
 
-    // NOTE: OTC dollar amounts are estimates, not from CMS PBP filings.
-    // The has_otc boolean IS verified from CMS PBP b13 file.
-    const details = "This plan offers an OTC (Over-the-Counter) health and wellness benefit. See the plan's Summary of Benefits and Evidence of Coverage for specific allowance amounts and disbursement schedule.";
+    const amount = p.otcAmountPerQuarter || 0;
+    const details = amount > 0
+      ? `This plan provides an OTC allowance of $${amount} per quarter for over-the-counter health and wellness products.`
+      : "This plan offers OTC benefits. See Summary of Benefits for amount details.";
 
     dataRows.push([
       p.county,
@@ -256,8 +261,8 @@ function buildOtcRows(allPlans: PlanRow[]): any[][] {
       p.name,
       derivePlanType(p.category, p.planType),
       details,
-      "See SB/EOC",
-      "See SB/EOC",
+      amount > 0 ? amount : "See SB",
+      amount > 0 ? "Quarterly" : "See SB",
       "Summary of Benefits",
     ]);
   }
@@ -281,8 +286,6 @@ function buildPartBRows(allPlans: PlanRow[]): any[][] {
   const dataRows: any[][] = [];
 
   for (const p of allPlans) {
-    // NOTE: Part B giveback amounts are estimates, not from CMS PBP filings.
-    // Only plans flagged with partbGiveback > 0 are included.
     if (!p.partbGiveback || p.partbGiveback <= 0) continue;
 
     dataRows.push([
@@ -293,7 +296,7 @@ function buildPartBRows(allPlans: PlanRow[]): any[][] {
       p.planId || "",
       p.name,
       derivePlanType(p.category, p.planType),
-      "See SB/EOC",
+      p.partbGiveback,
       "Summary of Benefits",
     ]);
   }
