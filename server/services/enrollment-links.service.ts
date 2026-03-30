@@ -228,3 +228,7 @@ export function getAllCarrierEnrollmentInfo(): CarrierEnrollmentInfo[] {
     ...info,
   }));
 }
+
+// ── ACA Exchange Enrollment URLs ──
+// Re-exported from aca-enrollment-links.service.ts for convenience
+export { getACAEnrollmentUrl } from "./aca-enrollment-links.service";

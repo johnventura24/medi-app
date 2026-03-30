@@ -77,6 +77,8 @@ const navGroups: NavGroup[] = [
       { title: "County Reports", url: "/cities", icon: Building2 },
       { title: "ZIP Rankings", url: "/zips", icon: MapPin },
       { title: "ACA Marketplace", url: "/aca", icon: ShieldCheck },
+      { title: "ACA Eligibility", url: "/aca/eligibility", icon: ClipboardCheck },
+      { title: "ACA Smart Match", url: "/aca/smart-match", icon: Zap },
     ],
   },
   {

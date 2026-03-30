@@ -45,6 +45,8 @@ import CarrierMovements from "@/pages/CarrierMovements";
 import ACAMarketplace from "@/pages/ACAMarketplace";
 import EligibilityCheck from "@/pages/EligibilityCheck";
 import SmartMatch from "@/pages/SmartMatch";
+import ACAEligibility from "@/pages/ACAEligibility";
+import ACASmartMatch from "@/pages/ACASmartMatch";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -91,6 +93,8 @@ function Router() {
       <Route path="/leads" component={LeadDashboard} />
       <Route path="/trends" component={TrendsTimeline} />
       <Route path="/carrier-movements" component={CarrierMovements} />
+      <Route path="/aca/eligibility" component={ACAEligibility} />
+      <Route path="/aca/smart-match" component={ACASmartMatch} />
       <Route path="/aca" component={ACAMarketplace} />
       <Route path="/eligibility" component={EligibilityCheck} />
       <Route path="/smart-match" component={SmartMatch} />
