@@ -42,6 +42,7 @@ import { registerSmartMatchRoutes } from "./routes/smart-match";
 import { registerEnrollmentLinkRoutes } from "./routes/enrollment-links";
 import { registerACAEligibilityRoutes } from "./routes/aca-eligibility";
 import { registerACASmartMatchRoutes } from "./routes/aca-smart-match";
+import { registerDoctorFirstRoutes } from "./routes/doctor-first";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -764,6 +765,9 @@ export async function registerRoutes(
   // Register ACA Eligibility and Smart Match routes
   registerACAEligibilityRoutes(app);
   registerACASmartMatchRoutes(app);
+
+  // Doctor-first matching
+  registerDoctorFirstRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {

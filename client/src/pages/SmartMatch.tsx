@@ -21,6 +21,8 @@ import {
   TrendingUp,
   TrendingDown,
   CheckCircle2,
+  Stethoscope,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
@@ -447,6 +449,28 @@ export default function SmartMatch() {
       {/* Show profile selection */}
       {!submittedQuery && (
         <div className="space-y-6">
+          {/* Keep My Doctor callout */}
+          <Card
+            className="border-2 border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => navigate("/keep-my-doctor")}
+          >
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950 shrink-0">
+                <Stethoscope className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm">Want to keep your doctor?</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Start with your doctors and find plans that include them. The #1 concern for Medicare beneficiaries.
+                </p>
+              </div>
+              <Button size="sm" variant="outline" className="shrink-0">
+                Keep My Doctor
+                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+              </Button>
+            </CardContent>
+          </Card>
+
           <div className="text-center space-y-2">
             <h2 className="text-xl font-semibold">What matters most to you?</h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">

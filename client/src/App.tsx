@@ -47,6 +47,7 @@ import EligibilityCheck from "@/pages/EligibilityCheck";
 import SmartMatch from "@/pages/SmartMatch";
 import ACAEligibility from "@/pages/ACAEligibility";
 import ACASmartMatch from "@/pages/ACASmartMatch";
+import KeepMyDoctor from "@/pages/KeepMyDoctor";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -98,6 +99,7 @@ function Router() {
       <Route path="/aca" component={ACAMarketplace} />
       <Route path="/eligibility" component={EligibilityCheck} />
       <Route path="/smart-match" component={SmartMatch} />
+      <Route path="/keep-my-doctor" component={KeepMyDoctor} />
       <Route path="/data-sources" component={DataSources} />
       <Route component={NotFound} />
     </Switch>

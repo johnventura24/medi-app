@@ -14,6 +14,7 @@ import {
   Building,
   Globe,
   FileText,
+  Stethoscope,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,16 @@ const item = {
 };
 
 const workflows = [
+  {
+    title: "Keep My Doctor",
+    subtitle: "Find plans that include YOUR doctors. The #1 concern for Medicare beneficiaries.",
+    icon: Stethoscope,
+    href: "/keep-my-doctor",
+    cta: "Start",
+    gradient: "from-rose-500/10 to-rose-600/5",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    borderColor: "hover:border-rose-500/40",
+  },
   {
     title: "Find Plans for a Client",
     subtitle: "Enter a ZIP and find the perfect plan in seconds",
@@ -144,7 +155,7 @@ export default function Dashboard() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="mt-8 grid gap-5 md:grid-cols-3"
+        className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
       >
         {workflows.map((wf) => (
           <motion.div key={wf.href} variants={item}>
@@ -207,6 +218,15 @@ export default function Dashboard() {
             Getting Started
           </h3>
           <div className="space-y-3">
+            <Link href="/keep-my-doctor">
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/10 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer">
+                <Stethoscope className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Keep my doctor</p>
+                  <p className="text-xs text-muted-foreground">Find plans that include your doctors</p>
+                </div>
+              </div>
+            </Link>
             <Link href="/find">
               <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer">
                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />

@@ -51,6 +51,7 @@ import {
   Users as UsersIcon,
   ClipboardCheck,
   Zap,
+  Stethoscope,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -86,6 +87,7 @@ const navGroups: NavGroup[] = [
     icon: Search,
     defaultOpen: true,
     items: [
+      { title: "Keep My Doctor", url: "/keep-my-doctor", icon: Stethoscope },
       { title: "Eligibility Check", url: "/eligibility", icon: ClipboardCheck },
       { title: "Smart Match", url: "/smart-match", icon: Zap },
       { title: "Plan Finder", url: "/find", icon: Search },
