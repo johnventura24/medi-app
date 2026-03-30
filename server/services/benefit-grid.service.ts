@@ -190,21 +190,19 @@ function buildFlexRows(allPlans: PlanRow[]): any[][] {
   const dataRows: any[][] = [];
 
   for (const p of allPlans) {
-    const hasFlex = (p.flexCardAmount && p.flexCardAmount > 0) || p.hasMealBenefit;
+    // Only include plans flagged as having supplemental benefits
+    // NOTE: Dollar amounts are NOT from CMS PBP filings — they are estimates.
+    // The has_meal_benefit boolean IS from the CMS PBP b13 file.
+    const hasFlex = p.hasMealBenefit;
     if (!hasFlex) continue;
-
-    const amount = p.flexCardAmount || 0;
-    const frequency = p.flexCardFrequency || "Quarterly";
-
-    const details =
-      amount > 0
-        ? `This plan offers a spending allowance of $${amount} ${frequency} for supplemental benefits.`
-        : "This plan offers supplemental flex benefits. See plan materials for details.";
 
     const ssbci =
       p.snpType && p.snpType.toUpperCase().includes("SNP")
         ? "See Evidence of Coverage for SSBCI chronic condition qualifiers"
         : "None";
+
+    // Use cautious language — direct users to verify amounts in the EOC
+    const details = "This plan offers supplemental benefits (meal/grocery/flex card). See the plan's Evidence of Coverage and Summary of Benefits for specific benefit amounts, allowances, and disbursement details.";
 
     dataRows.push([
       p.county,
@@ -216,8 +214,8 @@ function buildFlexRows(allPlans: PlanRow[]): any[][] {
       p.name,
       details,
       ssbci,
-      amount,
-      frequency,
+      "See EOC",
+      "See EOC",
       "Summary of Benefits",
     ]);
   }
@@ -245,8 +243,9 @@ function buildOtcRows(allPlans: PlanRow[]): any[][] {
   for (const p of allPlans) {
     if (!p.hasOtc) continue;
 
-    const amount = p.otcAmountPerQuarter || 0;
-    const details = `This benefit provides a spending allowance of $${amount} every quarter on your Benefits Prepaid Card for over-the-counter (OTC) health and wellness products like vitamins, first aid supplies, pain-relievers, and more.\nUnused amounts expire at the end of every quarter.`;
+    // NOTE: OTC dollar amounts are estimates, not from CMS PBP filings.
+    // The has_otc boolean IS verified from CMS PBP b13 file.
+    const details = "This plan offers an OTC (Over-the-Counter) health and wellness benefit. See the plan's Summary of Benefits and Evidence of Coverage for specific allowance amounts and disbursement schedule.";
 
     dataRows.push([
       p.county,
@@ -257,8 +256,8 @@ function buildOtcRows(allPlans: PlanRow[]): any[][] {
       p.name,
       derivePlanType(p.category, p.planType),
       details,
-      amount,
-      "Quarterly",
+      "See SB/EOC",
+      "See SB/EOC",
       "Summary of Benefits",
     ]);
   }
@@ -282,6 +281,8 @@ function buildPartBRows(allPlans: PlanRow[]): any[][] {
   const dataRows: any[][] = [];
 
   for (const p of allPlans) {
+    // NOTE: Part B giveback amounts are estimates, not from CMS PBP filings.
+    // Only plans flagged with partbGiveback > 0 are included.
     if (!p.partbGiveback || p.partbGiveback <= 0) continue;
 
     dataRows.push([
@@ -292,7 +293,7 @@ function buildPartBRows(allPlans: PlanRow[]): any[][] {
       p.planId || "",
       p.name,
       derivePlanType(p.category, p.planType),
-      p.partbGiveback,
+      "See SB/EOC",
       "Summary of Benefits",
     ]);
   }
