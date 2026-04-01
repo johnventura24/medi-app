@@ -50,6 +50,9 @@ import { registerCarrierScorecardRoutes } from "./routes/carrier-scorecards";
 import { registerComparisonReportRoutes } from "./routes/comparison-report";
 import { registerRegulatoryRoutes } from "./routes/regulatory";
 import { registerSEPOptimizerRoutes } from "./routes/sep-optimizer";
+import { registerSEPCheckRoutes } from "./routes/sep-check";
+import { registerNextBestActionRoutes } from "./routes/next-best-action";
+import { registerDisruptionAlertRoutes } from "./routes/disruption-alerts";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -788,6 +791,11 @@ export async function registerRoutes(
 
   // SEP Optimizer
   registerSEPOptimizerRoutes(app);
+
+  // Agent Competitive Edge Tools
+  registerSEPCheckRoutes(app);
+  registerNextBestActionRoutes(app);
+  registerDisruptionAlertRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {

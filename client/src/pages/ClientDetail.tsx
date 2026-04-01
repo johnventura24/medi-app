@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SOAForm, type SOAFormData } from "@/components/client/SOAForm";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronLeft,
   Pencil,
@@ -23,6 +25,9 @@ import {
   FileCheck,
   Pill,
   Stethoscope,
+  Target,
+  ShieldAlert,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClient } from "@/hooks/useClients";
@@ -359,7 +364,113 @@ function OverviewTab({ clientId }: { clientId: string }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Recommended Actions (Next Best Action) */}
+      <ClientNextBestActions clientId={clientId} />
     </div>
+  );
+}
+
+function ClientNextBestActions({ clientId }: { clientId: string }) {
+  const { token } = useAuth();
+  const [, navigate] = useLocation();
+
+  const { data, isLoading } = useQuery<{
+    clientId: number;
+    clientName: string;
+    actions: Array<{
+      priority: "urgent" | "high" | "medium" | "low";
+      action: string;
+      reason: string;
+      deadline: string | null;
+      planRecommendation?: { planId: number; name: string; carrier: string; whyBetter: string };
+      agentScript?: string;
+    }>;
+  }>({
+    queryKey: ["next-best-action", clientId],
+    queryFn: async () => {
+      const res = await fetch(`/api/next-best-action/${clientId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!token,
+  });
+
+  if (isLoading) return <Skeleton className="h-32 w-full" />;
+  if (!data || data.actions.length === 0) return null;
+
+  const priorityConfig: Record<string, { bg: string; label: string }> = {
+    urgent: { bg: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300", label: "Urgent" },
+    high: { bg: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300", label: "High" },
+    medium: { bg: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300", label: "Medium" },
+    low: { bg: "bg-muted text-muted-foreground", label: "Low" },
+  };
+
+  return (
+    <Card className="border-primary/30">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-primary" />
+          <CardTitle className="text-base">Recommended Actions</CardTitle>
+          <Badge variant="secondary" className="text-xs">{data.actions.length}</Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {data.actions.map((action, idx) => {
+            const cfg = priorityConfig[action.priority] || priorityConfig.low;
+            return (
+              <div
+                key={idx}
+                className="flex items-center gap-3 p-3 rounded-md border hover:bg-muted/30 transition-colors"
+              >
+                <div className="shrink-0">
+                  {action.priority === "urgent" ? (
+                    <ShieldAlert className="h-4 w-4 text-red-500" />
+                  ) : action.priority === "high" ? (
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <Target className="h-4 w-4 text-blue-500" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{action.action}</span>
+                    <Badge className={`text-[10px] ${cfg.bg}`}>{cfg.label}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{action.reason}</p>
+                  {action.planRecommendation && (
+                    <p className="text-xs text-primary mt-1">
+                      Recommended: {action.planRecommendation.name} ({action.planRecommendation.carrier})
+                    </p>
+                  )}
+                </div>
+                {action.deadline && (
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1 shrink-0">
+                    <Clock className="h-3 w-3" />
+                    {new Date(action.deadline).toLocaleDateString()}
+                  </span>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="shrink-0 h-7 text-xs"
+                  onClick={() => {
+                    if (action.action.includes("SOA")) navigate("/soa");
+                    else if (action.action.includes("SEP")) navigate("/sep/check");
+                    else if (action.planRecommendation) navigate(`/find?planId=${action.planRecommendation.planId}`);
+                  }}
+                >
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
