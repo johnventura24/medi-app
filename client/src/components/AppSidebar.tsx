@@ -55,6 +55,7 @@ import {
   Award,
   Calendar,
   Printer,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -101,6 +102,7 @@ const navGroups: NavGroup[] = [
       { title: "Compare Plans", url: "/compare", icon: GitCompareArrows },
       { title: "Money Calculator", url: "/calculator", icon: Calculator },
       { title: "Hidden Gems", url: "/gems", icon: Gem },
+      { title: "SEP Checker", url: "/sep/check", icon: Calendar },
     ],
   },
   {
@@ -130,6 +132,7 @@ const navGroups: NavGroup[] = [
       { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
       { title: "SEP Optimizer", url: "/sep", icon: Calendar },
       { title: "Carrier Scorecards", url: "/scorecards", icon: Award },
+      { title: "Disruption Alerts", url: "/disruptions", icon: AlertTriangle },
     ],
   },
   {
@@ -171,15 +174,8 @@ export function AppSidebar() {
     return location === url || (url !== "/" && location.startsWith(url + "/"));
   };
 
-  // Filter nav groups based on user role
-  const visibleGroups = navGroups.filter((group) => {
-    // Groups without role restrictions are visible to everyone
-    if (!group.roles) return true;
-    // If user is not authenticated, only show unrestricted groups
-    if (!isAuthenticated) return false;
-    // Show group if user's role is in the allowed list
-    return group.roles.includes(role as any);
-  });
+  // All groups visible to everyone — collapsed groups keep it uncluttered
+  const visibleGroups = navGroups;
 
   // Track which groups are open — initialize from defaultOpen
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
