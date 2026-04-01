@@ -49,6 +49,7 @@ import { registerCheatsheetRoutes } from "./routes/cheatsheets";
 import { registerCarrierScorecardRoutes } from "./routes/carrier-scorecards";
 import { registerComparisonReportRoutes } from "./routes/comparison-report";
 import { registerRegulatoryRoutes } from "./routes/regulatory";
+import { registerSEPOptimizerRoutes } from "./routes/sep-optimizer";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -784,6 +785,9 @@ export async function registerRoutes(
   registerCarrierScorecardRoutes(app);
   registerComparisonReportRoutes(app);
   registerRegulatoryRoutes(app);
+
+  // SEP Optimizer
+  registerSEPOptimizerRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {

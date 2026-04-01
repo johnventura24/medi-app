@@ -51,6 +51,7 @@ import KeepMyDoctor from "@/pages/KeepMyDoctor";
 import PlanCheatsheets from "@/pages/PlanCheatsheets";
 import CarrierScorecards from "@/pages/CarrierScorecards";
 import RegulatoryCalendar from "@/pages/RegulatoryCalendar";
+import SEPOptimizer from "@/pages/SEPOptimizer";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLog from "@/pages/AdminAuditLog";
 import Privacy from "@/pages/Privacy";
@@ -119,6 +120,7 @@ function Router() {
       <Route path="/cheatsheets" component={PlanCheatsheets} />
       <Route path="/scorecards" component={CarrierScorecards} />
       <Route path="/regulatory" component={RegulatoryCalendar} />
+      <Route path="/sep" component={SEPOptimizer} />
       <Route path="/data-sources" component={DataSources} />
       <Route path="/admin/users">
         {() => (

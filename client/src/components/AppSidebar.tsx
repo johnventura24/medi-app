@@ -128,6 +128,7 @@ const navGroups: NavGroup[] = [
       { title: "Trends", url: "/trends", icon: LineChart },
       { title: "Archetypes", url: "/archetypes", icon: UsersIcon },
       { title: "Health Gaps", url: "/health-gaps", icon: HeartPulse },
+      { title: "SEP Optimizer", url: "/sep", icon: Calendar },
       { title: "Carrier Scorecards", url: "/scorecards", icon: Award },
     ],
   },
