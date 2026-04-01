@@ -56,6 +56,8 @@ import {
   Calendar,
   Printer,
   AlertTriangle,
+  Heart,
+  RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -103,6 +105,16 @@ const navGroups: NavGroup[] = [
       { title: "Money Calculator", url: "/calculator", icon: Calculator },
       { title: "Hidden Gems", url: "/gems", icon: Gem },
       { title: "SEP Checker", url: "/sep/check", icon: Calendar },
+    ],
+  },
+  {
+    label: "Sales Pipelines",
+    icon: Target,
+    defaultOpen: false,
+    items: [
+      { title: "Turning 65 Pipeline", url: "/pipeline/turning-65", icon: UserPlus },
+      { title: "OEP Outreach", url: "/pipeline/oep-remorse", icon: RefreshCw },
+      { title: "D-SNP Pipeline", url: "/pipeline/dsnp", icon: Heart },
     ],
   },
   {

@@ -58,6 +58,9 @@ import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLog from "@/pages/AdminAuditLog";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Turning65Pipeline from "@/pages/Turning65Pipeline";
+import OEPRemorse from "@/pages/OEPRemorse";
+import DSNPPipeline from "@/pages/DSNPPipeline";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -125,6 +128,9 @@ function Router() {
       <Route path="/sep" component={SEPOptimizer} />
       <Route path="/sep/check" component={SEPChecker} />
       <Route path="/disruptions" component={DisruptionAlerts} />
+      <Route path="/pipeline/turning-65" component={Turning65Pipeline} />
+      <Route path="/pipeline/oep-remorse" component={OEPRemorse} />
+      <Route path="/pipeline/dsnp" component={DSNPPipeline} />
       <Route path="/data-sources" component={DataSources} />
       <Route path="/admin/users">
         {() => (

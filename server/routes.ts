@@ -53,6 +53,7 @@ import { registerSEPOptimizerRoutes } from "./routes/sep-optimizer";
 import { registerSEPCheckRoutes } from "./routes/sep-check";
 import { registerNextBestActionRoutes } from "./routes/next-best-action";
 import { registerDisruptionAlertRoutes } from "./routes/disruption-alerts";
+import { registerPipelineRoutes } from "./routes/pipeline";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -796,6 +797,9 @@ export async function registerRoutes(
   registerSEPCheckRoutes(app);
   registerNextBestActionRoutes(app);
   registerDisruptionAlertRoutes(app);
+
+  // Sales Pipeline Tools (Turning 65, OEP Remorse, D-SNP)
+  registerPipelineRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
