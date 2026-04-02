@@ -6,8 +6,8 @@
  */
 
 import { db } from "../db";
-import { plans } from "@shared/schema";
-import { eq, and, sql, desc, lte, gte, count, countDistinct, avg } from "drizzle-orm";
+import { plans, planCrosswalk } from "@shared/schema";
+import { eq, and, sql, desc, lte, gte, count, countDistinct, avg, inArray } from "drizzle-orm";
 
 // ── Interfaces ──
 
@@ -308,6 +308,168 @@ export async function getDisruptionAlerts(state?: string): Promise<DisruptionAle
     }
   } catch (err) {
     console.error("Error fetching LP disruption plans:", err);
+  }
+
+  // ── 4. Critical: Crosswalk terminated plans ──
+  try {
+    const terminatedCw = await db
+      .select({
+        previousContractId: planCrosswalk.previousContractId,
+        previousPlanId: planCrosswalk.previousPlanId,
+        previousPlanName: planCrosswalk.previousPlanName,
+      })
+      .from(planCrosswalk)
+      .where(eq(planCrosswalk.status, "Terminated/Non-renewed Contract"))
+      .limit(200);
+
+    if (terminatedCw.length > 0) {
+      const contractIds = [...new Set(terminatedCw.map((p) => p.previousContractId).filter(Boolean))] as string[];
+
+      if (contractIds.length > 0) {
+        const conditions: any[] = [inArray(plans.contractId, contractIds)];
+        if (state) conditions.push(eq(plans.state, state.toUpperCase()));
+
+        const cwPlans = await db
+          .select({
+            contractId: plans.contractId,
+            planId: plans.planId,
+            name: plans.name,
+            carrier: plans.organizationName,
+            state: plans.state,
+            starRating: plans.overallStarRating,
+            countyCount: sql<number>`count(DISTINCT ${plans.county})`.as("county_count"),
+          })
+          .from(plans)
+          .where(and(...conditions))
+          .groupBy(
+            plans.contractId,
+            plans.planId,
+            plans.name,
+            plans.organizationName,
+            plans.state,
+            plans.overallStarRating
+          )
+          .orderBy(desc(sql`count(DISTINCT ${plans.county})`))
+          .limit(50);
+
+        if (cwPlans.length > 0) {
+          const stateAlternatives: Record<string, any[]> = {};
+          const affectedPlans: AffectedPlan[] = [];
+
+          for (const p of cwPlans) {
+            if (!stateAlternatives[p.state]) {
+              stateAlternatives[p.state] = await getAlternativesForState(p.state);
+            }
+            const members = estimateMembers(Number(p.countyCount), p.starRating ?? 3);
+            affectedPlans.push({
+              contractId: p.contractId ?? "",
+              planId: p.planId ?? "",
+              planName: p.name,
+              carrier: p.carrier,
+              state: p.state,
+              starRating: p.starRating ?? 0,
+              estimatedMembers: members,
+              issue: `CMS Crosswalk: Plan TERMINATED for 2026. Members must find new coverage or will be auto-enrolled.`,
+              recommendation: `Contact these members immediately. They have a Special Enrollment Period and need guidance.`,
+              alternativePlans: stateAlternatives[p.state] || [],
+            });
+          }
+
+          const totalAffected = affectedPlans.reduce((sum, p) => sum + p.estimatedMembers, 0);
+
+          alerts.push({
+            alertType: "plan_exit",
+            severity: "critical",
+            affectedPlans,
+            totalAffected,
+            agentOpportunity: `CMS Crosswalk confirms ${terminatedCw.length} plans terminated for 2026. ~${totalAffected.toLocaleString()} members need new plans NOW.`,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching crosswalk terminated plans for disruptions:", err);
+  }
+
+  // ── 5. Warning: Crosswalk service area reductions ──
+  try {
+    const sarCw = await db
+      .select({
+        previousContractId: planCrosswalk.previousContractId,
+        previousPlanId: planCrosswalk.previousPlanId,
+        previousPlanName: planCrosswalk.previousPlanName,
+      })
+      .from(planCrosswalk)
+      .where(eq(planCrosswalk.status, "Renewal Plan with SAR"))
+      .limit(200);
+
+    if (sarCw.length > 0) {
+      const contractIds = [...new Set(sarCw.map((p) => p.previousContractId).filter(Boolean))] as string[];
+
+      if (contractIds.length > 0) {
+        const conditions: any[] = [inArray(plans.contractId, contractIds)];
+        if (state) conditions.push(eq(plans.state, state.toUpperCase()));
+
+        const sarPlans = await db
+          .select({
+            contractId: plans.contractId,
+            planId: plans.planId,
+            name: plans.name,
+            carrier: plans.organizationName,
+            state: plans.state,
+            starRating: plans.overallStarRating,
+            countyCount: sql<number>`count(DISTINCT ${plans.county})`.as("county_count"),
+          })
+          .from(plans)
+          .where(and(...conditions))
+          .groupBy(
+            plans.contractId,
+            plans.planId,
+            plans.name,
+            plans.organizationName,
+            plans.state,
+            plans.overallStarRating
+          )
+          .orderBy(desc(sql`count(DISTINCT ${plans.county})`))
+          .limit(50);
+
+        if (sarPlans.length > 0) {
+          const stateAlternatives: Record<string, any[]> = {};
+          const affectedPlans: AffectedPlan[] = [];
+
+          for (const p of sarPlans) {
+            if (!stateAlternatives[p.state]) {
+              stateAlternatives[p.state] = await getAlternativesForState(p.state);
+            }
+            const members = estimateMembers(Math.round(Number(p.countyCount) * 0.3), p.starRating ?? 3);
+            affectedPlans.push({
+              contractId: p.contractId ?? "",
+              planId: p.planId ?? "",
+              planName: p.name,
+              carrier: p.carrier,
+              state: p.state,
+              starRating: p.starRating ?? 0,
+              estimatedMembers: members,
+              issue: `CMS Crosswalk: Service Area Reduction — plan exited some counties for 2026.`,
+              recommendation: `Members in dropped counties get a Special Enrollment Period. Check if your clients' counties are still covered.`,
+              alternativePlans: stateAlternatives[p.state] || [],
+            });
+          }
+
+          const totalAffected = affectedPlans.reduce((sum, p) => sum + p.estimatedMembers, 0);
+
+          alerts.push({
+            alertType: "network_change",
+            severity: "warning",
+            affectedPlans,
+            totalAffected,
+            agentOpportunity: `${sarCw.length} plans reduced their service area for 2026. Members in dropped counties need alternatives.`,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching crosswalk SAR plans for disruptions:", err);
   }
 
   // Sort by severity

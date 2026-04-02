@@ -238,6 +238,28 @@ export const planHistory = pgTable("plan_history", {
 export type PlanHistory = typeof planHistory.$inferSelect;
 export type InsertPlanHistory = typeof planHistory.$inferInsert;
 
+// ── Plan Crosswalk table (CMS 2025→2026 crosswalk data) ──
+
+export const planCrosswalk = pgTable("plan_crosswalk", {
+  id: serial("id").primaryKey(),
+  previousContractId: text("previous_contract_id"),
+  previousPlanId: text("previous_plan_id"),
+  previousPlanName: text("previous_plan_name"),
+  previousSnpType: text("previous_snp_type"),
+  currentContractId: text("current_contract_id"),
+  currentPlanId: text("current_plan_id"),
+  currentPlanName: text("current_plan_name"),
+  currentSnpType: text("current_snp_type"),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_cw_status").on(table.status),
+  index("idx_cw_prev").on(table.previousContractId, table.previousPlanId),
+  index("idx_cw_curr").on(table.currentContractId, table.currentPlanId),
+]);
+
+export type PlanCrosswalk = typeof planCrosswalk.$inferSelect;
+
 // ── Data Validation Logs table ──
 
 export const dataValidationLogs = pgTable("data_validation_logs", {

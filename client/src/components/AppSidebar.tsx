@@ -58,6 +58,7 @@ import {
   AlertTriangle,
   Heart,
   RefreshCw,
+  Shuffle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -145,6 +146,7 @@ const navGroups: NavGroup[] = [
       { title: "SEP Optimizer", url: "/sep", icon: Calendar },
       { title: "Carrier Scorecards", url: "/scorecards", icon: Award },
       { title: "Disruption Alerts", url: "/disruptions", icon: AlertTriangle },
+      { title: "Crosswalk Tracker", url: "/crosswalk", icon: Shuffle },
     ],
   },
   {

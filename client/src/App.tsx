@@ -54,6 +54,7 @@ import RegulatoryCalendar from "@/pages/RegulatoryCalendar";
 import SEPOptimizer from "@/pages/SEPOptimizer";
 import SEPChecker from "@/pages/SEPChecker";
 import DisruptionAlerts from "@/pages/DisruptionAlerts";
+import CrosswalkTracker from "@/pages/CrosswalkTracker";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminAuditLog from "@/pages/AdminAuditLog";
 import Privacy from "@/pages/Privacy";
@@ -128,6 +129,7 @@ function Router() {
       <Route path="/sep" component={SEPOptimizer} />
       <Route path="/sep/check" component={SEPChecker} />
       <Route path="/disruptions" component={DisruptionAlerts} />
+      <Route path="/crosswalk" component={CrosswalkTracker} />
       <Route path="/pipeline/turning-65" component={Turning65Pipeline} />
       <Route path="/pipeline/oep-remorse" component={OEPRemorse} />
       <Route path="/pipeline/dsnp" component={DSNPPipeline} />
