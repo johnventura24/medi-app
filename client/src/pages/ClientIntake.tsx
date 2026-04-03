@@ -253,6 +253,7 @@ function ClientIntakeContent() {
         title="New Client Intake"
         description="5-step form to capture a beneficiary's needs. The foundation for smart plan matching."
         helpText="Complete all 5 steps: demographics, health profile, medications, benefit priorities, and review. The scoring engine uses this data to rank plans."
+        dataSource="Data: Client information collected during intake is used by the scoring engine to rank plans. Demographics, health profile, medications, and benefit priorities feed into the Smart Match algorithm."
       />
 
       <StepIndicator currentStep={step} steps={STEPS} />

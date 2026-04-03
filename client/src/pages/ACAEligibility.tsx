@@ -860,7 +860,8 @@ export default function ACAEligibility() {
       <PageHeader
         title="ACA Eligibility Check"
         description="Find out if you qualify for ACA marketplace plans, subsidies, and cost-sharing reductions."
-        helpText="Answer a few questions about your income, household, and coverage to see what ACA benefits you qualify for and how much you could save."
+        helpText="Answer a few questions about your income, household, and coverage to see what ACA benefits you qualify for and how much you could save. Results include Premium Tax Credit estimates, CSR eligibility, and Medicaid screening."
+        dataSource="Data: Federal Poverty Level (FPL) guidelines from HHS, ACA subsidy thresholds from IRS, and Medicaid expansion status by state. Income calculations follow ACA Modified Adjusted Gross Income (MAGI) rules."
       />
 
       {/* Show results */}

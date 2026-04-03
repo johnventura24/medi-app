@@ -138,6 +138,7 @@ export default function LeadDashboard() {
         title="Consumer Leads"
         description="Manage leads from the consumer plan finder. Contact, enroll, track."
         helpText="New leads appear automatically when consumers request agent help. Mark leads as contacted -> enrolled to track your pipeline."
+        dataSource="Data: Leads captured from the consumer plan finder (/for-you) flow. Quiz answers and plan preferences stored when consumers request agent help. Status tracked within this platform."
       />
 
       {/* Stat Cards */}

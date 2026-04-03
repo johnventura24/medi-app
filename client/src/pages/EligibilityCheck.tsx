@@ -782,7 +782,8 @@ export default function EligibilityCheck() {
       <PageHeader
         title="Eligibility Check"
         description="Find out which Medicare plans you qualify for and when you can enroll."
-        helpText="Answer a few simple questions about your current coverage and we'll show you exactly which plan types you're eligible for and whether you can enroll right now."
+        helpText="Answer a few simple questions about your current coverage and we'll show you exactly which plan types you're eligible for and whether you can enroll right now. Covers MA, MA-PD, PDP, Medigap, D-SNP, and C-SNP eligibility."
+        dataSource="Data: Medicare eligibility rules from CMS Medicare & You handbook and 42 CFR Part 422/423. Enrollment period logic based on official CMS enrollment calendar. Always confirm eligibility with 1-800-MEDICARE."
       />
 
       {/* Show results */}

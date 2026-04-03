@@ -140,7 +140,8 @@ export default function CarrierScorecards() {
         title="Carrier Scorecards"
         description="Financial health and market presence scoring for every carrier. See who's strong, who's growing, and who's falling behind."
         badge="Intelligence"
-        helpText="Scorecards evaluate carriers on 6 dimensions: market presence, plan diversity, benefit generosity, quality (star ratings), enrollment strength, and growth. Each dimension is scored 0-100 and weighted to produce an overall letter grade."
+        helpText="Each carrier gets a scorecard with star ratings, benefit breadth, market share, and growth trajectory. Compare carriers head-to-head to understand competitive positioning."
+        dataSource="Data: CMS CY2026 PBP files for benefit analysis, CMS Star Ratings for quality scores, and service area files for market footprint calculations."
       />
 
       {/* Filters */}

@@ -618,7 +618,8 @@ export default function KeepMyDoctor() {
       <PageHeader
         title="Keep Your Doctor"
         description="Finding a plan that includes YOUR doctors is what matters most. Add your doctors and we'll find plans that cover them."
-        helpText="Most Medicare beneficiaries' top concern is keeping their doctor. This tool puts the doctor search first -- enter your doctors, then your ZIP code, and we'll show you which plans are most likely to include them."
+        helpText="Step 1: Search for your doctors by last name. Step 2: Enter your ZIP code. Step 3: See plans ranked by how likely they are to include your doctors. Confidence scores (High/Medium/Low) indicate network likelihood — always verify with the carrier before enrolling."
+        dataSource="Data: Doctor names from CMS NPPES NPI Registry (2.8M+ providers) and our local database of 500K Medicare-relevant providers. Network confidence uses carrier FHIR APIs (UHC, Humana, Aetna, Cigna, Anthem) plus CMS plan service area files. Plans from CMS CY2026 PBP data."
       />
 
       {/* Step indicator */}

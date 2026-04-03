@@ -145,7 +145,8 @@ export default function SEPChecker() {
         title="SEP Eligibility Checker"
         description="Determine which Special Enrollment Periods your client qualifies for and get actionable next steps."
         badge="Competitive Edge"
-        helpText="This tool checks 9 different SEP types based on the beneficiary's situation. Enter their details to see exactly which SEPs apply, what they can do, recommended plans, and word-for-word agent scripts."
+        helpText="This tool checks 9 different SEP types based on the beneficiary's situation. Enter their details to see exactly which SEPs apply, what they can do, recommended plans, and word-for-word agent scripts. SEP types include: move, loss of coverage, institutional, chronic condition, 5-star, dual-eligible, low-income, and more."
+        dataSource="Data: SEP rules from 42 CFR 422.62 and CMS Medicare Managed Care Manual Chapter 2. Plan recommendations from CMS CY2026 PBP files. 5-star SEP plans identified from CMS Star Ratings data."
       />
 
       <InsightBox title="SEP Intelligence" insights={insights} />

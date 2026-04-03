@@ -148,6 +148,7 @@ export default function PlanCheatsheets() {
         description="One-page carrier comparison grids for appointments. Select a carrier and county to generate a printable cheatsheet."
         badge="Print-Ready"
         helpText="Plan cheatsheets show all plans from a single carrier in a specific county, with key metrics in a compact grid. Print them or download as PDF to bring to client appointments."
+        dataSource="Data: CMS CY2026 PBP files. Cheatsheet format shows all plans from one carrier in one county with key metrics (premium, MOOP, copays, dental, OTC) in a compact printable grid."
       />
 
       {/* Selectors */}

@@ -438,6 +438,7 @@ export default function MarketIntelligence() {
         title="Market Intelligence"
         description="Comprehensive market analysis — underserved markets, competitive gaps, and marketing opportunities."
         helpText="Use the tabs to explore different aspects of the market. Export opportunity lists as CSV for your sales team."
+        dataSource="Data: CMS CY2026 PBP files analyzed for competitive gaps, market share, and benefit distributions. Opportunity scores derived from plan density, benefit gaps, and demographic data."
       />
 
       {topActions.length > 0 && (

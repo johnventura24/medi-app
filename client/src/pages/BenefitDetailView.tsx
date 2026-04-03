@@ -116,6 +116,7 @@ export default function BenefitDetailView() {
         title={`${displayName} Benefits`}
         description="Detailed analysis across states and ZIP codes for this benefit type."
         helpText="Review which states and ZIP codes offer the richest benefits. Use this data to target your marketing efforts."
+        dataSource="Data: CMS CY2026 PBP files broken down by state and ZIP code. Benefit availability percentages calculated from plans available in each geography."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

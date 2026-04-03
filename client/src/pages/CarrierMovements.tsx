@@ -291,7 +291,8 @@ export default function CarrierMovements() {
         title="Carrier Expansion & Exit Tracker"
         description="Track where carriers are entering new markets, leaving existing ones, and predict where they'll go next."
         badge="Intelligence"
-        helpText="This dashboard analyzes carrier geographic footprints, market dynamics by state, and uses Medicare spending, MA penetration, HPSA data, and competitive density to forecast which counties are most likely to attract new carriers. The 'Likely Entrants' feature identifies carriers present in neighboring counties that could expand."
+        helpText="Track which carriers are expanding into new states or exiting markets. The scatter plot shows market strength vs. footprint size. Use state and carrier filters to focus your analysis."
+        dataSource="Data: CMS CY2026 PBP service area files compared against prior year filings. Expansion/contraction detected by comparing county-level presence year over year."
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -1041,6 +1041,8 @@ export default function ACAMarketplace() {
         title="ACA Marketplace Plans"
         description="Real QHP PY2026 landscape data from CMS — individual market plans across all federally-facilitated exchange states"
         badge="ACA / QHP PY2026"
+        helpText="Browse ACA marketplace plans by metal level (Bronze, Silver, Gold, Platinum). Charts show premium distributions, issuer market share, and plan type breakdowns. Use state filters to narrow results."
+        dataSource="Data: CMS QHP (Qualified Health Plan) PY2026 landscape files for federally-facilitated exchange (FFE) states. Premium data reflects second-lowest Silver plan benchmarks. Updated annually."
       />
 
       <Tabs defaultValue="overview" className="space-y-6">

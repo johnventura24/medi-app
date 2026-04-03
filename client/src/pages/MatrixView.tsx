@@ -301,6 +301,7 @@ export default function MatrixView() {
         title="Carrier Benefits Matrix"
         description="Side-by-side benefit grid for a carrier across counties. The compliance team's best friend."
         helpText="Select a carrier and state, then generate the matrix. Green = best in row, Red = worst. Export as CSV or PDF."
+        dataSource="Data: CMS CY2026 PBP files. Medical and pharmacy copays, deductibles, MOOP, and supplemental benefits pulled directly from carrier CMS submissions. Green = best in row, Red = worst."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

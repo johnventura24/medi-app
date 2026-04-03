@@ -377,7 +377,8 @@ export default function SmartMatch() {
       <PageHeader
         title="Smart Match"
         description="Tell us what matters most to you, and we'll find the best Medicare plans instantly."
-        helpText="Instead of adjusting dozens of filters, just pick what's most important to you and enter your ZIP code. We'll do the rest."
+        helpText="Instead of adjusting dozens of filters, just pick what's most important to you and enter your ZIP code. We'll do the rest. Plans are ranked by a match score that weighs your priorities against actual plan benefits."
+        dataSource="Data: CMS CY2026 PBP files for plan benefits and premiums. Matching algorithm scores plans based on your selected priorities (low cost, dental, drug coverage, doctor network, etc.) against real plan attributes."
       />
 
       {/* Show results */}

@@ -216,6 +216,7 @@ export default function CarrierView() {
         title="Carrier Analysis"
         description="Market share and benefit comparison across 301 Medicare Advantage carriers."
         helpText="Compare carriers on dental, OTC, vision, and flex card benefits. Market share is based on plan count."
+        dataSource="Data: CMS CY2026 PBP files covering 301 carriers. Market share based on plan count per carrier. Benefit comparisons from actual CMS PBP benefit data."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

@@ -83,6 +83,7 @@ export default function BenefitGridView() {
         title="Benefit Grid Export"
         description="Generate compliance-ready benefit grids matching carrier submission templates."
         helpText="Select a carrier and state, preview the row counts, then download. The XLSX matches your exact template format."
+        dataSource="Data: CMS CY2026 PBP files formatted to match carrier compliance submission templates. Columns map to official CMS benefit categories (Dental, Flex Card, OTC, Part B Reduction)."
         actions={<BenefitGridExport />}
       />
 

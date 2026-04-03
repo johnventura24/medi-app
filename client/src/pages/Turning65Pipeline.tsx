@@ -136,6 +136,7 @@ export default function Turning65Pipeline() {
         description="New Medicare enrollees entering their Initial Enrollment Period by county. Target the highest-volume markets."
         helpText="People turning 65 enter a 7-month IEP (Initial Enrollment Period). This tool estimates monthly new-65s per county by crossing beneficiary data with population demographics. Focus on counties with high volume and low MA penetration for the best ROI."
         badge="IEP"
+        dataSource="Data: Population estimates from US Census Bureau ACS data crossed with CMS enrollment and MA penetration rates by county. Monthly new-65 estimates derived from age cohort demographics."
         actions={
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={!data?.length}>
             <Download className="h-4 w-4 mr-2" />

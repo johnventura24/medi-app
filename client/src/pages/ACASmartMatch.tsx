@@ -348,7 +348,8 @@ export default function ACASmartMatch() {
       <PageHeader
         title="ACA Smart Match"
         description="Tell us what matters most and we'll find the best ACA marketplace plans for you."
-        helpText="Pick your priorities, enter your state and income for subsidy calculation, and we'll instantly match you with the best plans. No complicated filters needed."
+        helpText="Pick your priorities, enter your state and income for subsidy calculation, and we'll instantly match you with the best plans. No complicated filters needed. Plans are scored based on how well they match your preferences."
+        dataSource="Data: CMS QHP PY2026 landscape files. Matching algorithm weighs your selected priorities (cost, coverage breadth, network size) against plan attributes. Subsidy estimates use current FPL guidelines."
       />
 
       {/* Show results */}

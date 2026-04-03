@@ -103,6 +103,7 @@ function ClientListContent() {
         title="My Clients"
         description="Manage your beneficiary clients. Track intake, recommendations, and enrollment status."
         helpText="Click a client to see their profile, plan recommendations, and compliance records."
+        dataSource="Data: Client records stored in the platform database. Status workflow: Intake → Plans Reviewed → Enrolled → Archived. All client data is private to your account."
         actions={
           <Button onClick={() => navigate("/clients/new")}>
             <Plus className="h-4 w-4 mr-2" />

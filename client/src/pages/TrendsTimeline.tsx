@@ -364,6 +364,7 @@ export default function TrendsTimeline() {
         title="Trends & Timeline"
         description="Track how carriers, plans, and benefits evolve across the Medicare Advantage landscape."
         helpText="This dashboard shows historical trends when multi-year data is available. With single-year data, it displays market baselines and geographic comparisons as proxies for movement. As additional contract years are loaded, year-over-year trends will appear automatically."
+        dataSource="Data: CMS PBP files (current year baseline). Multi-year trends appear when additional contract years are loaded. Geographic comparisons use current-year cross-state/cross-county data as trend proxies."
         badge={isSingleYear ? "Baseline" : "Multi-Year"}
         actions={
           <Select value={selectedState} onValueChange={setSelectedState}>

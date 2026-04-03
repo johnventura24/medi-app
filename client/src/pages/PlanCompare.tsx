@@ -504,7 +504,8 @@ export default function PlanCompare() {
       <PageHeader
         title="Plan Comparison"
         description="Side-by-side comparison of up to 6 plans with best/worst highlighting."
-        helpText="Green cells = best value. Red cells = worst. Toggle 'Differences Only' to hide identical rows."
+        helpText="Green cells = best value in the row. Red cells = worst. Toggle 'Differences Only' to hide identical rows and focus on what matters. Compares premiums, copays, deductibles, MOOP, drug coverage tiers, and supplemental benefits side by side."
+        dataSource="Data: CMS CY2026 PBP files. All cost and benefit data comes directly from carrier submissions to CMS. AI comparison narrative generated from plan attributes."
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-2 mr-4">

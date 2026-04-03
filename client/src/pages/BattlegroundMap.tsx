@@ -231,6 +231,7 @@ export default function BattlegroundMap() {
         title="Carrier Battleground"
         description="Interactive map showing which carrier dominates each state and county."
         helpText="Click a state to see county-level carrier territories. Click a county for vulnerability analysis and competitive intelligence."
+        dataSource="Data: CMS CY2026 PBP service area files mapped to states and counties. Carrier dominance calculated by plan count per geography. Vulnerability scores based on market concentration and benefit competitiveness."
       />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div />

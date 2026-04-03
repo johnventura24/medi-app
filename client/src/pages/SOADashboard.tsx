@@ -81,6 +81,7 @@ function SOADashboardContent() {
         title="Scope of Appointments"
         description="Track SOA compliance. Never miss an expiration."
         helpText="Telephonic SOAs expire 48 hours after signing. The alert banner warns you when SOAs are about to expire."
+        dataSource="Data: SOA records created and tracked within this platform. Telephonic SOAs expire 48 hours after signing per CMS Medicare Communications and Marketing Guidelines (MCMG)."
       />
 
       {/* Stats */}

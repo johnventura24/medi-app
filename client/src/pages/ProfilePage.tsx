@@ -93,6 +93,7 @@ function ProfileContent() {
       <PageHeader
         title="My Profile"
         description="Your account, saved searches, and favorite plans."
+        helpText="View and update your account details, saved searches, and favorite plans."
       />
       {/* User Info Card */}
       <Card>

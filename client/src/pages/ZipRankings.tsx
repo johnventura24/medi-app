@@ -120,7 +120,8 @@ export default function ZipRankings() {
       <PageHeader
         title="ZIP Code Rankings"
         description="ZIP codes ranked by plan density and benefit richness. Higher scores mean more plan options with better benefits."
-        helpText="The desirability score factors in plan count, dental coverage, and supplemental benefit availability."
+        helpText="The desirability score factors in plan count, dental coverage, and supplemental benefit availability. A score of 90+ means excellent plan choice with rich benefits. Below 50 means limited options."
+        dataSource="Data: CMS CY2026 PBP files cross-referenced with ZIP-to-county mappings. Desirability score is calculated from plan count, dental %, OTC %, and supplemental benefit diversity."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

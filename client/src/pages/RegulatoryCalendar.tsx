@@ -154,6 +154,7 @@ export default function RegulatoryCalendar() {
         description="Track CMS regulatory changes, enrollment periods, compliance deadlines, and filing dates that affect Medicare plans."
         badge="Compliance"
         helpText="Stay ahead of key CMS dates. High-impact events are highlighted in red. Use the category filter to focus on enrollment periods, compliance deadlines, filing requirements, or benefit changes."
+        dataSource="Data: Key dates from CMS Medicare Managed Care Manual, CMS Final Rule publications, and official CMS enrollment calendar. High-impact events sourced from Federal Register notices."
       />
 
       {/* Summary Cards */}

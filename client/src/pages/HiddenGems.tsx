@@ -260,7 +260,8 @@ export default function HiddenGems() {
       <PageHeader
         title="Hidden Gems"
         description="Plans in the top 10% of benefits from carriers with less than 10% market share. The plans nobody's talking about."
-        helpText="These are objectively great plans from smaller carriers that most agents overlook. Gem score = benefit quality x inverse market share."
+        helpText="These are objectively great plans from smaller carriers that most agents overlook. Gem score = benefit quality x inverse market share. Higher gem scores mean better benefits from less well-known carriers. Filter by state to find gems in your market."
+        dataSource="Data: CMS CY2026 PBP files. Gem score algorithm ranks plans by supplemental benefit richness (dental, OTC, flex card, vision, hearing) weighted against carrier market share. Plans from carriers with <10% market share and top-10% benefit scores qualify."
       />
       {/* Hero */}
       <motion.div

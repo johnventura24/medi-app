@@ -694,7 +694,8 @@ export default function PlanFinder() {
       <PageHeader
         title="Plan Finder"
         description="Search for plans by specific benefit criteria. The #1 tool for matching clients to plans."
-        helpText="Enter a ZIP code and set your criteria. Plans are ranked by how many criteria they match. Green checkmarks = criteria met."
+        helpText="Enter a ZIP code and set your criteria. Plans are ranked by how many criteria they match. Green checkmarks = criteria met. Use the inline doctor check to verify provider network status for any plan. Click 'AI Explain' for a plain-English plan summary."
+        dataSource="Data: CMS CY2026 PBP files for all plan details (premiums, copays, deductibles, MOOP, benefits). Plans filtered by ZIP-to-county mapping from CMS service area files. Star ratings from CMS Star Ratings data."
       />
 
       <div className="flex flex-col lg:flex-row gap-6">

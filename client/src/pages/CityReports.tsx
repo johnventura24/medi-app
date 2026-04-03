@@ -201,7 +201,8 @@ export default function CityReports() {
       <PageHeader
         title="County Reports"
         description="Plan availability and benefit comparison at the county level. See which carriers dominate each area."
-        helpText="Sort any column by clicking the header. Click Export to download this data as CSV."
+        helpText="Sort any column by clicking the header. Click Export to download this data as CSV. Each row shows a county's plan count, top carrier, average premium, and benefit percentages (dental, OTC, vision, etc.)."
+        dataSource="Data: CMS CY2026 PBP files aggregated by county. Plans are mapped to counties via CMS service area files. Carrier dominance = carrier with the most plans in that county."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

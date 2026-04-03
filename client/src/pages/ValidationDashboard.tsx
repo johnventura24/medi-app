@@ -220,6 +220,7 @@ export default function ValidationDashboard() {
         title="Data Validation"
         description="Automated quality checks on plan data. Catch errors before they reach compliance."
         helpText="Run validation to scan all plans against CMS rules. Click any issue to see the affected plan."
+        dataSource="Data: Automated validation rules applied against CMS CY2026 PBP data loaded into the platform. Rules check for missing fields, out-of-range values, and CMS compliance requirements."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

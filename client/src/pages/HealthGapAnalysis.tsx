@@ -184,6 +184,7 @@ export default function HealthGapAnalysisPage() {
         title="Health x Benefits Gap Analysis"
         description="Where chronic conditions meet coverage gaps. Find the marketing angles nobody else sees."
         helpText="Red cells = high condition rate but low benefit coverage. These gaps represent opportunities for carriers and marketing messaging."
+        dataSource="Data: Chronic condition prevalence from CDC PLACES and CMS Chronic Conditions Dashboard. Benefit coverage rates from CMS CY2026 PBP files. Gap = high condition rate + low benefit coverage in the same county."
       />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div />

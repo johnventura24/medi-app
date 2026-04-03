@@ -192,6 +192,7 @@ export default function AEPWarRoom() {
         title="AEP War Room"
         description="Real-time command center for Medicare enrollment periods. Know what's happening in your market."
         helpText="Hot plans are the best-value plans in your state. Alerts flag counties with limited options or changing benefits."
+        dataSource="Data: CMS CY2026 PBP files with real-time analysis. Hot plans identified by benefit-to-premium ratio. County alerts triggered by plan terminations, low plan counts, or significant benefit changes. AEP dates from official CMS enrollment calendar."
       />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div />

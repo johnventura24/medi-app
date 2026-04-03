@@ -340,6 +340,7 @@ export default function CrosswalkTracker() {
         description="CMS Plan Crosswalk 2026 — Track every plan termination, service area change, and new market entrant. The data Medicare Market Insights charges $100/month for."
         badge="2025 to 2026"
         helpText="The CMS Crosswalk file maps every Medicare Advantage plan from the previous year to the current year. It shows which plans were terminated, which reduced or expanded their service areas, and which are brand new. This is the single most important dataset for identifying disrupted members who need new coverage."
+        dataSource="Data: CMS Plan Crosswalk files (PY2025 to PY2026) showing plan terminations, consolidations, and service area changes. Affected member estimates from CMS enrollment data. New plan mappings from CMS crosswalk reference tables."
         actions={
           <Select
             value={selectedState}

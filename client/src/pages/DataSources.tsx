@@ -184,6 +184,8 @@ export default function DataSources() {
       <PageHeader
         title="Data Sources"
         description="Every data source powering the platform and its current status."
+        helpText="Each data source shows its connection status (Connected/Partial/Not Configured), record count, and last update. Connected sources are actively providing data to the platform."
+        dataSource="Data: This page shows the status of all external data feeds powering the platform — CMS PBP files, enrollment data, NPPES provider registry, Star Ratings, and any configured carrier API connections."
       />
 
       {isLoading && (

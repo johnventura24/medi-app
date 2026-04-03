@@ -62,6 +62,7 @@ export default function Recommendations() {
         title="Targeting Recommendations"
         description="Data-driven targeting opportunities ranked by potential impact."
         helpText="Each recommendation includes a score and location. Higher scores indicate stronger opportunities for outreach."
+        dataSource="Data: Recommendations generated from CMS CY2026 PBP data using opportunity scoring algorithms. Location and demographic factors weighted against benefit gaps and market conditions."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

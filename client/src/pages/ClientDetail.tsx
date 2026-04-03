@@ -1011,6 +1011,7 @@ function ClientDetailContent() {
         description="Complete view of a client with recommendations, drug costs, and compliance tracking."
         helpText="Click 'Get Recommendations' to run the scoring engine. Review drug costs and provider network status in the tabs."
         badge={(client.status ?? "intake").replace("_", " ")}
+        dataSource="Data: Client profile from platform database. Plan recommendations scored using CMS CY2026 PBP data. Drug costs from CMS Formulary files. Provider network status from carrier FHIR APIs and NPPES registry."
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm">

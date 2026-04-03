@@ -124,6 +124,7 @@ export default function DisruptionAlerts() {
         description="Find members who need your help. Identify plans at risk of termination and connect affected beneficiaries with better options."
         badge="Intelligence"
         helpText="This tool scans plan data for low star ratings and CMS sanctions to identify plans that may be terminated. Estimated member counts are based on plan footprint. Use the CSV export for outreach campaigns."
+        dataSource="Data: CMS CY2026 PBP files cross-referenced with Star Ratings and CMS sanction lists. Member impact estimated from plan service area population data. Alternative plans identified from same-county PBP data."
         actions={
           <Button variant="outline" onClick={exportCSV} disabled={!alerts || alerts.length === 0}>
             <Download className="h-4 w-4 mr-2" />

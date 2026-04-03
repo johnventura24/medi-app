@@ -157,7 +157,8 @@ export default function StateHeatmap() {
       <PageHeader
         title="National Overview"
         description="Medicare Advantage plan landscape across all 50 states. Click any state to drill into county-level data."
-        helpText="The heatmap shows benefit intensity by state. Darker colors = richer benefits. Use the filters to focus on specific benefit types."
+        helpText="The heatmap shows benefit intensity by state. Darker colors = richer benefits. Use the filters to focus on specific benefit types. Stat cards show total plans, average premium, carriers, and states covered."
+        dataSource="Data: CMS CY2026 Plan Benefit Package (PBP) files — 171,906 plans across 56 states/territories, 1,934 counties, 301 carriers. Updated annually when CMS publishes new PBP data."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

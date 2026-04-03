@@ -63,6 +63,7 @@ export default function PlanView() {
         title="Plan Browser"
         description="Browse individual Medicare Advantage plans with full benefit details."
         helpText="Filter by state, carrier, or plan type. Click any plan for complete details."
+        dataSource="Data: CMS CY2026 PBP files. Each plan's full benefit details come directly from the carrier's CMS submission including premiums, copays, deductibles, MOOP, and supplemental benefits."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

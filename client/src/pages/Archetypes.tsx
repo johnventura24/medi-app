@@ -315,6 +315,7 @@ export default function Archetypes() {
         title="Beneficiary Archetypes"
         description="Six common Medicare beneficiary profiles with ideal plan matches for each."
         helpText="Enter a ZIP to see which archetypes are most common in that area and the top 3 plans for each type."
+        dataSource="Data: Beneficiary archetypes modeled from CMS demographic and health condition prevalence data. Plan matches scored from CMS CY2026 PBP files based on archetype-specific benefit priorities."
       />
       {/* Hero */}
       <motion.div

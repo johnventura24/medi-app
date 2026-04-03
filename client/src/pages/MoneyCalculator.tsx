@@ -350,7 +350,8 @@ export default function MoneyCalculator() {
       <PageHeader
         title="Money Left on the Table"
         description="Calculate how much a beneficiary could save by switching plans. The most powerful sales tool in Medicare."
-        helpText="Enter a current plan or details. The calculator compares against every available alternative and shows total potential value."
+        helpText="Enter a current plan or estimated costs. The calculator compares against every available alternative in the beneficiary's area and shows total potential yearly savings across premiums, medical costs, and drug costs. Use the animated breakdown to walk clients through the math."
+        dataSource="Data: CMS CY2026 PBP files for plan premiums and cost-sharing. Savings calculated by comparing current plan costs against the best available alternatives in the same county."
       />
       {/* Hero Section */}
       <motion.div

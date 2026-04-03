@@ -83,9 +83,9 @@ export function useProviderSearch(debounceMs = 200) {
 
   const searchReady = debouncedQuery.length >= 2 && stripTitlePrefix(debouncedQuery).length >= 2;
 
-  const { data, isLoading, isFetching } = useQuery<{ providers: ProviderResult[] }>({
-    queryKey: ["/api/providers/search", debouncedQuery, stateFilter],
-    queryFn: async () => {
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["/api/providers/search", debouncedQuery, stateFilter] as const,
+    queryFn: async (): Promise<{ providers: ProviderResult[] }> => {
       const params = new URLSearchParams();
       params.set("name", debouncedQuery);
       params.set("limit", "8");
@@ -97,7 +97,7 @@ export function useProviderSearch(debounceMs = 200) {
       return res.json();
     },
     enabled: searchReady,
-    keepPreviousData: true,
+    placeholderData: (prev: { providers: ProviderResult[] } | undefined) => prev,
   });
 
   return {

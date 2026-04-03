@@ -248,6 +248,7 @@ export default function BenefitView() {
         title="Benefit Analysis"
         description="National breakdown of supplemental benefits — dental, OTC, vision, transportation, and more."
         helpText="Click any benefit card to see state-by-state details and top ZIP codes for that benefit."
+        dataSource="Data: CMS CY2026 PBP files. National benefit percentages calculated from all 171,906 plans. State-level breakdowns use CMS service area mappings."
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

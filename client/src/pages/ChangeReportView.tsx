@@ -247,6 +247,7 @@ export default function ChangeReportView() {
         title="Year-over-Year Changes"
         description="Track what changed between plan years. Essential for ANOC season and client retention."
         helpText="Green = improvement (lower cost or better benefit). Red = worse. New/terminated plans are listed separately."
+        dataSource="Data: CMS PBP files compared year-over-year. Changes detected by diffing current vs. prior year plan attributes (premiums, copays, benefits, service areas). Green = improvement, Red = worse."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

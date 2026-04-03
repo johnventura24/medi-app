@@ -911,6 +911,7 @@ export default function SEPOptimizer() {
         description="Know exactly where and when you can sell. Actionable data on every Special Enrollment Period."
         badge="Sales Intelligence"
         helpText="This tool shows every Special Enrollment Period (SEP) with real plan data. Use it to find year-round sales opportunities outside of AEP: 5-star plans, D-SNP for dual-eligible beneficiaries, at-risk plans whose members will need new coverage, and low-penetration counties where most beneficiaries are still on Original Medicare."
+        dataSource="Data: SEP rules from 42 CFR 422.62 and CMS Medicare Managed Care Manual. Plan data from CMS CY2026 PBP files. 5-star plans from CMS Star Ratings. D-SNP eligibility from state Medicaid expansion status."
         actions={
           <Select value={stateFilter} onValueChange={setStateFilter}>
             <SelectTrigger className="w-[140px]">

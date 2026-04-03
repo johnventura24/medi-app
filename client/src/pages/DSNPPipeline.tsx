@@ -167,6 +167,7 @@ export default function DSNPPipeline() {
         description="Dual-eligible beneficiaries can switch D-SNP plans every month. Find underserved markets."
         helpText="12M+ dual-eligible beneficiaries (Medicare + Medicaid) have a continuous SEP allowing monthly plan changes. This tool estimates dual-eligible populations by county using poverty and demographic data, then maps D-SNP plan availability to find underserved markets."
         badge="ALWAYS ACTIVE"
+        dataSource="Data: Dual-eligible population estimates from CMS Medicare-Medicaid Coordination Office. D-SNP plan availability from CMS CY2026 PBP files. Poverty rates from Census ACS data."
         actions={
           <div className="flex items-center gap-3">
             <Badge className="bg-green-500 text-white animate-pulse">

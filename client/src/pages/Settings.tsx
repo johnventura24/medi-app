@@ -9,6 +9,7 @@ export default function Settings() {
       <PageHeader
         title="Settings"
         description="Import data and manage application settings."
+        helpText="Import CMS data files, manage API keys, and configure application preferences. Data imports refresh the plan database with the latest CMS PBP files."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -151,6 +151,7 @@ export default function OEPRemorse() {
         description="Identify MA members on below-average plans who may want to switch during the Open Enrollment Period."
         helpText="During OEP (Jan 1 - Mar 31), MA enrollees can switch to a different MA plan. This tool compares each plan's premium, dental, OTC, and star rating against the county average to find below-average plans whose members are ripe for outreach."
         badge="OEP"
+        dataSource="Data: CMS CY2026 PBP files. Plans scored against county averages for premium, dental, OTC, and star rating. Below-average plans identified as switch candidates during OEP (Jan 1 - Mar 31)."
         actions={
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
