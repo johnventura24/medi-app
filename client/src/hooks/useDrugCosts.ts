@@ -119,6 +119,6 @@ export function useFormularyCheck(
       if (!res.ok) throw new Error("Formulary check failed");
       return res.json();
     },
-    enabled: enabled && !!token && contractIds.length > 0 && rxcuis.length > 0,
+    enabled: enabled && contractIds.length > 0 && rxcuis.length > 0,
   });
 }

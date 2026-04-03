@@ -126,6 +126,6 @@ export function useNetworkStatus(npi: string, planIds: number[]) {
       if (!res.ok) throw new Error("Network status check failed");
       return res.json();
     },
-    enabled: !!token && !!npi && planIds.length > 0,
+    enabled: !!npi && planIds.length > 0,
   });
 }

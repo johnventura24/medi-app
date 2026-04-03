@@ -37,7 +37,7 @@ export function useDrugSearch(debounceMs = 400) {
       if (!res.ok) throw new Error("Drug search failed");
       return res.json();
     },
-    enabled: !!token && debouncedQuery.length >= 2,
+    enabled: debouncedQuery.length >= 2,
   });
 
   return {
