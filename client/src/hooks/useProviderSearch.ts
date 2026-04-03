@@ -53,12 +53,23 @@ export interface NetworkStatusResponse {
   statuses: NetworkStatus[];
 }
 
-export function useProviderSearch(debounceMs = 400) {
+/**
+ * Strip title prefixes client-side so we can evaluate the "real" query length
+ * before sending to the API (backend also strips, this is for UX gating).
+ */
+function stripTitlePrefix(name: string): string {
+  return name.replace(/^(dr\.?|doctor|md|nurse|np)\s*/i, '').trim();
+}
+
+export function useProviderSearch(debounceMs = 200) {
   const { token } = useAuth();
   const [query, setQuery] = useState("");
   const [stateFilter, setStateFilter] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // The actual searchable portion after stripping "Dr." etc.
+  const effectiveQuery = stripTitlePrefix(query);
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -70,7 +81,9 @@ export function useProviderSearch(debounceMs = 400) {
     };
   }, [query, debounceMs]);
 
-  const { data, isLoading } = useQuery<{ providers: ProviderResult[] }>({
+  const searchReady = !!token && debouncedQuery.length >= 2 && stripTitlePrefix(debouncedQuery).length >= 2;
+
+  const { data, isLoading, isFetching } = useQuery<{ providers: ProviderResult[] }>({
     queryKey: ["/api/providers/search", debouncedQuery, stateFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -83,7 +96,8 @@ export function useProviderSearch(debounceMs = 400) {
       if (!res.ok) throw new Error("Provider search failed");
       return res.json();
     },
-    enabled: !!token && debouncedQuery.length >= 2,
+    enabled: searchReady,
+    keepPreviousData: true,
   });
 
   return {
@@ -92,7 +106,8 @@ export function useProviderSearch(debounceMs = 400) {
     stateFilter,
     setStateFilter,
     results: data?.providers ?? [],
-    isLoading: isLoading && debouncedQuery.length >= 2,
+    isLoading: (isLoading || isFetching) && searchReady,
+    effectiveQuery,
   };
 }
 

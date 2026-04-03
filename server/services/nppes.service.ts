@@ -22,6 +22,14 @@ const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  * Search for providers using the NPPES NPI Registry API.
  * Results are cached in the provider_cache table with a 30-day TTL.
  */
+/**
+ * Strip common title prefixes (Dr., Doctor, etc.) from search input
+ * so users can type "dr. smith" and still find "Smith" providers.
+ */
+function stripTitlePrefix(name: string): string {
+  return name.replace(/^(dr\.?|doctor|md|nurse|np)\s+/i, '').trim();
+}
+
 export async function searchProviders(query: {
   name?: string;
   npi?: string;
@@ -29,7 +37,14 @@ export async function searchProviders(query: {
   specialty?: string;
   limit?: number;
 }): Promise<ProviderResult[]> {
-  const { name, npi, state, specialty, limit = 10 } = query;
+  const { npi, state, specialty, limit = 10 } = query;
+  // Strip title prefixes like "Dr.", "Doctor" so searches work on actual names
+  const name = query.name ? stripTitlePrefix(query.name) : undefined;
+
+  // If the entire search was just a title prefix (e.g. "dr."), return empty
+  if (query.name && !name) {
+    return [];
+  }
 
   // For name searches, try our local provider_quality table first (500K providers, accurate names)
   if (name && !npi) {

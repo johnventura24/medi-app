@@ -31,7 +31,8 @@ export function ProviderSearchInput({ onSelect }: ProviderSearchInputProps) {
     setStateFilter,
     results,
     isLoading,
-  } = useProviderSearch(400);
+    effectiveQuery,
+  } = useProviderSearch(200);
   const [selectedProvider, setSelectedProvider] = useState<ProviderResult | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -41,6 +42,10 @@ export function ProviderSearchInput({ onSelect }: ProviderSearchInputProps) {
     setQuery("");
     onSelect(provider);
   };
+
+  // Show dropdown when we have a meaningful query (2+ chars after stripping titles)
+  const dropdownVisible = showDropdown && query.length >= 2;
+  const isTitleOnly = /^\s*(dr\.?|doctor)\s*$/i.test(query);
 
   return (
     <div className="space-y-3">
@@ -54,18 +59,25 @@ export function ProviderSearchInput({ onSelect }: ProviderSearchInputProps) {
               setShowDropdown(true);
               setSelectedProvider(null);
             }}
-            onFocus={() => setShowDropdown(true)}
-            placeholder="Search by doctor name..."
+            onFocus={() => {
+              setShowDropdown(true);
+            }}
+            onBlur={() => {
+              // Delay hide so click on result registers
+              setTimeout(() => setShowDropdown(false), 200);
+            }}
+            placeholder="Search by last name (e.g. Smith)..."
             className="pl-10"
+            autoComplete="off"
           />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
           )}
 
           {/* Dropdown */}
-          {showDropdown && query.length >= 2 && (
+          {dropdownVisible && (
             <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[300px] overflow-y-auto">
-              {isLoading && (
+              {isLoading && results.length === 0 && (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
@@ -73,30 +85,36 @@ export function ProviderSearchInput({ onSelect }: ProviderSearchInputProps) {
               )}
               {!isLoading && results.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No providers found
+                  {isTitleOnly
+                    ? "Type the doctor's last name (e.g. \"Smith\")"
+                    : effectiveQuery.length < 2
+                      ? "Keep typing to search..."
+                      : "No providers found"}
                 </p>
               )}
-              {!isLoading &&
-                results.map((provider) => (
-                  <div
-                    key={provider.npi}
-                    className="flex items-start gap-3 px-3 py-2 cursor-pointer hover:bg-accent transition-colors"
-                    onClick={() => handleSelect(provider)}
-                  >
-                    <Stethoscope className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        Dr. {provider.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {provider.specialty}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {provider.city}, {provider.state}
-                      </p>
-                    </div>
+              {results.map((provider) => (
+                <div
+                  key={provider.npi}
+                  className="flex items-start gap-3 px-3 py-2 cursor-pointer hover:bg-accent transition-colors"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent blur before click
+                    handleSelect(provider);
+                  }}
+                >
+                  <Stethoscope className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      Dr. {provider.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {provider.specialty}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {provider.city}, {provider.state}
+                    </p>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           )}
         </div>
