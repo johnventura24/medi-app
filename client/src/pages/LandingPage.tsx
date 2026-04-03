@@ -265,9 +265,9 @@ export default function LandingPage() {
                   Try Free — No Credit Card
                 </Button>
               </Link>
-              <Link href="/for-you">
+              <Link href="/tools">
                 <Button variant="outline" size="lg" className="text-base px-8 h-12 gap-2">
-                  See Demo <ArrowRight className="h-4 w-4" />
+                  Explore Tools <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>

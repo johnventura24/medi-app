@@ -815,6 +815,37 @@ function ResultsScreen({
             ))}
           </div>
 
+          {/* Dig deeper tools */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mt-10"
+          >
+            <h3 className="text-xl font-bold text-blue-900 text-center mb-4">
+              Want to dig deeper before deciding?
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { label: "Check if your doctor is covered", href: "/keep-my-doctor" },
+                { label: "Search your medications", href: "/find" },
+                { label: "Compare plans side by side", href: "/compare" },
+                { label: "Calculate your savings", href: "/calculator" },
+              ].map((tool) => (
+                <a
+                  key={tool.href}
+                  href={tool.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all text-sm font-medium text-gray-800 group"
+                >
+                  {tool.label}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+
           {/* Agent request form */}
           <motion.div
             ref={formRef}

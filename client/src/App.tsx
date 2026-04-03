@@ -66,6 +66,8 @@ import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
 import PricingPage from "@/pages/PricingPage";
+import EntryPage from "@/pages/EntryPage";
+import AgentShowcase from "@/pages/AgentShowcase";
 
 // Lazy-load the consumer flow (standalone page)
 import ConsumerFlow from "@/pages/ConsumerFlow";
@@ -176,10 +178,13 @@ function AppLayout() {
 }
 
 /**
- * Root route — always shows the dashboard (no login required for browsing)
+ * Root route — show entry page for new visitors, dashboard for authenticated users
  */
 function RootRoute() {
-  return <AppLayout />;
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (isAuthenticated) return <AppLayout />;
+  return <EntryPage />;
 }
 
 function App() {
@@ -193,6 +198,7 @@ function App() {
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
               <Route path="/for-you" component={ConsumerFlow} />
+              <Route path="/tools" component={AgentShowcase} />
               <Route path="/pricing" component={PricingPage} />
               <Route path="/welcome" component={LandingPage} />
               <Route path="/privacy" component={Privacy} />
