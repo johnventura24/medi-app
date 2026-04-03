@@ -53,9 +53,11 @@ export async function searchProviders(query: {
   }
 
   // Build NPPES API URL
+  // Request more from NPPES than needed — we'll filter/sort and return top N
+  const apiLimit = Math.min(Math.max(limit * 5, 50), 200);
   const params = new URLSearchParams({
     version: "2.1",
-    limit: String(Math.min(limit, 200)),
+    limit: String(apiLimit),
   });
 
   if (npi) {
@@ -99,6 +101,11 @@ export async function searchProviders(query: {
     if (!data.results || !Array.isArray(data.results)) {
       return [];
     }
+
+    // NPPES API matches on former/other names too and sorts alphabetically,
+    // not by relevance. We need to re-sort to prioritize current name matches.
+    const searchLastName = name ? name.trim().split(/\s+/).pop()?.toLowerCase() : null;
+    const searchFirstName = name && name.trim().split(/\s+/).length >= 2 ? name.trim().split(/\s+/)[0].toLowerCase() : null;
 
     const results: ProviderResult[] = [];
 
@@ -167,7 +174,23 @@ export async function searchProviders(query: {
       }
     }
 
-    return results;
+    // Re-sort: prioritize providers whose CURRENT last name matches the search
+    if (searchLastName) {
+      results.sort((a, b) => {
+        const aLastMatch = a.lastName?.toLowerCase() === searchLastName ? 1 : 0;
+        const bLastMatch = b.lastName?.toLowerCase() === searchLastName ? 1 : 0;
+        const aStartsWith = a.lastName?.toLowerCase().startsWith(searchLastName) ? 1 : 0;
+        const bStartsWith = b.lastName?.toLowerCase().startsWith(searchLastName) ? 1 : 0;
+        const aFirstMatch = searchFirstName && a.firstName?.toLowerCase() === searchFirstName ? 1 : 0;
+        const bFirstMatch = searchFirstName && b.firstName?.toLowerCase() === searchFirstName ? 1 : 0;
+
+        const aScore = aLastMatch * 10 + aStartsWith * 5 + aFirstMatch * 3;
+        const bScore = bLastMatch * 10 + bStartsWith * 5 + bFirstMatch * 3;
+        return bScore - aScore;
+      });
+    }
+
+    return results.slice(0, limit);
   } catch (err: any) {
     if (err.name === "AbortError") {
       console.error("NPPES API request timed out");
