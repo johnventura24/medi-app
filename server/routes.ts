@@ -21,6 +21,7 @@ import { registerInteractionRoutes } from "./routes/interactions";
 import { registerSOARoutes } from "./routes/soa";
 import { registerDrugRoutes } from "./routes/drugs";
 import { registerProviderRoutes } from "./routes/providers";
+import { registerProviderVerifyRoutes } from "./routes/provider-verify";
 import { registerAIRoutes } from "./routes/ai";
 import { registerBenefitGridRoutes } from "./routes/benefit-grid";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
@@ -731,6 +732,7 @@ export async function registerRoutes(
   // Register Phase 4: drug formulary, cost estimation, provider lookup, and AI explainer
   registerDrugRoutes(app);
   registerProviderRoutes(app);
+  registerProviderVerifyRoutes(app);
   registerAIRoutes(app);
 
   // Register carrier-by-county matrix, year-over-year changes, and validation routes
