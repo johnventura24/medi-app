@@ -81,7 +81,7 @@ export function useProviderSearch(debounceMs = 200) {
     };
   }, [query, debounceMs]);
 
-  const searchReady = !!token && debouncedQuery.length >= 2 && stripTitlePrefix(debouncedQuery).length >= 2;
+  const searchReady = debouncedQuery.length >= 2 && stripTitlePrefix(debouncedQuery).length >= 2;
 
   const { data, isLoading, isFetching } = useQuery<{ providers: ProviderResult[] }>({
     queryKey: ["/api/providers/search", debouncedQuery, stateFilter],
