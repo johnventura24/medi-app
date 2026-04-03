@@ -28,6 +28,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useNetworkStatus, type NetworkStatus, type ConfidenceFactor } from "@/hooks/useProviderSearch";
+import { VerifyNetworkButton } from "./VerifyNetworkButton";
 import { cn } from "@/lib/utils";
 
 interface NetworkStatusGridProps {
@@ -153,7 +154,7 @@ function FactorList({ factors }: { factors: ConfidenceFactor[] }) {
 
 // ── Single Plan Confidence Card ──
 
-function PlanConfidenceRow({ status }: { status: NetworkStatus }) {
+function PlanConfidenceRow({ status, npi }: { status: NetworkStatus; npi: string }) {
   const [expanded, setExpanded] = useState(false);
   const verifyUrl = status.verificationUrl || status.carrierUrl || status.carrierWebsite;
 
@@ -172,29 +173,35 @@ function PlanConfidenceRow({ status }: { status: NetworkStatus }) {
           </div>
         </div>
 
-        {/* Verify button */}
-        {verifyUrl && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={verifyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0"
-                >
-                  <Button variant="outline" size="sm" className="text-xs gap-1">
-                    Verify
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </a>
-              </TooltipTrigger>
-              <TooltipContent>
-                Open carrier's provider directory to confirm network status
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {/* Verify at carrier + agent confirm buttons */}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {verifyUrl && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={verifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="outline" size="sm" className="text-xs gap-1">
+                      Verify
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Open carrier's provider directory to confirm network status
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <VerifyNetworkButton
+            npi={npi}
+            carrier={status.carrier || status.planName || ""}
+            contractId={undefined}
+          />
+        </div>
       </div>
 
       {/* Recommendation */}
@@ -297,7 +304,7 @@ export function NetworkStatusGrid({ npi, planIds }: NetworkStatusGridProps) {
         ) : (
           <div className="space-y-3">
             {statuses.map((status) => (
-              <PlanConfidenceRow key={status.planId} status={status} />
+              <PlanConfidenceRow key={status.planId} status={status} npi={npi} />
             ))}
           </div>
         )}
