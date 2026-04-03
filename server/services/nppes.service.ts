@@ -31,6 +31,69 @@ export async function searchProviders(query: {
 }): Promise<ProviderResult[]> {
   const { name, npi, state, specialty, limit = 10 } = query;
 
+  // For name searches, try our local provider_quality table first (500K providers, accurate names)
+  if (name && !npi) {
+    try {
+      const nameParts = name.trim().split(/\s+/);
+      let localQuery: string;
+      let localParams: string[];
+
+      if (nameParts.length >= 2) {
+        // First + Last name search
+        localQuery = `SELECT npi, provider_name, specialty, state, city FROM provider_quality
+          WHERE provider_name ILIKE $1 LIMIT $2`;
+        localParams = [`%${nameParts[0]}%${nameParts.slice(1).join('%')}%`];
+      } else {
+        // Last name only
+        localQuery = `SELECT npi, provider_name, specialty, state, city FROM provider_quality
+          WHERE provider_name ILIKE $1 ${state ? 'AND state = $3' : ''} LIMIT $2`;
+        localParams = [`%${nameParts[0]}%`];
+      }
+
+      const stateFilter = state ? state.toUpperCase() : null;
+      const localResults = await db.execute(
+        sql.raw(stateFilter && nameParts.length < 2
+          ? `SELECT npi, provider_name, specialty, state, city FROM provider_quality WHERE provider_name ILIKE '${nameParts[0].replace(/'/g, "''")}%' AND state = '${stateFilter}' LIMIT ${limit * 3}`
+          : `SELECT npi, provider_name, specialty, state, city FROM provider_quality WHERE provider_name ILIKE '%${name.replace(/'/g, "''")}%' ${stateFilter ? "AND state = '" + stateFilter + "'" : ''} LIMIT ${limit * 3}`)
+      );
+
+      if (localResults.rows && localResults.rows.length > 0) {
+        const mapped: ProviderResult[] = (localResults.rows as any[]).map(r => {
+          const nameParts = (r.provider_name || '').split(/\s+/);
+          return {
+            npi: r.npi,
+            firstName: nameParts[0] || undefined,
+            lastName: nameParts.slice(1).join(' ') || undefined,
+            organizationName: undefined,
+            specialty: r.specialty || undefined,
+            city: r.city || undefined,
+            state: r.state || undefined,
+            addressLine1: undefined,
+            zip: undefined,
+            phone: undefined,
+          };
+        });
+
+        // Sort by exact name match quality
+        const searchLower = name.toLowerCase();
+        mapped.sort((a, b) => {
+          const aName = ((a.firstName || '') + ' ' + (a.lastName || '')).toLowerCase();
+          const bName = ((b.firstName || '') + ' ' + (b.lastName || '')).toLowerCase();
+          const aExact = aName.includes(searchLower) ? 1 : 0;
+          const bExact = bName.includes(searchLower) ? 1 : 0;
+          return bExact - aExact;
+        });
+
+        if (mapped.length > 0) {
+          return mapped.slice(0, limit);
+        }
+      }
+    } catch (err) {
+      console.error("Local provider search error:", err);
+      // Fall through to NPPES
+    }
+  }
+
   // If searching by NPI, check cache first
   if (npi) {
     try {
