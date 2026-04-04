@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Target, Loader2 } from "lucide-react";
+import { Diamond, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
@@ -43,12 +43,12 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
-              <Target className="h-6 w-6 text-primary-foreground" />
+              <Diamond className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>
-            Sign in to MA Benefits Analytics Platform
+            Sign in to Prism — Medicare Superintelligence
           </CardDescription>
         </CardHeader>
         <CardContent>

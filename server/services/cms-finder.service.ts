@@ -62,7 +62,7 @@ async function fetchWithTimeout(url: string, timeoutMs: number = TIMEOUT_MS): Pr
       signal: controller.signal,
       headers: {
         "Accept": "application/json",
-        "User-Agent": "MediApp/1.0 Medicare Plan Comparison Tool",
+        "User-Agent": "Prism/1.0 Medicare Plan Comparison Tool",
       },
     });
     return response;

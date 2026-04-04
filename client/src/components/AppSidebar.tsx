@@ -46,6 +46,7 @@ import {
   HelpCircle,
   LogIn,
   Target,
+  Diamond,
   Home,
   ChevronDown,
   Users as UsersIcon,
@@ -209,11 +210,11 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary">
-            <Target className="h-5 w-5 text-primary-foreground" />
+            <Diamond className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-semibold text-sm">MA Benefits</h1>
-            <p className="text-xs text-muted-foreground">Analytics Platform</p>
+            <h1 className="font-semibold text-sm">Prism</h1>
+            <p className="text-xs text-muted-foreground">Medicare Superintelligence</p>
           </div>
         </div>
       </SidebarHeader>

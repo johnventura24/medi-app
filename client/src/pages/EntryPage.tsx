@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Heart,
-  Target,
+  Diamond,
   ArrowRight,
   Check,
   Menu,
@@ -78,9 +78,9 @@ function EntryNav() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Target className="h-4.5 w-4.5 text-primary-foreground" />
+              <Diamond className="h-4.5 w-4.5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg">MediApp</span>
+            <span className="font-semibold text-lg">Prism</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -303,9 +303,9 @@ export default function EntryPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <Target className="h-4 w-4 text-primary-foreground" />
+                <Diamond className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold">MediApp</span>
+              <span className="font-semibold">Prism</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/welcome" className="hover:text-foreground transition-colors">About</Link>
@@ -325,7 +325,7 @@ export default function EntryPage() {
               (SHIP) to get information on all of your options.
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              &copy; 2026 MediApp. Powered by CMS CY2026 PBP data.
+              &copy; 2026 Prism. Powered by CMS CY2026 PBP data.
             </p>
           </div>
         </div>

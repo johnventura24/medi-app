@@ -25,7 +25,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-xl font-semibold mt-6 mb-3">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">
-              MediApp ("we," "us," or "our") is committed to protecting the privacy and security of your personal
+              Prism ("we," "us," or "our") is committed to protecting the privacy and security of your personal
               information. This Privacy Policy describes how we collect, use, disclose, and safeguard your information
               when you use our Medicare plan comparison and management platform. We are designed to be compliant with
               HIPAA, SOC2 Type II, and applicable state and federal privacy regulations.

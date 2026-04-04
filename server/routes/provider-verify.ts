@@ -7,7 +7,7 @@ import { sql } from "drizzle-orm";
  * Provider Verification Webhook
  * 
  * PolicyPulse (or any external tool) can push verified provider network data
- * into MediApp via these endpoints. Each verified result updates the
+ * into Prism via these endpoints. Each verified result updates the
  * provider_network_cache table and boosts confidence scores.
  * 
  * Authentication: API key via X-API-Key header

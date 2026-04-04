@@ -25,7 +25,7 @@ export default function Terms() {
           <section>
             <h2 className="text-xl font-semibold mt-6 mb-3">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing or using MediApp ("the Service"), you agree to be bound by these Terms of Service.
+              By accessing or using Prism ("the Service"), you agree to be bound by these Terms of Service.
               If you are using the Service on behalf of an organization, you represent that you have authority
               to bind that organization to these terms.
             </p>
@@ -34,7 +34,7 @@ export default function Terms() {
           <section>
             <h2 className="text-xl font-semibold mt-6 mb-3">2. Description of Service</h2>
             <p className="text-muted-foreground leading-relaxed">
-              MediApp provides a Medicare plan comparison and management platform for licensed insurance agents,
+              Prism provides a Medicare plan comparison and management platform for licensed insurance agents,
               agencies, and healthcare organizations. The Service includes plan data analysis, client management,
               recommendation engines, market intelligence, and compliance tools. The Service uses data from the
               Centers for Medicare & Medicaid Services (CMS) and other publicly available sources.

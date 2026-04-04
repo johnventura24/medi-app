@@ -73,7 +73,7 @@ async function fetchWithTimeout(url: string, timeoutMs: number = FHIR_TIMEOUT_MS
       signal: controller.signal,
       headers: {
         "Accept": "application/fhir+json, application/json",
-        "User-Agent": "MediApp/1.0 FHIR Formulary Client",
+        "User-Agent": "Prism/1.0 FHIR Formulary Client",
       },
     });
     return response;

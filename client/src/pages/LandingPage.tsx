@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Brain,
   Users,
-  Target,
+  Diamond,
   ArrowRight,
   Check,
   Clock,
@@ -83,9 +83,9 @@ function LandingNav() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Target className="h-4.5 w-4.5 text-primary-foreground" />
+              <Diamond className="h-4.5 w-4.5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg">MediApp</span>
+            <span className="font-semibold text-lg">Prism</span>
           </Link>
 
           {/* Desktop links */}
@@ -233,7 +233,7 @@ export default function LandingPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
               The Medicare
               <br />
-              <span className="text-primary">Intelligence Platform</span>
+              <span className="text-primary">Superintelligence Platform</span>
             </h1>
           </FadeIn>
 
@@ -420,12 +420,12 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                  <Target className="h-4 w-4 text-primary-foreground" />
+                  <Diamond className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <span className="font-semibold">MediApp</span>
+                <span className="font-semibold">Prism</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                The Medicare Intelligence Platform.
+                The Medicare Superintelligence Platform.
                 <br />
                 Powered by CMS CY2026 PBP data.
               </p>
@@ -477,7 +477,7 @@ export default function LandingPage() {
               (SHIP) to get information on all of your options.
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              &copy; 2026 MediApp. Powered by CMS CY2026 PBP data.
+              &copy; 2026 Prism. Powered by CMS CY2026 PBP data.
             </p>
           </div>
         </div>

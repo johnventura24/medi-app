@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Target,
+  Diamond,
   Check,
   ArrowRight,
   ChevronDown,
@@ -26,9 +26,9 @@ function PricingNav() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Target className="h-4.5 w-4.5 text-primary-foreground" />
+              <Diamond className="h-4.5 w-4.5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg">MediApp</span>
+            <span className="font-semibold text-lg">Prism</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -393,7 +393,7 @@ export default function PricingPage() {
             (SHIP) to get information on all of your options.
           </p>
           <p className="text-xs text-muted-foreground text-center">
-            &copy; 2026 MediApp. Powered by CMS CY2026 PBP data.
+            &copy; 2026 Prism. Powered by CMS CY2026 PBP data.
           </p>
         </div>
       </footer>

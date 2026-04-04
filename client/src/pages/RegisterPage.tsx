@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Target, Loader2 } from "lucide-react";
+import { Diamond, Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
   const { register, isAuthenticated } = useAuth();
@@ -73,12 +73,12 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
-              <Target className="h-6 w-6 text-primary-foreground" />
+              <Diamond className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>
-            Get started with MA Benefits Analytics
+            Get started with Prism
           </CardDescription>
         </CardHeader>
         <CardContent>
