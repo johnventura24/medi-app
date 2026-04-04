@@ -1,14 +1,14 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { db } from "../db";
 import { plans } from "@shared/schema";
 import { eq, and, sql, desc, asc, count, avg, min, max } from "drizzle-orm";
 
-const MODEL = "gpt-4o-mini";
+const MODEL = "claude-sonnet-4-5-20250929";
 
-function getOpenAIClient(): OpenAI | null {
-  const apiKey = process.env.OPENAI_API_KEY;
+function getClient(): Anthropic | null {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
-  return new OpenAI({ apiKey });
+  return new Anthropic({ apiKey });
 }
 
 const SYSTEM_PROMPT = `You are Prism AI, the intelligent analyst for the Prism Medicare Superintelligence platform.
@@ -34,126 +34,108 @@ AVAILABLE DATA FIELDS:
 - Quality: overallStarRating, highPerforming, lowPerforming
 - SNP: snpType (D-SNP, C-SNP, etc.)`;
 
-// OpenAI tool definitions
-const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+// Claude tool definitions
+const tools: Anthropic.Tool[] = [
   {
-    type: "function",
-    function: {
-      name: "search_plans",
-      description: "Search for Medicare Advantage plans matching specific criteria. Returns up to 10 plans with key details.",
-      parameters: {
-        type: "object",
-        properties: {
-          state: { type: "string", description: "2-letter state code (e.g., FL, TX, CA)" },
-          county: { type: "string", description: "County name (e.g., Miami-Dade, Los Angeles)" },
-          organizationName: { type: "string", description: "Carrier/organization name (e.g., UnitedHealthcare, Humana)" },
-          planType: { type: "string", description: "Plan type: HMO, PPO, PFFS, HMO-POS" },
-          maxPremium: { type: "number", description: "Maximum monthly premium" },
-          minStarRating: { type: "number", description: "Minimum overall star rating (1-5)" },
-          hasDental: { type: "boolean", description: "Must have dental coverage" },
-          hasOtc: { type: "boolean", description: "Must have OTC benefit" },
-          snpType: { type: "string", description: "SNP type filter: D-SNP, C-SNP, I-SNP" },
-          orderBy: { type: "string", enum: ["premium_asc", "premium_desc", "stars_desc", "otc_desc", "dental_desc"], description: "Sort order" },
-          limit: { type: "number", description: "Max results (default 10, max 10)" },
-        },
+    name: "search_plans",
+    description: "Search for Medicare Advantage plans matching specific criteria. Returns up to 10 plans with key details.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        state: { type: "string", description: "2-letter state code (e.g., FL, TX, CA)" },
+        county: { type: "string", description: "County name (e.g., Miami-Dade, Los Angeles)" },
+        organizationName: { type: "string", description: "Carrier/organization name (e.g., UnitedHealthcare, Humana)" },
+        planType: { type: "string", description: "Plan type: HMO, PPO, PFFS, HMO-POS" },
+        maxPremium: { type: "number", description: "Maximum monthly premium" },
+        minStarRating: { type: "number", description: "Minimum overall star rating (1-5)" },
+        hasDental: { type: "boolean", description: "Must have dental coverage" },
+        hasOtc: { type: "boolean", description: "Must have OTC benefit" },
+        snpType: { type: "string", description: "SNP type filter: D-SNP, C-SNP, I-SNP" },
+        orderBy: { type: "string", enum: ["premium_asc", "premium_desc", "stars_desc", "otc_desc", "dental_desc"], description: "Sort order" },
+        limit: { type: "number", description: "Max results (default 10, max 10)" },
       },
     },
   },
   {
-    type: "function",
-    function: {
-      name: "get_plan_stats",
-      description: "Get aggregate statistics (count, average, min, max) for plans matching criteria. Use for questions like 'how many plans' or 'what's the average premium'.",
-      parameters: {
-        type: "object",
-        properties: {
-          state: { type: "string", description: "2-letter state code" },
-          county: { type: "string", description: "County name" },
-          organizationName: { type: "string", description: "Carrier name" },
-          planType: { type: "string", description: "Plan type: HMO, PPO, PFFS" },
-          metric: { type: "string", enum: ["premium", "deductible", "moop", "starRating", "otcAmount", "dentalLimit", "flexCard", "partbGiveback"], description: "Which metric to aggregate" },
-        },
-        required: ["metric"],
+    name: "get_plan_stats",
+    description: "Get aggregate statistics (count, average, min, max) for plans matching criteria. Use for questions like 'how many plans' or 'what's the average premium'.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        state: { type: "string", description: "2-letter state code" },
+        county: { type: "string", description: "County name" },
+        organizationName: { type: "string", description: "Carrier name" },
+        planType: { type: "string", description: "Plan type: HMO, PPO, PFFS" },
+        metric: { type: "string", enum: ["premium", "deductible", "moop", "starRating", "otcAmount", "dentalLimit", "flexCard", "partbGiveback"], description: "Which metric to aggregate" },
+      },
+      required: ["metric"],
+    },
+  },
+  {
+    name: "compare_carriers",
+    description: "Compare two or more carriers side-by-side in a specific geography. Shows plan count, avg premium, avg star rating, and benefit percentages.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        carriers: { type: "array", items: { type: "string" }, description: "List of carrier names to compare" },
+        state: { type: "string", description: "2-letter state code" },
+        county: { type: "string", description: "County name (optional)" },
+      },
+      required: ["carriers", "state"],
+    },
+  },
+  {
+    name: "get_top_plans",
+    description: "Get the top N plans ranked by a specific metric (e.g., highest star rating, lowest premium, richest OTC benefit).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        state: { type: "string", description: "2-letter state code" },
+        county: { type: "string", description: "County name" },
+        metric: { type: "string", enum: ["premium", "starRating", "otcAmount", "dentalLimit", "flexCard", "moop"], description: "Metric to rank by" },
+        direction: { type: "string", enum: ["asc", "desc"], description: "Sort direction (asc=lowest first, desc=highest first)" },
+        planType: { type: "string", description: "Filter by plan type" },
+        limit: { type: "number", description: "Number of plans to return (default 5, max 10)" },
+      },
+      required: ["metric", "direction"],
+    },
+  },
+  {
+    name: "count_plans",
+    description: "Count plans matching specific criteria. Use for 'how many plans have...' questions.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        state: { type: "string" },
+        county: { type: "string" },
+        organizationName: { type: "string" },
+        planType: { type: "string" },
+        maxPremium: { type: "number" },
+        minStarRating: { type: "number" },
+        zeroPremium: { type: "boolean", description: "Only $0 premium plans" },
+        hasDental: { type: "boolean" },
+        hasOtc: { type: "boolean" },
+        hasMealBenefit: { type: "boolean" },
+        hasTransportation: { type: "boolean" },
+        highPerforming: { type: "boolean" },
+        snpType: { type: "string" },
       },
     },
   },
   {
-    type: "function",
-    function: {
-      name: "compare_carriers",
-      description: "Compare two or more carriers side-by-side in a specific geography. Shows plan count, avg premium, avg star rating, and benefit percentages.",
-      parameters: {
-        type: "object",
-        properties: {
-          carriers: { type: "array", items: { type: "string" }, description: "List of carrier names to compare" },
-          state: { type: "string", description: "2-letter state code" },
-          county: { type: "string", description: "County name (optional)" },
-        },
-        required: ["carriers", "state"],
+    name: "get_plan_by_id",
+    description: "Fetch complete details for a specific plan by its ID.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        planId: { type: "number", description: "The plan's database ID" },
       },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_top_plans",
-      description: "Get the top N plans ranked by a specific metric (e.g., highest star rating, lowest premium, richest OTC benefit).",
-      parameters: {
-        type: "object",
-        properties: {
-          state: { type: "string", description: "2-letter state code" },
-          county: { type: "string", description: "County name" },
-          metric: { type: "string", enum: ["premium", "starRating", "otcAmount", "dentalLimit", "flexCard", "moop"], description: "Metric to rank by" },
-          direction: { type: "string", enum: ["asc", "desc"], description: "Sort direction (asc=lowest first, desc=highest first)" },
-          planType: { type: "string", description: "Filter by plan type" },
-          limit: { type: "number", description: "Number of plans to return (default 5, max 10)" },
-        },
-        required: ["metric", "direction"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "count_plans",
-      description: "Count plans matching specific criteria. Use for 'how many plans have...' questions.",
-      parameters: {
-        type: "object",
-        properties: {
-          state: { type: "string" },
-          county: { type: "string" },
-          organizationName: { type: "string" },
-          planType: { type: "string" },
-          maxPremium: { type: "number" },
-          minStarRating: { type: "number" },
-          zeroPremium: { type: "boolean", description: "Only $0 premium plans" },
-          hasDental: { type: "boolean" },
-          hasOtc: { type: "boolean" },
-          hasMealBenefit: { type: "boolean" },
-          hasTransportation: { type: "boolean" },
-          highPerforming: { type: "boolean" },
-          snpType: { type: "string" },
-        },
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_plan_by_id",
-      description: "Fetch complete details for a specific plan by its ID.",
-      parameters: {
-        type: "object",
-        properties: {
-          planId: { type: "number", description: "The plan's database ID" },
-        },
-        required: ["planId"],
-      },
+      required: ["planId"],
     },
   },
 ];
 
-// ── Query executors ──────────────────────────────────────────────────
+// ── Query executors (unchanged) ──────────────────────────────────────
 
 function buildFilters(params: Record<string, any>) {
   const conditions: any[] = [];
@@ -299,7 +281,6 @@ async function executeGetTopPlans(params: Record<string, any>) {
   if (params.county) filterParams.county = params.county;
   if (params.planType) filterParams.planType = params.planType;
   const where = buildFilters(filterParams);
-  // Exclude nulls/zeros for "top" queries
   const nonNull = params.direction === "desc" ? sql`${col} IS NOT NULL AND ${col} > 0` : sql`${col} IS NOT NULL`;
   const fullWhere = where ? and(where, nonNull) : nonNull;
   const results = await db.select().from(plans).where(fullWhere).orderBy(order).limit(limit);
@@ -332,12 +313,11 @@ async function executeTool(name: string, args: Record<string, any>): Promise<any
   }
 }
 
-// ── Streaming chat orchestration ─────────────────────────────────────
+// ── Streaming chat orchestration (Claude) ────────────────────────────
 
 export interface ChatMessage {
-  role: "system" | "user" | "assistant" | "tool";
+  role: "user" | "assistant";
   content: string;
-  tool_call_id?: string;
 }
 
 export interface ChatContext {
@@ -356,9 +336,9 @@ export async function streamAnalystChat(
   context: ChatContext,
   onChunk: (chunk: ChatChunk) => void,
 ): Promise<void> {
-  const openai = getOpenAIClient();
-  if (!openai) {
-    onChunk({ type: "error", text: "OpenAI API key not configured. Set OPENAI_API_KEY to enable the AI analyst." });
+  const client = getClient();
+  if (!client) {
+    onChunk({ type: "error", text: "Anthropic API key not configured. Set ANTHROPIC_API_KEY to enable the AI analyst." });
     onChunk({ type: "done" });
     return;
   }
@@ -372,96 +352,71 @@ export async function streamAnalystChat(
     systemPrompt += `\nActive filters: ${JSON.stringify(context.filters)}`;
   }
 
-  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: "system", content: systemPrompt },
-    ...userMessages.map((m) => ({
-      role: m.role as any,
-      content: m.content,
-      ...(m.tool_call_id ? { tool_call_id: m.tool_call_id } : {}),
-    })),
-  ];
+  // Convert to Claude message format
+  const messages: Anthropic.MessageParam[] = userMessages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
 
-  // Function-calling loop (max 5 rounds to prevent infinite loops)
+  // Tool-use loop (max 5 rounds)
   for (let round = 0; round < 5; round++) {
-    const stream = await openai.chat.completions.create({
+    const stream = client.messages.stream({
       model: MODEL,
+      system: systemPrompt,
       messages,
       tools,
-      tool_choice: "auto",
-      max_tokens: 2000,
-      temperature: 0.3,
-      stream: true,
+      max_tokens: 4096,
     });
 
-    let assistantContent = "";
-    let toolCalls: Array<{ id: string; name: string; arguments: string }> = [];
-    let currentToolCallIndex = -1;
+    // Collect the full response for the tool loop
+    let textContent = "";
+    const toolUseBlocks: Array<{ id: string; name: string; input: any }> = [];
 
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta;
-      if (!delta) continue;
-
-      // Streaming text content
-      if (delta.content) {
-        assistantContent += delta.content;
-        onChunk({ type: "content", text: delta.content });
-      }
-
-      // Tool calls
-      if (delta.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          if (tc.index !== undefined && tc.index !== currentToolCallIndex) {
-            currentToolCallIndex = tc.index;
-            toolCalls.push({ id: tc.id || "", name: tc.function?.name || "", arguments: "" });
-          }
-          if (tc.function?.arguments) {
-            toolCalls[toolCalls.length - 1].arguments += tc.function.arguments;
-          }
-          if (tc.function?.name && toolCalls.length > 0) {
-            toolCalls[toolCalls.length - 1].name = tc.function.name;
-          }
-          if (tc.id && toolCalls.length > 0) {
-            toolCalls[toolCalls.length - 1].id = tc.id;
-          }
+    for await (const event of stream) {
+      if (event.type === "content_block_start") {
+        if (event.content_block.type === "tool_use") {
+          onChunk({ type: "tool_start", toolName: event.content_block.name });
+        }
+      } else if (event.type === "content_block_delta") {
+        if (event.delta.type === "text_delta") {
+          textContent += event.delta.text;
+          onChunk({ type: "content", text: event.delta.text });
         }
       }
     }
 
+    // Get the final message to extract tool_use blocks
+    const finalMessage = await stream.finalMessage();
+
+    for (const block of finalMessage.content) {
+      if (block.type === "tool_use") {
+        toolUseBlocks.push({ id: block.id, name: block.name, input: block.input });
+      }
+    }
+
     // If no tool calls, we're done
-    if (toolCalls.length === 0) {
+    if (toolUseBlocks.length === 0) {
       onChunk({ type: "done" });
       return;
     }
 
-    // Execute tool calls and continue the loop
-    messages.push({
-      role: "assistant",
-      content: assistantContent || null,
-      tool_calls: toolCalls.map((tc) => ({
-        id: tc.id,
-        type: "function" as const,
-        function: { name: tc.name, arguments: tc.arguments },
-      })),
-    });
+    // Add assistant response to messages
+    messages.push({ role: "assistant", content: finalMessage.content });
 
-    for (const tc of toolCalls) {
-      onChunk({ type: "tool_start", toolName: tc.name });
-      let args: Record<string, any>;
-      try {
-        args = JSON.parse(tc.arguments);
-      } catch {
-        args = {};
-      }
-      const result = await executeTool(tc.name, args);
+    // Execute tools and add results
+    const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    for (const tc of toolUseBlocks) {
+      const result = await executeTool(tc.name, tc.input as Record<string, any>);
       const resultStr = JSON.stringify(result);
       onChunk({ type: "tool_result", toolName: tc.name, text: `Found ${Array.isArray(result) ? result.length + ' results' : 'data'}` });
-      messages.push({ role: "tool", content: resultStr, tool_call_id: tc.id });
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: tc.id,
+        content: resultStr,
+      });
     }
 
-    // Reset for next round
-    toolCalls = [];
-    currentToolCallIndex = -1;
-    assistantContent = "";
+    messages.push({ role: "user", content: toolResults });
   }
 
   onChunk({ type: "done" });
