@@ -73,6 +73,8 @@ import AgentShowcase from "@/pages/AgentShowcase";
 import ConsumerFlow from "@/pages/ConsumerFlow";
 
 import { useAuth } from "@/hooks/useAuth";
+import { AIAnalystProvider } from "@/lib/AIAnalystContext";
+import { AIAnalystChat } from "@/components/ai/AIAnalystChat";
 
 /** Guards a route so only users with matching roles can access it */
 function AuthGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
@@ -162,18 +164,21 @@ function AppLayout() {
   };
 
   return (
-    <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1 min-w-0">
-          <DashboardHeader showSearch={true} />
-          <main className="flex-1 overflow-auto bg-background">
-            <Router />
-            <TPMODisclaimer />
-          </main>
+    <AIAnalystProvider>
+      <SidebarProvider style={sidebarStyle as React.CSSProperties}>
+        <div className="flex h-screen w-full">
+          <AppSidebar />
+          <div className="flex flex-col flex-1 min-w-0">
+            <DashboardHeader showSearch={true} />
+            <main className="flex-1 overflow-auto bg-background">
+              <Router />
+              <TPMODisclaimer />
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+      <AIAnalystChat />
+    </AIAnalystProvider>
   );
 }
 

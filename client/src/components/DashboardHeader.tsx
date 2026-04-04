@@ -13,8 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, LogOut, User } from "lucide-react";
+import { Bell, LogOut, User, BotMessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAIAnalyst } from "@/lib/AIAnalystContext";
 
 interface DashboardHeaderProps {
   title?: string;
@@ -39,6 +40,7 @@ export function DashboardHeader({
   exportFilters,
 }: DashboardHeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
+  const { toggle: toggleAI } = useAIAnalyst();
 
   return (
     <header className="flex items-center justify-between gap-4 p-4 border-b bg-background sticky top-0 z-50">
@@ -53,6 +55,10 @@ export function DashboardHeader({
         {exportScope && (
           <ExportButton scope={exportScope} filters={exportFilters} />
         )}
+
+        <Button variant="ghost" size="icon" onClick={toggleAI} title="Prism AI Analyst" data-testid="button-ai-analyst">
+          <BotMessageSquare className="h-4 w-4" />
+        </Button>
 
         <Button variant="ghost" size="icon" data-testid="button-notifications">
           <Bell className="h-4 w-4" />

@@ -23,6 +23,7 @@ import { registerDrugRoutes } from "./routes/drugs";
 import { registerProviderRoutes } from "./routes/providers";
 import { registerProviderVerifyRoutes } from "./routes/provider-verify";
 import { registerAIRoutes } from "./routes/ai";
+import { registerAIChatRoutes } from "./routes/ai-chat";
 import { registerBenefitGridRoutes } from "./routes/benefit-grid";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerMoneyCalculatorRoutes } from "./routes/money-calculator";
@@ -734,6 +735,7 @@ export async function registerRoutes(
   registerProviderRoutes(app);
   registerProviderVerifyRoutes(app);
   registerAIRoutes(app);
+  registerAIChatRoutes(app);
 
   // Register carrier-by-county matrix, year-over-year changes, and validation routes
   registerMatrixRoutes(app);
