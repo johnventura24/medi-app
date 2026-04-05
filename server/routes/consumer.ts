@@ -5,6 +5,7 @@ import { sql, eq, and, or, asc, desc, count } from "drizzle-orm";
 import { z } from "zod";
 import { resolveZipToCounty, resolveZipToAllCounties } from "../services/zip-resolver.service";
 import { sendLeadNotification } from "../services/email.service";
+import { checkDrugCoverage } from "../services/fhir-formulary.service";
 
 // ── Validation schemas ──
 
@@ -14,6 +15,10 @@ const findPlansSchema = z.object({
   seesSpecialist: z.boolean(),
   medications: z.enum(["none", "few", "many"]),
   wantsExtras: z.boolean(),
+  drugs: z.array(z.object({
+    rxcui: z.string(),
+    name: z.string(),
+  })).optional().default([]),
 });
 
 const requestAgentSchema = z.object({
@@ -27,6 +32,10 @@ const requestAgentSchema = z.object({
     seesSpecialist: z.boolean(),
     medications: z.string(),
     wantsExtras: z.boolean(),
+    drugs: z.array(z.object({
+      rxcui: z.string(),
+      name: z.string(),
+    })).optional().default([]),
   }),
   topPlanIds: z.array(z.number()),
   moneyOnTable: z.number(),
@@ -45,7 +54,7 @@ export function registerConsumerRoutes(app: Express) {
         return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
       }
 
-      const { zipCode, priority, seesSpecialist, medications, wantsExtras } = parsed.data;
+      const { zipCode, priority, seesSpecialist, medications, wantsExtras, drugs } = parsed.data;
 
       // Resolve ZIP to county + state using zip_county_map (33,000+ ZIPs)
       const allCounties = await resolveZipToAllCounties(zipCode);
@@ -247,8 +256,74 @@ export function registerConsumerRoutes(app: Express) {
           hasFitness: p.hasSilverSneakers || p.hasFitnessBenefit || false,
           hasMeals: p.hasMealBenefit || false,
           hasTelehealth: p.hasTelehealth || false,
+          drugCoverage: null as {
+            totalDrugs: number;
+            covered: number | null;
+            details: Array<{ name: string; covered: boolean | null; tier: string | null }>;
+          } | null,
         };
       });
+
+      // Enrich top plans with drug coverage if drugs were provided
+      if (drugs.length > 0) {
+        for (const card of planCards) {
+          const plan = topPlans.find(sp => sp.plan.id === card.id)?.plan;
+          if (!plan) continue;
+
+          const carrier = plan.organizationName || "";
+          const contractId = plan.contractId || "";
+
+          if (!carrier || !contractId) {
+            // Can't look up formulary without carrier/contract
+            card.drugCoverage = {
+              totalDrugs: drugs.length,
+              covered: null,
+              details: drugs.map(d => ({ name: d.name, covered: null as boolean | null, tier: null as string | null })),
+            };
+            continue;
+          }
+
+          try {
+            const details: Array<{ name: string; covered: boolean | null; tier: string | null }> = [];
+            let coveredCount = 0;
+
+            // Check each drug against this plan (with a 10s overall timeout)
+            const drugChecks = await Promise.allSettled(
+              drugs.map(async (drug) => {
+                const result = await checkDrugCoverage(carrier, contractId, drug.rxcui);
+                return { name: drug.name, result };
+              })
+            );
+
+            for (const settled of drugChecks) {
+              if (settled.status === "fulfilled" && settled.value.result) {
+                details.push({
+                  name: settled.value.name,
+                  covered: true,
+                  tier: `Tier ${settled.value.result.tier}`,
+                });
+                coveredCount++;
+              } else {
+                const drugName = settled.status === "fulfilled" ? settled.value.name : "Unknown";
+                details.push({ name: drugName, covered: false, tier: null });
+              }
+            }
+
+            card.drugCoverage = {
+              totalDrugs: drugs.length,
+              covered: coveredCount,
+              details,
+            };
+          } catch (err: any) {
+            console.log(`[Consumer] Drug coverage check failed for plan ${card.id}: ${err.message}`);
+            card.drugCoverage = {
+              totalDrugs: drugs.length,
+              covered: null,
+              details: drugs.map(d => ({ name: d.name, covered: null as boolean | null, tier: null as string | null })),
+            };
+          }
+        }
+      }
 
       // Log activity
       // (No lead ID yet — this is anonymous browsing)

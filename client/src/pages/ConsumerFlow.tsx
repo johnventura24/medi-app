@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useLocation, Link } from "wouter";
 import { EnrollmentButton } from "@/components/EnrollmentButton";
+import { DrugSearchAutocomplete } from "@/components/drugs/DrugSearchAutocomplete";
+import type { DrugSearchResult } from "@/hooks/useDrugSearch";
+import { Pill, X } from "lucide-react";
 
 // ── Types ──
 
@@ -116,6 +119,8 @@ export default function ConsumerFlow() {
   const [priority, setPriority] = useState<Priority | null>(null);
   const [seesSpecialist, setSeesSpecialist] = useState<boolean | null>(null);
   const [medications, setMedications] = useState<Medications | null>(null);
+  const [drugList, setDrugList] = useState<Array<{ rxcui: string; name: string; strength: string }>>([]);
+  const [drugStepConfirmed, setDrugStepConfirmed] = useState(false);
   const [wantsExtras, setWantsExtras] = useState<boolean | null>(null);
   const [quizStep, setQuizStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -165,6 +170,7 @@ export default function ConsumerFlow() {
           seesSpecialist,
           medications,
           wantsExtras,
+          drugs: drugList.map(d => ({ rxcui: d.rxcui, name: d.name })),
         }),
       });
       if (!resp.ok) {
@@ -195,7 +201,7 @@ export default function ConsumerFlow() {
           email,
           phone,
           zipCode,
-          quizAnswers: { priority, seesSpecialist, medications, wantsExtras },
+          quizAnswers: { priority, seesSpecialist, medications, wantsExtras, drugs: drugList },
           topPlanIds: results.plans.map(p => p.id),
           moneyOnTable: results.moneyOnTable,
           ...utmParams,
@@ -219,6 +225,8 @@ export default function ConsumerFlow() {
     setPriority(null);
     setSeesSpecialist(null);
     setMedications(null);
+    setDrugList([]);
+    setDrugStepConfirmed(false);
     setWantsExtras(null);
     setQuizStep(0);
     setResults(null);
@@ -254,6 +262,10 @@ export default function ConsumerFlow() {
             setSeesSpecialist={setSeesSpecialist}
             medications={medications}
             setMedications={setMedications}
+            drugList={drugList}
+            setDrugList={setDrugList}
+            drugStepConfirmed={drugStepConfirmed}
+            setDrugStepConfirmed={setDrugStepConfirmed}
             wantsExtras={wantsExtras}
             setWantsExtras={setWantsExtras}
             quizStep={quizStep}
@@ -271,6 +283,7 @@ export default function ConsumerFlow() {
             key="results"
             results={results}
             zipCode={zipCode}
+            drugCount={drugList.length}
             firstName={firstName}
             setFirstName={setFirstName}
             lastName={lastName}
@@ -430,6 +443,10 @@ function QuizScreen({
   setSeesSpecialist,
   medications,
   setMedications,
+  drugList,
+  setDrugList,
+  drugStepConfirmed,
+  setDrugStepConfirmed,
   wantsExtras,
   setWantsExtras,
   quizStep,
@@ -447,7 +464,11 @@ function QuizScreen({
   seesSpecialist: boolean | null;
   setSeesSpecialist: (v: boolean) => void;
   medications: Medications | null;
-  setMedications: (v: Medications) => void;
+  setMedications: (v: Medications | null) => void;
+  drugList: Array<{ rxcui: string; name: string; strength: string }>;
+  setDrugList: (v: Array<{ rxcui: string; name: string; strength: string }>) => void;
+  drugStepConfirmed: boolean;
+  setDrugStepConfirmed: (v: boolean) => void;
   wantsExtras: boolean | null;
   setWantsExtras: (v: boolean) => void;
   quizStep: number;
@@ -459,6 +480,43 @@ function QuizScreen({
   onSubmit: () => void;
   onStartOver: () => void;
 }) {
+  const deriveMedications = (drugs: Array<{ rxcui: string; name: string; strength: string }>): Medications => {
+    if (drugs.length === 0) return "none";
+    if (drugs.length <= 3) return "few";
+    return "many";
+  };
+
+  const handleAddDrug = (drug: DrugSearchResult) => {
+    // Prevent duplicates
+    if (drugList.some(d => d.rxcui === drug.rxcui)) return;
+    const updated = [...drugList, { rxcui: drug.rxcui, name: drug.name, strength: drug.strength }];
+    setDrugList(updated);
+    setMedications(deriveMedications(updated));
+    setDrugStepConfirmed(true);
+  };
+
+  const handleRemoveDrug = (rxcui: string) => {
+    const updated = drugList.filter(d => d.rxcui !== rxcui);
+    setDrugList(updated);
+    if (updated.length === 0 && !drugStepConfirmed) {
+      setMedications(null);
+    } else {
+      setMedications(deriveMedications(updated));
+    }
+  };
+
+  const handleSkipDrugs = () => {
+    setDrugList([]);
+    setMedications("none");
+    setDrugStepConfirmed(true);
+    setQuizStep(3);
+  };
+
+  const handleDrugNext = () => {
+    setDrugStepConfirmed(true);
+    setMedications(deriveMedications(drugList));
+    setQuizStep(3);
+  };
   const priorityOptions: { value: Priority; label: string; icon: string; desc: string }[] = [
     { value: "low_cost", label: "Low Monthly Cost", icon: "\uD83D\uDCB0", desc: "Keep my costs down" },
     { value: "best_dental", label: "Best Dental Coverage", icon: "\uD83E\uDDB7", desc: "Dental is important to me" },
@@ -512,27 +570,59 @@ function QuizScreen({
       ),
     },
     {
-      question: "How many prescriptions do you take?",
+      question: "What medications do you take?",
       content: (
-        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-          {([
-            { value: "none" as Medications, label: "None" },
-            { value: "few" as Medications, label: "1-3" },
-            { value: "many" as Medications, label: "4 or more" },
-          ]).map((opt) => (
+        <div className="max-w-lg mx-auto space-y-4">
+          {/* Drug search autocomplete */}
+          <DrugSearchAutocomplete
+            onSelect={handleAddDrug}
+            placeholder="Search for a medication..."
+          />
+
+          {/* Added drugs list */}
+          {drugList.length > 0 && (
+            <div className="space-y-2">
+              {drugList.map((drug) => (
+                <div
+                  key={drug.rxcui}
+                  className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3"
+                >
+                  <Pill className="h-4 w-4 text-blue-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium text-gray-800 block truncate">{drug.name}</span>
+                    {drug.strength && (
+                      <span className="text-xs text-gray-500">{drug.strength}</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleRemoveDrug(drug.rxcui)}
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300"
+                    aria-label={`Remove ${drug.name}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Next button - shown when drugs have been added */}
+          {drugList.length > 0 && (
             <button
-              key={opt.value}
-              onClick={() => { setMedications(opt.value); setQuizStep(3); }}
-              className={`flex-1 py-5 px-6 text-xl font-semibold rounded-2xl border-2 transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none hover:shadow-md ${
-                medications === opt.value
-                  ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-300 bg-white hover:border-blue-300"
-              }`}
-              aria-pressed={medications === opt.value}
+              onClick={handleDrugNext}
+              className="w-full py-4 px-6 text-lg font-semibold rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-md hover:shadow-lg transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none"
             >
-              {opt.label}
+              Next ({drugList.length} medication{drugList.length !== 1 ? "s" : ""} added)
             </button>
-          ))}
+          )}
+
+          {/* Skip / no medications button */}
+          <button
+            onClick={handleSkipDrugs}
+            className="w-full py-3 text-base text-gray-500 hover:text-blue-600 underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-lg"
+          >
+            I don't take any medications
+          </button>
         </div>
       ),
     },
@@ -694,6 +784,7 @@ function QuizScreen({
 function ResultsScreen({
   results,
   zipCode,
+  drugCount,
   firstName,
   setFirstName,
   lastName,
@@ -711,6 +802,7 @@ function ResultsScreen({
 }: {
   results: FindPlansResult;
   zipCode: string;
+  drugCount: number;
   firstName: string;
   setFirstName: (v: string) => void;
   lastName: string;
@@ -882,6 +974,21 @@ function ResultsScreen({
                       <span className="text-green-700 font-semibold text-lg">
                         Saves you ${plan.savings.toLocaleString()}/year vs Original Medicare
                       </span>
+                    </div>
+                  )}
+
+                  {/* Drug coverage note */}
+                  {drugCount > 0 && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mt-3 flex items-start gap-2">
+                      <Pill className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-purple-700 font-medium text-sm">
+                          {drugCount} medication{drugCount !== 1 ? "s" : ""} added
+                        </span>
+                        <p className="text-xs text-purple-600 mt-0.5">
+                          Your agent will verify drug coverage for these plans.
+                        </p>
+                      </div>
                     </div>
                   )}
 

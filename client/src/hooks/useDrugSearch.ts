@@ -25,7 +25,7 @@ export function useDrugSearch(debounceMs = 400) {
     };
   }, [query, debounceMs]);
 
-  const { data, isLoading } = useQuery<{ results: DrugSearchResult[] }>({
+  const { data, isLoading } = useQuery<{ drugs: DrugSearchResult[] }>({
     queryKey: ["/api/drugs/search", debouncedQuery],
     queryFn: async () => {
       const res = await fetch(
@@ -43,7 +43,7 @@ export function useDrugSearch(debounceMs = 400) {
   return {
     query,
     setQuery,
-    results: data?.results ?? [],
+    results: data?.drugs ?? [],
     isLoading: isLoading && debouncedQuery.length >= 2,
   };
 }
