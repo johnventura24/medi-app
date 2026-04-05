@@ -10,6 +10,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
+      aria-label="Toggle theme"
       data-testid="button-theme-toggle"
     >
       {theme === "dark" ? (

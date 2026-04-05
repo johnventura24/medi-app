@@ -45,7 +45,7 @@ export function DashboardHeader({
   return (
     <header className="flex items-center justify-between gap-4 p-4 border-b bg-background sticky top-0 z-50">
       <div className="flex items-center gap-4">
-        <SidebarTrigger data-testid="button-sidebar-toggle" />
+        <SidebarTrigger data-testid="button-sidebar-toggle" aria-label="Toggle sidebar" />
         {title && <h1 className="font-semibold text-lg hidden md:block">{title}</h1>}
       </div>
 
@@ -56,11 +56,11 @@ export function DashboardHeader({
           <ExportButton scope={exportScope} filters={exportFilters} />
         )}
 
-        <Button variant="ghost" size="icon" onClick={toggleAI} title="Prism AI Analyst" data-testid="button-ai-analyst">
+        <Button variant="ghost" size="icon" onClick={toggleAI} title="Prism AI Analyst" aria-label="Prism AI Analyst" data-testid="button-ai-analyst">
           <BotMessageSquare className="h-4 w-4" />
         </Button>
 
-        <Button variant="ghost" size="icon" data-testid="button-notifications">
+        <Button variant="ghost" size="icon" title="Notifications" aria-label="Notifications" data-testid="button-notifications">
           <Bell className="h-4 w-4" />
         </Button>
 

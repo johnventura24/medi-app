@@ -40,7 +40,7 @@ export function useExport() {
     async (scope: string, filters?: Record<string, string>, ids?: number[]) => {
       setIsExporting(true);
       try {
-        const params = new URLSearchParams({ scope: "comparison" });
+        const params = new URLSearchParams({ scope });
         if (filters) {
           params.set("filters", JSON.stringify(filters));
         }

@@ -43,7 +43,6 @@ import {
   FileSpreadsheet,
   Database,
   Settings,
-  HelpCircle,
   LogIn,
   Target,
   Diamond,
@@ -172,8 +171,6 @@ const navGroups: NavGroup[] = [
     items: [
       { title: "Audit Logs", url: "/admin/audit", icon: ShieldCheck },
       { title: "User Management", url: "/admin/users", icon: Users },
-      { title: "API Keys", url: "/admin/api-keys", icon: Settings },
-      { title: "System Health", url: "/admin/health", icon: Activity },
     ],
   },
 ];
@@ -300,14 +297,6 @@ export function AppSidebar() {
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild data-testid="nav-help">
-              <Link href="/help">
-                <HelpCircle className="h-4 w-4" />
-                <span>Help</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

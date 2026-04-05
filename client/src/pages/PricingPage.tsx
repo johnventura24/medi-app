@@ -366,9 +366,9 @@ export default function PricingPage() {
                 Start Free Trial
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/tools">
               <Button variant="outline" size="lg" className="text-base px-8 h-12">
-                Schedule Demo
+                Explore Tools
               </Button>
             </Link>
           </div>

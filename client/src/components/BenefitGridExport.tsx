@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,7 @@ import {
   Pill,
   DollarSign,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PreviewSheet {
   sheet: string;
@@ -56,6 +57,7 @@ export function BenefitGridExport() {
   const [contractId, setContractId] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
   // Fetch carriers for dropdown
   const { data: carriers } = useQuery<CarrierOption[]>({
@@ -119,7 +121,7 @@ export function BenefitGridExport() {
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
     } catch (err) {
-      // error handled silently — download UI resets via finally block
+      toast({ title: "Export failed", description: "Please try again.", variant: "destructive" });
     } finally {
       setIsDownloading(false);
     }

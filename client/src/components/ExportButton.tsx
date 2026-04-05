@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useExport } from "@/hooks/useExport";
+import { useToast } from "@/hooks/use-toast";
 import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 
 interface ExportButtonProps {
@@ -16,6 +17,23 @@ interface ExportButtonProps {
 
 export function ExportButton({ scope, filters, disabled }: ExportButtonProps) {
   const { exportCSV, exportPDF, isExporting } = useExport();
+  const { toast } = useToast();
+
+  const handleExportCSV = async () => {
+    try {
+      await exportCSV(scope, filters);
+    } catch (err) {
+      toast({ title: "Export failed", description: "Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      await exportPDF(scope, filters);
+    } catch (err) {
+      toast({ title: "Export failed", description: "Please try again.", variant: "destructive" });
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -36,14 +54,14 @@ export function ExportButton({ scope, filters, disabled }: ExportButtonProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => exportCSV(scope, filters)}
+          onClick={handleExportCSV}
           disabled={isExporting}
         >
           <FileSpreadsheet className="h-4 w-4 mr-2" />
           Export CSV
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => exportPDF(scope, filters)}
+          onClick={handleExportPDF}
           disabled={isExporting}
         >
           <FileText className="h-4 w-4 mr-2" />
