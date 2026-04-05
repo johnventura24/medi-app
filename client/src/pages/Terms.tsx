@@ -155,7 +155,7 @@ export default function Terms() {
           <section>
             <h2 className="text-xl font-semibold mt-6 mb-3">13. Contact</h2>
             <p className="text-muted-foreground leading-relaxed">
-              For questions about these terms, contact: legal@mediapp.com
+              For questions about these terms, contact: legal@prismmed.io
             </p>
           </section>
         </div>

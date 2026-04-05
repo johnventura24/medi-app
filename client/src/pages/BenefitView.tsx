@@ -298,7 +298,7 @@ export default function BenefitView() {
             data={stateData}
             selectedBenefit={selectedBenefit}
             onBenefitChange={setSelectedBenefit}
-            onStateClick={(state) => console.log("Navigate to state:", state.name)}
+            onStateClick={() => {}}
           />
         </TabsContent>
 

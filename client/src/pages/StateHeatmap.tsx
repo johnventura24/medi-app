@@ -196,7 +196,7 @@ export default function StateHeatmap() {
           data={stateData}
           selectedBenefit={selectedBenefit}
           onBenefitChange={setSelectedBenefit}
-          onStateClick={(state) => console.log("Navigate to state:", state.name)}
+          onStateClick={() => {}}
         />
         <FilterPanel filters={filters} onFiltersChange={setFilters} />
       </div>
@@ -220,7 +220,7 @@ export default function StateHeatmap() {
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$5,000" },
           ]}
-          onViewDetails={() => console.log("View dental")}
+          onViewDetails={() => {}}
         />
         <BenefitCard
           icon={<Pill className="h-6 w-6 text-chart-2" />}
@@ -233,7 +233,7 @@ export default function StateHeatmap() {
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$400/mo" },
           ]}
-          onViewDetails={() => console.log("View OTC")}
+          onViewDetails={() => {}}
         />
         <BenefitCard
           icon={<CreditCard className="h-6 w-6 text-chart-3" />}
@@ -246,7 +246,7 @@ export default function StateHeatmap() {
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$680/mo" },
           ]}
-          onViewDetails={() => console.log("View flex card")}
+          onViewDetails={() => {}}
         />
         <BenefitCard
           icon={<ShoppingCart className="h-6 w-6 text-chart-4" />}
@@ -259,7 +259,7 @@ export default function StateHeatmap() {
             { label: "Top State", value: "California" },
             { label: "Max Available", value: "$300/mo" },
           ]}
-          onViewDetails={() => console.log("View groceries")}
+          onViewDetails={() => {}}
         />
       </div>
 

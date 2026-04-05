@@ -849,7 +849,7 @@ export default function ACAEligibility() {
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      console.error("ACA eligibility check failed:", err);
+      // error handled silently — loading state resets via finally block
     } finally {
       setIsLoading(false);
     }

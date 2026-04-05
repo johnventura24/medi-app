@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Sitemap: https://squid-app-6sag9.ondigitalocean.app/sitemap.xml

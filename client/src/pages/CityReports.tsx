@@ -264,7 +264,7 @@ export default function CityReports() {
             columns={columns as unknown as Column<Record<string, unknown>>[]}
             searchPlaceholder="Search cities..."
             pageSize={10}
-            onRowClick={(row) => console.log("View city:", row)}
+            onRowClick={() => {}}
           />
         </CardContent>
       </Card>

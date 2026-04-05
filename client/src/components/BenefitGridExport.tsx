@@ -119,7 +119,7 @@ export function BenefitGridExport() {
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
     } catch (err) {
-      console.error("Download error:", err);
+      // error handled silently — download UI resets via finally block
     } finally {
       setIsDownloading(false);
     }

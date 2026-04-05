@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/</loc><priority>1.0</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/for-you</loc><priority>0.9</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/tools</loc><priority>0.9</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/welcome</loc><priority>0.8</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/pricing</loc><priority>0.8</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/find</loc><priority>0.7</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/keep-my-doctor</loc><priority>0.7</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/compare</loc><priority>0.7</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/calculator</loc><priority>0.7</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://squid-app-6sag9.ondigitalocean.app/terms</loc><priority>0.3</priority></url>
+</urlset>

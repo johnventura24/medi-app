@@ -10,9 +10,6 @@ import {
   Key,
   Server,
   ArrowRight,
-  Clock,
-  UserPlus,
-  AlertTriangle,
   CheckCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,27 +41,6 @@ function formatNumber(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K`;
   return n.toString();
 }
-
-// Mock data for admin dashboard — replace with real API calls
-const mockAuditLog = [
-  { id: 1, action: "User login", user: "agent@example.com", time: "2 min ago", level: "info" },
-  { id: 2, action: "Plan data imported", user: "system", time: "15 min ago", level: "info" },
-  { id: 3, action: "Role changed to admin", user: "admin@example.com", time: "1 hr ago", level: "warning" },
-  { id: 4, action: "API key generated", user: "fmo@example.com", time: "2 hrs ago", level: "info" },
-  { id: 5, action: "User registered", user: "newagent@example.com", time: "3 hrs ago", level: "info" },
-  { id: 6, action: "Data validation completed", user: "system", time: "4 hrs ago", level: "info" },
-  { id: 7, action: "Export generated", user: "compliance@example.com", time: "5 hrs ago", level: "info" },
-  { id: 8, action: "Failed login attempt", user: "unknown@test.com", time: "6 hrs ago", level: "error" },
-  { id: 9, action: "Carrier data updated", user: "system", time: "8 hrs ago", level: "info" },
-  { id: 10, action: "User deactivated", user: "admin@example.com", time: "1 day ago", level: "warning" },
-];
-
-const mockRecentUsers = [
-  { id: 1, name: "Sarah Johnson", email: "sarah@agency.com", role: "agent", joined: "Today" },
-  { id: 2, name: "Mike Chen", email: "mike@fmo.com", role: "compliance", joined: "Yesterday" },
-  { id: 3, name: "Lisa Wang", email: "lisa@broker.com", role: "agent", joined: "2 days ago" },
-  { id: 4, name: "Tom Davis", email: "tom@viewer.com", role: "viewer", joined: "3 days ago" },
-];
 
 const adminQuickLinks = [
   { label: "Audit Logs", href: "/admin/audit", icon: Shield, color: "text-amber-600 dark:text-amber-400" },
@@ -115,8 +91,8 @@ export default function DashboardAdmin() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Active Users</p>
-                  <p className="text-3xl font-bold mt-1">127</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">+12 this week</p>
+                  <p className="text-3xl font-bold mt-1">&mdash;</p>
+                  <p className="text-xs text-muted-foreground mt-1">Syncs from user data</p>
                 </div>
                 <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
                   <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -132,8 +108,8 @@ export default function DashboardAdmin() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">API Requests Today</p>
-                  <p className="text-3xl font-bold mt-1">4,821</p>
-                  <p className="text-xs text-muted-foreground mt-1">Avg 4.2K/day</p>
+                  <p className="text-3xl font-bold mt-1">&mdash;</p>
+                  <p className="text-xs text-muted-foreground mt-1">View in system health</p>
                 </div>
                 <div className="h-12 w-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
                   <Activity className="h-6 w-6 text-violet-600 dark:text-violet-400" />
@@ -149,8 +125,8 @@ export default function DashboardAdmin() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Data Sources</p>
-                  <p className="text-3xl font-bold mt-1">8</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">All connected</p>
+                  <p className="text-3xl font-bold mt-1">&mdash;</p>
+                  <p className="text-xs text-muted-foreground mt-1">Manage connections</p>
                 </div>
                 <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                   <Database className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
@@ -200,31 +176,14 @@ export default function DashboardAdmin() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {mockAuditLog.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    {entry.level === "error" ? (
-                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
-                    ) : entry.level === "warning" ? (
-                      <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                    ) : (
-                      <CheckCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{entry.action}</p>
-                      <p className="text-xs text-muted-foreground truncate">{entry.user}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0 ml-4 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {entry.time}
-                  </span>
-                </div>
-              ))}
+            <div className="text-center py-8 text-muted-foreground">
+              <Shield className="h-8 w-8 mx-auto opacity-40" />
+              <p className="text-sm mt-3">View audit logs for system activity</p>
+              <Link href="/admin/audit">
+                <Button variant="outline" size="sm" className="mt-3 gap-1">
+                  Open Audit Logs <ArrowRight className="h-3 w-3" />
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -240,28 +199,14 @@ export default function DashboardAdmin() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {mockRecentUsers.map((u) => (
-                <div key={u.id} className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">
-                    {u.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{u.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{u.email}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <Badge variant="secondary" className="text-[10px] capitalize">
-                      {u.role}
-                    </Badge>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{u.joined}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-8 w-8 mx-auto opacity-40" />
+              <p className="text-sm mt-3">Manage users in the admin panel</p>
+              <Link href="/admin/users">
+                <Button variant="outline" size="sm" className="mt-3 gap-1">
+                  User Management <ArrowRight className="h-3 w-3" />
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

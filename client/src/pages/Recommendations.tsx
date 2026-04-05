@@ -105,8 +105,8 @@ export default function Recommendations() {
           ) : (
             <TargetingRecommendations
               recommendations={recommendations}
-              onExport={(rec) => console.log("Export:", rec.location)}
-              onShare={(rec) => console.log("Share:", rec.location)}
+              onExport={() => {}}
+              onShare={() => {}}
             />
           )}
         </CardContent>

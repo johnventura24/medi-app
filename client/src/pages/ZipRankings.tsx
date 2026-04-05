@@ -176,7 +176,7 @@ export default function ZipRankings() {
         <CardContent>
           <ZipRankingTable
             data={zipData}
-            onZipClick={(zip) => console.log("View ZIP:", zip)}
+            onZipClick={() => {}}
           />
         </CardContent>
       </Card>

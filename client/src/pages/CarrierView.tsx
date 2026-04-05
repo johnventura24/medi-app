@@ -288,7 +288,7 @@ export default function CarrierView() {
             columns={columns as unknown as Column<Record<string, unknown>>[]}
             searchPlaceholder="Search carriers..."
             pageSize={10}
-            onRowClick={(row) => console.log("View carrier:", row)}
+            onRowClick={() => {}}
           />
         </CardContent>
       </Card>

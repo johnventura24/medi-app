@@ -138,7 +138,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-xl font-semibold mt-6 mb-3">9. Contact</h2>
             <p className="text-muted-foreground leading-relaxed">
-              For privacy-related inquiries, contact: privacy@mediapp.com
+              For privacy-related inquiries, contact: privacy@prismmed.io
             </p>
           </section>
         </div>

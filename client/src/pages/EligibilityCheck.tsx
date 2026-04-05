@@ -771,7 +771,7 @@ export default function EligibilityCheck() {
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      console.error("Eligibility check failed:", err);
+      // error handled silently — loading state resets via finally block
     } finally {
       setIsLoading(false);
     }

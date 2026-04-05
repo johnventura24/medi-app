@@ -88,7 +88,7 @@ export default function AdminAuditLog() {
         setSecuritySummary(data);
       }
     } catch (err) {
-      console.error("Failed to fetch security summary:", err);
+      // silently handled
     }
   }
 
@@ -108,7 +108,7 @@ export default function AdminAuditLog() {
         setAuditLogs(data.logs || []);
       }
     } catch (err) {
-      console.error("Failed to fetch audit logs:", err);
+      // silently handled
     }
   }
 
@@ -120,7 +120,7 @@ export default function AdminAuditLog() {
         setActiveSessions(data.sessions || []);
       }
     } catch (err) {
-      console.error("Failed to fetch sessions:", err);
+      // silently handled
     }
   }
 
@@ -132,7 +132,7 @@ export default function AdminAuditLog() {
         setFailedLogins(data.logs || []);
       }
     } catch (err) {
-      console.error("Failed to fetch failed logins:", err);
+      // silently handled
     }
   }
 

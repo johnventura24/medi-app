@@ -52,7 +52,7 @@ interface MockUser {
 }
 
 const initialUsers: MockUser[] = [
-  { id: 1, name: "John Admin", email: "john@mediapp.com", role: "admin", lastLogin: "2 min ago", status: "active", joinedDate: "2024-01-15" },
+  { id: 1, name: "John Admin", email: "admin@prismmed.io", role: "admin", lastLogin: "2 min ago", status: "active", joinedDate: "2024-01-15" },
   { id: 2, name: "Sarah FMO Leader", email: "sarah@fmo.com", role: "compliance", lastLogin: "1 hr ago", status: "active", joinedDate: "2024-02-20" },
   { id: 3, name: "Mike Agent", email: "mike@agency.com", role: "agent", lastLogin: "3 hrs ago", status: "active", joinedDate: "2024-03-10" },
   { id: 4, name: "Lisa Wang", email: "lisa@broker.com", role: "agent", lastLogin: "1 day ago", status: "active", joinedDate: "2024-04-05" },
