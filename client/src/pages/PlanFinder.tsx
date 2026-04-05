@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -383,6 +383,15 @@ export default function PlanFinder() {
     submitSearch,
     resetCriteria,
   } = usePlanFinder();
+
+  // Pre-populate ZIP from URL query parameter (e.g. /find?zip=33101)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlZip = params.get("zip");
+    if (urlZip && /^\d{5}$/.test(urlZip)) {
+      setCriteria((prev) => ({ ...prev, zip: urlZip }));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(true);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import { EnrollmentButton } from "@/components/EnrollmentButton";
 
 // ── Types ──
 
@@ -211,6 +212,24 @@ export default function ConsumerFlow() {
     }
   };
 
+  const handleStartOver = () => {
+    setScreen("hero");
+    setZipCode("");
+    setZipError("");
+    setPriority(null);
+    setSeesSpecialist(null);
+    setMedications(null);
+    setWantsExtras(null);
+    setQuizStep(0);
+    setResults(null);
+    setError("");
+    setFirstName("");
+    setLastName("");
+    setPhone("");
+    setEmail("");
+    setLeadId(null);
+  };
+
   const quizComplete = priority !== null && seesSpecialist !== null && medications !== null && wantsExtras !== null;
 
   return (
@@ -244,6 +263,7 @@ export default function ConsumerFlow() {
             error={error}
             onBack={() => setScreen("hero")}
             onSubmit={handleFindPlans}
+            onStartOver={handleStartOver}
           />
         )}
         {screen === "results" && results && (
@@ -263,6 +283,8 @@ export default function ConsumerFlow() {
             error={error}
             onRequestAgent={handleRequestAgent}
             onBack={() => setScreen("quiz")}
+            onBackToHero={() => { setScreen("hero"); setError(""); }}
+            onRetry={handleFindPlans}
           />
         )}
         {screen === "thankyou" && results && (
@@ -270,6 +292,8 @@ export default function ConsumerFlow() {
             key="thankyou"
             results={results}
             leadId={leadId}
+            phone={phone}
+            email={email}
           />
         )}
       </AnimatePresence>
@@ -415,6 +439,7 @@ function QuizScreen({
   error,
   onBack,
   onSubmit,
+  onStartOver,
 }: {
   zipCode: string;
   priority: Priority | null;
@@ -432,6 +457,7 @@ function QuizScreen({
   error: string;
   onBack: () => void;
   onSubmit: () => void;
+  onStartOver: () => void;
 }) {
   const priorityOptions: { value: Priority; label: string; icon: string; desc: string }[] = [
     { value: "low_cost", label: "Low Monthly Cost", icon: "\uD83D\uDCB0", desc: "Keep my costs down" },
@@ -645,6 +671,16 @@ function QuizScreen({
               <p className="text-red-500 text-lg mt-4" role="alert">{error}</p>
             )}
           </motion.div>
+
+          {/* Start over */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={onStartOver}
+              className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2 py-1"
+            >
+              Start over
+            </button>
+          </div>
         </div>
       </main>
 
@@ -670,6 +706,8 @@ function ResultsScreen({
   error,
   onRequestAgent,
   onBack,
+  onBackToHero,
+  onRetry,
 }: {
   results: FindPlansResult;
   zipCode: string;
@@ -685,6 +723,8 @@ function ResultsScreen({
   error: string;
   onRequestAgent: () => void;
   onBack: () => void;
+  onBackToHero: () => void;
+  onRetry: () => void;
 }) {
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -720,8 +760,41 @@ function ResultsScreen({
 
       <main className="flex-1 px-4 py-4 md:py-8">
         <div className="max-w-3xl mx-auto">
+          {/* Empty state: no plans found */}
+          {results.plans.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="text-center py-12"
+            >
+              <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-3">
+                No plans found for ZIP {zipCode}
+              </h2>
+              <p className="text-lg text-gray-700 max-w-md mx-auto mb-6">
+                This could mean the ZIP code isn't in a Medicare Advantage service area, or plans haven't been filed for this area yet.
+              </p>
+              <div className="space-y-4 max-w-sm mx-auto">
+                <button
+                  onClick={onBackToHero}
+                  className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-lg font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none"
+                >
+                  Try a nearby ZIP code
+                </button>
+                <p className="text-gray-600 text-base">
+                  Or call <span className="font-semibold">1-800-MEDICARE</span> for help finding plans in your area.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Money on table hero */}
-          {results.moneyOnTable > 0 && (
+          {results.plans.length > 0 && results.moneyOnTable > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -745,7 +818,8 @@ function ResultsScreen({
             </motion.div>
           )}
 
-          {/* Plan cards */}
+          {/* Plan cards + tools + agent form (only when plans exist) */}
+          {results.plans.length > 0 && (<>
           <h2 className="text-2xl md:text-3xl font-bold text-blue-900 text-center mb-6">
             Your Top {results.plans.length} Plans
           </h2>
@@ -810,6 +884,17 @@ function ResultsScreen({
                       </span>
                     </div>
                   )}
+
+                  {/* Enroll directly */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-sm text-gray-600 mb-2">Ready to enroll in this plan?</p>
+                    <EnrollmentButton
+                      carrier={plan.carrier}
+                      state={results.state}
+                      zip={zipCode}
+                      size="default"
+                    />
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -828,20 +913,18 @@ function ResultsScreen({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { label: "Check if your doctor is covered", href: "/keep-my-doctor" },
-                { label: "Search your medications", href: "/find" },
-                { label: "Compare plans side by side", href: "/compare" },
+                { label: "Search your medications", href: `/find?zip=${zipCode}` },
+                { label: "Browse all plans in your area", href: `/find?zip=${zipCode}` },
                 { label: "Calculate your savings", href: "/calculator" },
               ].map((tool) => (
-                <a
-                  key={tool.href}
+                <Link
+                  key={tool.label}
                   href={tool.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all text-sm font-medium text-gray-800 group"
                 >
                   {tool.label}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </a>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                </Link>
               ))}
             </div>
           </motion.div>
@@ -951,6 +1034,17 @@ function ResultsScreen({
               </div>
             </div>
           </motion.div>
+
+          {/* Start over */}
+          <div className="mt-8 text-center">
+            <button
+              onClick={onBackToHero}
+              className="text-sm text-gray-500 hover:text-blue-600 underline underline-offset-2 transition-colors"
+            >
+              Start over with a new ZIP code
+            </button>
+          </div>
+          </>)}
         </div>
       </main>
 
@@ -964,9 +1058,13 @@ function ResultsScreen({
 function ThankYouScreen({
   results,
   leadId,
+  phone,
+  email,
 }: {
   results: FindPlansResult;
   leadId: number | null;
+  phone: string;
+  email: string;
 }) {
   const bestPlan = results.plans[0];
 
@@ -994,9 +1092,22 @@ function ThankYouScreen({
             You're all set!
           </h1>
 
-          <p className="text-xl text-gray-700 mb-8">
+          <p className="text-xl text-gray-700 mb-2">
             A licensed Medicare agent will call you within <span className="font-bold text-blue-700">24 hours</span> to help you find the perfect plan.
           </p>
+
+          <div className="mb-8 space-y-1">
+            {phone && (
+              <p className="text-lg text-gray-600">
+                We'll call you at <span className="font-semibold text-gray-800">{phone}</span>
+              </p>
+            )}
+            {email && (
+              <p className="text-lg text-gray-600">
+                We'll also email you at <span className="font-semibold text-gray-800">{email}</span>
+              </p>
+            )}
+          </div>
 
           {bestPlan && (
             <div className="bg-white rounded-2xl border-2 border-green-100 shadow-md p-6 mb-8 text-left">

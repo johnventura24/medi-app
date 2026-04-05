@@ -24,6 +24,7 @@ import {
   FileText,
   CheckCircle,
   XCircle,
+  GitCompare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -377,16 +378,20 @@ export default function PlanCompare() {
   if (requestedIds.length === 0) {
     return (
       <div className="p-6 space-y-6">
+        <PageHeader
+          title="Plan Comparison"
+          description="Side-by-side comparison of up to 6 plans with best/worst highlighting."
+        />
         <Card>
-          <CardContent className="p-12 text-center">
-            <h2 className="text-xl font-semibold mb-2">No Plans Selected</h2>
-            <p className="text-muted-foreground mb-4">
-              Go to the Plan Finder to select plans for comparison.
+          <CardContent className="p-12 flex flex-col items-center text-center">
+            <GitCompare className="h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">No plans selected for comparison</h2>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Search for plans first, then select up to 6 to compare side by side.
             </p>
             <Link href="/find">
               <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Plan Finder
+                Find Plans
               </Button>
             </Link>
           </CardContent>
