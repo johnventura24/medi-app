@@ -19,6 +19,12 @@ export const users = pgTable("app_users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
+  // Stripe billing
+  stripeCustomerId: text("stripe_customer_id"),
+  subscriptionTier: text("subscription_tier").default("free"), // free | agent | team | enterprise
+  subscriptionStatus: text("subscription_status").default("inactive"), // active | inactive | past_due | canceled
+  subscriptionId: text("subscription_id"),
+  trialEndsAt: timestamp("trial_ends_at"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -49,6 +55,22 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+// ── Password Reset Tokens table ──
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_password_reset_tokens_token").on(table.token),
+  index("idx_password_reset_tokens_user").on(table.userId),
+]);
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
 // ── Saved Searches table ──
 

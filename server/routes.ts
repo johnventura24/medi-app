@@ -57,6 +57,7 @@ import { registerNextBestActionRoutes } from "./routes/next-best-action";
 import { registerDisruptionAlertRoutes } from "./routes/disruption-alerts";
 import { registerCrosswalkRoutes } from "./routes/crosswalk";
 import { registerPipelineRoutes } from "./routes/pipeline";
+import { registerBillingRoutes } from "./routes/billing";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
 import { checkCarrierFhirStatus } from "./services/fhir-formulary.service";
@@ -65,6 +66,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Billing (webhook needs raw body — register before JSON body-parser routes)
+  registerBillingRoutes(app);
 
   // Mount export and search route modules
   app.use("/api/export", exportRoutes);

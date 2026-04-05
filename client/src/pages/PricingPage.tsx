@@ -12,7 +12,9 @@ import {
   ChevronUp,
   Menu,
   X,
+  CreditCard,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 /* ------------------------------------------------------------------ */
 /*  Navbar (shared style with landing)                                 */
@@ -77,6 +79,7 @@ function PricingNav() {
 /* ------------------------------------------------------------------ */
 interface Tier {
   name: string;
+  tierKey: "agent" | "team" | "enterprise";
   monthlyPrice: number | null;
   description: string;
   features: string[];
@@ -88,6 +91,7 @@ interface Tier {
 const tiers: Tier[] = [
   {
     name: "Agent",
+    tierKey: "agent",
     monthlyPrice: 49,
     description: "For individual Medicare agents who want an edge.",
     features: [
@@ -104,6 +108,7 @@ const tiers: Tier[] = [
   },
   {
     name: "Agency",
+    tierKey: "team",
     monthlyPrice: 199,
     description: "For agencies and teams that need full power.",
     features: [
@@ -123,6 +128,7 @@ const tiers: Tier[] = [
   },
   {
     name: "Enterprise",
+    tierKey: "enterprise",
     monthlyPrice: null,
     description: "For carriers, FMOs, and large organizations.",
     features: [
@@ -207,11 +213,57 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 /* ================================================================== */
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const { isAuthenticated, token } = useAuth();
 
   function formatPrice(monthly: number | null) {
     if (monthly === null) return "Custom";
     const price = annual ? Math.round(monthly * 0.8) : monthly;
     return `$${price}`;
+  }
+
+  async function handleCheckout(tierKey: "agent" | "team") {
+    if (!token) return;
+    setCheckoutLoading(tierKey);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tier: tierKey }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("Checkout error:", data.error);
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setCheckoutLoading(null);
+    }
+  }
+
+  async function handleManageSubscription() {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/billing/portal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Portal error:", err);
+    }
   }
 
   return (
@@ -309,16 +361,29 @@ export default function PricingPage() {
                     </div>
 
                     {/* CTA */}
-                    <Link href={tier.ctaLink}>
+                    {isAuthenticated && tier.tierKey !== "enterprise" ? (
                       <Button
                         className="w-full mb-6"
                         variant={tier.highlighted ? "default" : "outline"}
                         size="lg"
+                        disabled={checkoutLoading === tier.tierKey}
+                        onClick={() => handleCheckout(tier.tierKey as "agent" | "team")}
                       >
-                        {tier.cta}
+                        {checkoutLoading === tier.tierKey ? "Redirecting..." : tier.cta}
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
-                    </Link>
+                    ) : (
+                      <Link href={tier.ctaLink}>
+                        <Button
+                          className="w-full mb-6"
+                          variant={tier.highlighted ? "default" : "outline"}
+                          size="lg"
+                        >
+                          {tier.cta}
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      </Link>
+                    )}
 
                     {/* Features */}
                     <ul className="space-y-3">
@@ -336,6 +401,19 @@ export default function PricingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Manage Subscription (for active subscribers) ──────── */}
+      {isAuthenticated && (
+        <div className="text-center pb-8">
+          <button
+            onClick={handleManageSubscription}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+          >
+            <CreditCard className="h-4 w-4" />
+            Manage existing subscription
+          </button>
+        </div>
+      )}
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section className="py-20 md:py-28 bg-muted/30">

@@ -98,6 +98,15 @@ export default function LoginPage() {
               )}
             </Button>
 
+            <p className="text-center text-sm">
+              <Link
+                href="/forgot-password"
+                className="text-muted-foreground underline-offset-4 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </p>
+
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link

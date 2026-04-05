@@ -4,6 +4,7 @@ import { plans, consumerLeads, leadActivity, users } from "@shared/schema";
 import { sql, eq, and, or, asc, desc, count } from "drizzle-orm";
 import { z } from "zod";
 import { resolveZipToCounty, resolveZipToAllCounties } from "../services/zip-resolver.service";
+import { sendLeadNotification } from "../services/email.service";
 
 // ── Validation schemas ──
 
@@ -347,6 +348,25 @@ export function registerConsumerRoutes(app: Express) {
         action: "requested_agent",
         details: { topPlanIds: data.topPlanIds, moneyOnTable: data.moneyOnTable },
       });
+
+      // Notify assigned agent via email (fire-and-forget)
+      if (assignedAgentId) {
+        const [agent] = await db
+          .select({ email: users.email, fullName: users.fullName })
+          .from(users)
+          .where(eq(users.id, assignedAgentId))
+          .limit(1);
+
+        if (agent) {
+          sendLeadNotification(agent.email, agent.fullName || agent.email, {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            zipCode: data.zipCode,
+            phone: data.phone,
+            state: resolvedState,
+          }).catch(() => {});
+        }
+      }
 
       res.status(201).json({
         leadId: lead.id,

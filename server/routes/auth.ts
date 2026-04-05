@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { db } from "../db";
-import { users, registerSchema, loginSchema } from "@shared/schema";
+import { users, registerSchema, loginSchema, passwordResetTokens } from "@shared/schema";
 import { eq, and, isNull } from "drizzle-orm";
+import { randomBytes } from "crypto";
 import {
   hashPassword,
   verifyPassword,
@@ -21,6 +22,7 @@ import {
 import { authenticate } from "../middleware/auth.middleware";
 import { logAudit, auditFromRequest, classifyRisk } from "../services/audit.service";
 import { createSession, revokeSession, revokeAllUserSessions } from "../services/session.service";
+import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/email.service";
 
 /** Strip passwordHash from a user record before returning it to the client */
 function sanitizeUser(user: typeof users.$inferSelect) {
@@ -108,6 +110,9 @@ export function registerAuthRoutes(app: Express) {
         status: "success",
         riskLevel: classifyRisk("register"),
       });
+
+      // Fire-and-forget welcome email
+      sendWelcomeEmail(newUser.email, newUser.fullName || newUser.email).catch(() => {});
 
       res.status(201).json({ user: sanitizeUser(newUser), token, refreshToken });
     } catch (err: any) {
@@ -363,6 +368,134 @@ export function registerAuthRoutes(app: Express) {
         return res.status(503).json({ error: "User system not yet initialized. Run the database migration to create the users table." });
       }
       res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  // ── POST /api/auth/forgot-password ──
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Always return the same message to avoid user enumeration
+      const successMessage = "If an account exists with that email, you'll receive a reset link.";
+
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.email, email), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (!user) {
+        // Don't reveal that the user doesn't exist
+        return res.json({ message: successMessage });
+      }
+
+      // Generate reset token
+      const token = randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await db.insert(passwordResetTokens).values({
+        userId: user.id,
+        token,
+        expiresAt,
+      });
+
+      // Send password reset email (fire-and-forget)
+      const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${token}`;
+      sendPasswordResetEmail(email, resetUrl).catch(() => {});
+
+      res.json({ message: successMessage });
+    } catch (err: any) {
+      console.error("Forgot password error:", err.message);
+      res.status(500).json({ error: "Failed to process request" });
+    }
+  });
+
+  // ── POST /api/auth/reset-password ──
+  app.post("/api/auth/reset-password", async (req, res) => {
+    const audit = auditFromRequest(req);
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token and new password are required" });
+      }
+
+      // Validate new password policy
+      const policyResult = validatePasswordPolicy(newPassword);
+      if (!policyResult.valid) {
+        return res.status(400).json({ error: "Password does not meet requirements", details: policyResult.errors });
+      }
+
+      // Find the token
+      const [resetToken] = await db
+        .select()
+        .from(passwordResetTokens)
+        .where(eq(passwordResetTokens.token, token))
+        .limit(1);
+
+      if (!resetToken) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
+
+      if (resetToken.used) {
+        return res.status(400).json({ error: "This reset token has already been used" });
+      }
+
+      if (new Date() > resetToken.expiresAt) {
+        return res.status(400).json({ error: "Reset token has expired" });
+      }
+
+      // Find the user
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, resetToken.userId), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (!user) {
+        return res.status(400).json({ error: "User not found" });
+      }
+
+      // Update password
+      const newHash = await hashPassword(newPassword);
+      await db
+        .update(users)
+        .set({ passwordHash: newHash, updatedAt: new Date() })
+        .where(eq(users.id, user.id));
+
+      // Record in password history
+      await recordPasswordHistory(user.id, newHash);
+
+      // Mark token as used
+      await db
+        .update(passwordResetTokens)
+        .set({ used: true })
+        .where(eq(passwordResetTokens.id, resetToken.id));
+
+      // Revoke all existing sessions and refresh tokens
+      await revokeAllUserSessions(user.id);
+      await revokeAllRefreshTokens(user.id);
+
+      await logAudit({
+        ...audit,
+        userId: user.id,
+        userEmail: user.email,
+        userRole: user.role,
+        action: "password_reset",
+        resource: "auth",
+        resourceId: String(user.id),
+        details: { method: "token_reset" },
+        status: "success",
+        riskLevel: "high",
+      });
+
+      res.json({ success: true, message: "Password has been reset successfully" });
+    } catch (err: any) {
+      console.error("Reset password error:", err.message);
+      res.status(500).json({ error: "Password reset failed" });
     }
   });
 

@@ -25,6 +25,8 @@ import PlanCompare from "@/pages/PlanCompare";
 import Settings from "@/pages/Settings";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import ProfilePage from "@/pages/ProfilePage";
 import ClientList from "@/pages/ClientList";
 import ClientIntake from "@/pages/ClientIntake";
@@ -202,6 +204,8 @@ function App() {
               {/* Standalone pages — no sidebar/header */}
               <Route path="/login" component={LoginPage} />
               <Route path="/register" component={RegisterPage} />
+              <Route path="/forgot-password" component={ForgotPassword} />
+              <Route path="/reset-password" component={ResetPassword} />
               <Route path="/for-you" component={ConsumerFlow} />
               <Route path="/tools" component={AgentShowcase} />
               <Route path="/pricing" component={PricingPage} />
