@@ -2,6 +2,7 @@ import type { Request, Response, Express } from "express";
 import { db } from "../db";
 import { plans } from "@shared/schema";
 import type { Plan } from "@shared/schema";
+import { authenticate, requireRole } from "../middleware/auth.middleware";
 
 // ── Types ──
 
@@ -363,7 +364,7 @@ export function registerValidationRoutes(app: Express): void {
    * Triggers a full validation run against all plans.
    * Returns the summary and issue count.
    */
-  app.post("/api/validation/run", async (_req: Request, res: Response) => {
+  app.post("/api/validation/run", authenticate, requireRole("admin"), async (_req: Request, res: Response) => {
     try {
       const result = await runValidation();
 

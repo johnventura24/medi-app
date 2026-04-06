@@ -24,10 +24,10 @@ declare module "http" {
 
 // ── CORS ──
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === "production" ? false : true),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
 app.use(
@@ -99,6 +99,16 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+function sanitizeLogData(data: any): any {
+  if (!data || typeof data !== 'object') return data;
+  const sanitized = Array.isArray(data) ? [...data] : { ...data };
+  const sensitiveKeys = ['token', 'refreshToken', 'password', 'passwordHash', 'apiKey', 'secret'];
+  for (const key of sensitiveKeys) {
+    if (key in sanitized) sanitized[key] = '[REDACTED]';
+  }
+  return sanitized;
+}
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -115,7 +125,7 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        logLine += ` :: ${JSON.stringify(sanitizeLogData(capturedJsonResponse))}`;
       }
 
       log(logLine);

@@ -5,8 +5,11 @@ const ALGORITHM = 'aes-256-gcm';
 function getKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
   if (!key) {
-    console.warn('WARNING: ENCRYPTION_KEY not set. Using random key - encrypted data will not survive restarts!');
-    return crypto.randomBytes(32);
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ENCRYPTION_KEY is required in production");
+    }
+    console.warn('WARNING: ENCRYPTION_KEY not set. Using dev-only fallback key.');
+    return Buffer.alloc(32, 'dev-key-do-not-use-in-production');
   }
   return Buffer.from(key, 'hex');
 }

@@ -1,7 +1,17 @@
 import { randomBytes, scryptSync, createHmac, timingSafeEqual } from "crypto";
 import { pool } from "../db";
 
-const JWT_SECRET = process.env.JWT_SECRET || "medi-app-dev-secret-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET environment variable is required");
+  if (process.env.NODE_ENV === "production") process.exit(1);
+}
+
+const getJwtSecret = (): string => {
+  if (JWT_SECRET) return JWT_SECRET;
+  if (process.env.NODE_ENV !== "production") return "dev-only-insecure-secret";
+  throw new Error("JWT_SECRET is required in production");
+};
 
 // ── Password Policy (SOC2 compliant) ──
 
@@ -146,7 +156,7 @@ export function generateRefreshToken(): string {
 }
 
 export async function storeRefreshToken(userId: number, refreshToken: string, expiresInDays: number = 7): Promise<void> {
-  const tokenHash = createHmac("sha256", JWT_SECRET).update(refreshToken).digest("hex");
+  const tokenHash = createHmac("sha256", getJwtSecret()).update(refreshToken).digest("hex");
   const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
   try {
     await pool.query(
@@ -159,7 +169,7 @@ export async function storeRefreshToken(userId: number, refreshToken: string, ex
 }
 
 export async function validateRefreshToken(refreshToken: string): Promise<number | null> {
-  const tokenHash = createHmac("sha256", JWT_SECRET).update(refreshToken).digest("hex");
+  const tokenHash = createHmac("sha256", getJwtSecret()).update(refreshToken).digest("hex");
   try {
     const result = await pool.query(
       `SELECT user_id FROM refresh_tokens WHERE token_hash = $1 AND expires_at > NOW() AND revoked = false`,
@@ -173,7 +183,7 @@ export async function validateRefreshToken(refreshToken: string): Promise<number
 }
 
 export async function revokeRefreshToken(refreshToken: string): Promise<void> {
-  const tokenHash = createHmac("sha256", JWT_SECRET).update(refreshToken).digest("hex");
+  const tokenHash = createHmac("sha256", getJwtSecret()).update(refreshToken).digest("hex");
   try {
     await pool.query(
       `UPDATE refresh_tokens SET revoked = true WHERE token_hash = $1`,
@@ -244,7 +254,7 @@ export function generateToken(user: TokenPayload): string {
       exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours (SOC2 compliant)
     })
   );
-  const signature = createHmac("sha256", JWT_SECRET)
+  const signature = createHmac("sha256", getJwtSecret())
     .update(`${header}.${payload}`)
     .digest("base64")
     .replace(/=/g, "")
@@ -262,7 +272,7 @@ export function verifyToken(token: string): TokenPayload | null {
     const [header, payload, signature] = parts;
 
     // Verify signature
-    const expectedSig = createHmac("sha256", JWT_SECRET)
+    const expectedSig = createHmac("sha256", getJwtSecret())
       .update(`${header}.${payload}`)
       .digest("base64")
       .replace(/=/g, "")

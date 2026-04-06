@@ -1,13 +1,14 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { db } from "../db";
 import { plans, clients, aiExplanations } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { explainPlan, comparePlans, computePlanDataHash } from "../services/ai-explainer.service";
+import { optionalAuth } from "../middleware/auth.middleware";
 
 export function registerAIRoutes(app: Express) {
   // ── POST /api/ai/explain-plan ──
   // Generate a plain-English plan summary
-  app.post("/api/ai/explain-plan", async (req, res) => {
+  app.post("/api/ai/explain-plan", optionalAuth, async (req, res) => {
     try {
       const { planId, clientId } = req.body;
 
@@ -28,18 +29,24 @@ export function registerAIRoutes(app: Express) {
 
       const plan = planRows[0];
 
-      // Optionally fetch the client
+      // Optionally fetch the client (requires auth + ownership check)
       let client = undefined;
       if (clientId && typeof clientId === "number") {
+        if (!req.user) {
+          return res.status(401).json({ error: "Authentication required when using clientId" });
+        }
+
         const clientRows = await db
           .select()
           .from(clients)
-          .where(eq(clients.id, clientId))
+          .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user.id)))
           .limit(1);
 
-        if (clientRows.length > 0) {
-          client = clientRows[0];
+        if (clientRows.length === 0) {
+          return res.status(403).json({ error: "Client not found or access denied" });
         }
+
+        client = clientRows[0];
       }
 
       const result = await explainPlan(plan, client);
@@ -57,7 +64,7 @@ export function registerAIRoutes(app: Express) {
 
   // ── POST /api/ai/compare-plans ──
   // Generate a comparison narrative for multiple plans
-  app.post("/api/ai/compare-plans", async (req, res) => {
+  app.post("/api/ai/compare-plans", optionalAuth, async (req, res) => {
     try {
       const { planIds, clientId } = req.body;
 
@@ -79,18 +86,24 @@ export function registerAIRoutes(app: Express) {
         return res.status(404).json({ error: "No plans found for the given IDs" });
       }
 
-      // Optionally fetch the client
+      // Optionally fetch the client (requires auth + ownership check)
       let client = undefined;
       if (clientId && typeof clientId === "number") {
+        if (!req.user) {
+          return res.status(401).json({ error: "Authentication required when using clientId" });
+        }
+
         const clientRows = await db
           .select()
           .from(clients)
-          .where(eq(clients.id, clientId))
+          .where(and(eq(clients.id, clientId), eq(clients.agentUserId, req.user.id)))
           .limit(1);
 
-        if (clientRows.length > 0) {
-          client = clientRows[0];
+        if (clientRows.length === 0) {
+          return res.status(403).json({ error: "Client not found or access denied" });
         }
+
+        client = clientRows[0];
       }
 
       const result = await comparePlans(planRows, client);
