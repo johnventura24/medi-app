@@ -113,6 +113,7 @@ const navGroups: NavGroup[] = [
     icon: Target,
     defaultOpen: false,
     items: [
+      { title: "Opportunity Ranker", url: "/opportunities", icon: TrendingUp },
       { title: "Turning 65 Pipeline", url: "/pipeline/turning-65", icon: UserPlus },
       { title: "OEP Outreach", url: "/pipeline/oep-remorse", icon: RefreshCw },
       { title: "D-SNP Pipeline", url: "/pipeline/dsnp", icon: Heart },

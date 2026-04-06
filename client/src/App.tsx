@@ -64,6 +64,7 @@ import Terms from "@/pages/Terms";
 import Turning65Pipeline from "@/pages/Turning65Pipeline";
 import OEPRemorse from "@/pages/OEPRemorse";
 import DSNPPipeline from "@/pages/DSNPPipeline";
+import OpportunityRanker from "@/pages/OpportunityRanker";
 import NotFound from "@/pages/not-found";
 import TPMODisclaimer from "@/components/TPMODisclaimer";
 import LandingPage from "@/pages/LandingPage";
@@ -136,6 +137,7 @@ function Router() {
       <Route path="/sep/check" component={SEPChecker} />
       <Route path="/disruptions" component={DisruptionAlerts} />
       <Route path="/crosswalk" component={CrosswalkTracker} />
+      <Route path="/opportunities" component={OpportunityRanker} />
       <Route path="/pipeline/turning-65" component={Turning65Pipeline} />
       <Route path="/pipeline/oep-remorse" component={OEPRemorse} />
       <Route path="/pipeline/dsnp" component={DSNPPipeline} />

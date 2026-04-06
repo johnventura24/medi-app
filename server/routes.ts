@@ -57,6 +57,7 @@ import { registerNextBestActionRoutes } from "./routes/next-best-action";
 import { registerDisruptionAlertRoutes } from "./routes/disruption-alerts";
 import { registerCrosswalkRoutes } from "./routes/crosswalk";
 import { registerPipelineRoutes } from "./routes/pipeline";
+import { registerOpportunityRankerRoutes } from "./routes/opportunity-ranker";
 import { registerBillingRoutes } from "./routes/billing";
 import { getStateInsights, getNationalInsights, getCountyInsights } from "./services/insights.service";
 import { checkCmsApiStatus } from "./services/cms-finder.service";
@@ -810,6 +811,9 @@ export async function registerRoutes(
 
   // Sales Pipeline Tools (Turning 65, OEP Remorse, D-SNP)
   registerPipelineRoutes(app);
+
+  // Opportunity Ranker (state/county scoring)
+  registerOpportunityRankerRoutes(app);
 
   // ── Data Sources ──
   app.get('/api/data-sources', async (_req, res) => {
