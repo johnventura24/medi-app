@@ -287,6 +287,7 @@ export const planCrosswalk = pgTable("plan_crosswalk", {
   previousCarrier: text("previous_carrier"),
   previousStates: text("previous_states"),
   previousCounties: integer("previous_counties"),
+  currentCarrier: text("current_carrier"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_cw_status").on(table.status),
