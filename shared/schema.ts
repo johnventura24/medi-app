@@ -675,6 +675,7 @@ export type InsertLeadActivity = typeof leadActivity.$inferInsert;
 export const waitlist = pgTable("waitlist", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
+  source: text("source"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -683,6 +684,17 @@ export const waitlist = pgTable("waitlist", {
 export const agencies = pgTable("agencies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  ownerEmail: text("owner_email"),
+  apiKey: text("api_key"),
+  plan: text("plan"),
+  maxSeats: integer("max_seats"),
+  maxLookupsMo: integer("max_lookups_mo"),
+  stripeCustomerId: text("stripe_customer_id"),
+  active: boolean("active").default(true),
+  logoUrl: text("logo_url"),
+  brandName: text("brand_name"),
+  primaryColor: text("primary_color"),
+  customDomain: text("custom_domain"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -702,8 +714,20 @@ export const zipCountyMap = pgTable("zip_county_map", {
 
 export const opsRuns = pgTable("ops_runs", {
   id: serial("id").primaryKey(),
+  runId: text("run_id"),
   operation: text("operation").notNull(),
   status: text("status"),
+  agentName: text("agent_name"),
+  agency: text("agency"),
+  sheetName: text("sheet_name"),
+  totalRecords: integer("total_records"),
+  completedRecords: integer("completed_records"),
+  found: integer("found"),
+  notFound: integer("not_found"),
+  errors: integer("errors"),
+  hoppers: integer("hoppers"),
+  aorLost: integer("aor_lost"),
+  deceased: integer("deceased"),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
   details: jsonb("details"),
@@ -715,6 +739,26 @@ export const opsLookups = pgTable("ops_lookups", {
   id: serial("id").primaryKey(),
   key: text("key").notNull(),
   value: text("value"),
+  lisStatus: text("lis_status"),
+  premiumAmount: text("premium_amount"),
+  pcpName: text("pcp_name"),
+  pcpNpi: text("pcp_npi"),
+  agentOfRecordName: text("agent_of_record_name"),
+  agentOfRecordNpn: text("agent_of_record_npn"),
+  carrierStatus: text("carrier_status"),
+  effectiveDate: text("effective_date"),
+  termDate: text("term_date"),
+  marxStatus: text("marx_status"),
+  aorStatus: text("aor_status"),
+  isPlanHopper: boolean("is_plan_hopper"),
+  hopperScore: real("hopper_score"),
+  hopperFlags: text("hopper_flags"),
+  planMatch: text("plan_match"),
+  daysOnCurrentPlan: integer("days_on_current_plan"),
+  enrollmentCount12mo: integer("enrollment_count_12mo"),
+  finalStatus: text("final_status"),
+  notes: text("notes"),
+  lookedUpAt: timestamp("looked_up_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
