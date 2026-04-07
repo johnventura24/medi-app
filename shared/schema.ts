@@ -770,7 +770,7 @@ export const opsLookups = pgTable("ops_lookups", {
   termDate: text("term_date"),
   marxStatus: text("marx_status"),
   aorStatus: text("aor_status"),
-  isPlanHopper: boolean("is_plan_hopper"),
+  isPlanHopper: text("is_plan_hopper"),
   hopperScore: real("hopper_score"),
   hopperFlags: text("hopper_flags"),
   planMatch: text("plan_match"),
