@@ -229,6 +229,16 @@ export const plans = pgTable("plans", {
   // Prior Auth & Referral
   requiresPcpReferral: boolean("requires_pcp_referral"),
   priorAuthNotes: text("prior_auth_notes"),
+
+  // CMS Star Rating detail columns (added by import scripts)
+  cahpsOverall: real("cahps_overall"),
+  cahpsCareAccess: real("cahps_care_access"),
+  cahpsPlanRating: real("cahps_plan_rating"),
+  partcStarRating: real("partc_star_rating"),
+  partdStarRating: real("partd_star_rating"),
+
+  // Enrollment (added by import-enrollment script)
+  enrollmentCount: integer("enrollment_count"),
 }, (table) => [
   index("idx_plans_state").on(table.state),
   index("idx_plans_county").on(table.county),
@@ -273,6 +283,10 @@ export const planCrosswalk = pgTable("plan_crosswalk", {
   currentPlanName: text("current_plan_name"),
   currentSnpType: text("current_snp_type"),
   status: text("status").notNull(),
+  previousEnrollment: integer("previous_enrollment"),
+  previousCarrier: text("previous_carrier"),
+  previousStates: text("previous_states"),
+  previousCounties: integer("previous_counties"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_cw_status").on(table.status),
@@ -654,6 +668,154 @@ export const leadActivity = pgTable("lead_activity", {
 
 export type LeadActivity = typeof leadActivity.$inferSelect;
 export type InsertLeadActivity = typeof leadActivity.$inferInsert;
+
+// ── Waitlist table ──
+
+export const waitlist = pgTable("waitlist", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── Agencies table ──
+
+export const agencies = pgTable("agencies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── ZIP-County Map table (ZCTA crosswalk) ──
+
+export const zipCountyMap = pgTable("zip_county_map", {
+  id: serial("id").primaryKey(),
+  zipcode: text("zipcode").notNull(),
+  countyFips: text("county_fips").notNull(),
+  countyName: text("county_name"),
+  state: text("state").notNull(),
+  stateFips: text("state_fips"),
+  residentialRatio: real("residential_ratio").default(1.0),
+});
+
+// ── Ops Runs table (pipeline execution tracking) ──
+
+export const opsRuns = pgTable("ops_runs", {
+  id: serial("id").primaryKey(),
+  operation: text("operation").notNull(),
+  status: text("status"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  details: jsonb("details"),
+});
+
+// ── Ops Lookups table ──
+
+export const opsLookups = pgTable("ops_lookups", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull(),
+  value: text("value"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── County Health Data table (CHR health metrics) ──
+
+export const countyHealthData = pgTable("county_health_data", {
+  id: serial("id").primaryKey(),
+  countyFips: text("county_fips").notNull().unique(),
+  countyName: text("county_name").notNull(),
+  state: text("state").notNull(),
+  stateFips: text("state_fips"),
+  diabetesRate: real("diabetes_rate"),
+  obesityRate: real("obesity_rate"),
+  smokingRate: real("smoking_rate"),
+  physicalInactivityRate: real("physical_inactivity_rate"),
+  poorHealthRate: real("poor_health_rate"),
+  mentalHealthDays: real("mental_health_days"),
+  uninsuredRate: real("uninsured_rate"),
+  medianIncome: integer("median_income"),
+  population65Plus: real("population_65_plus"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── Provider Quality table (MIPS quality scores) ──
+
+export const providerQuality = pgTable("provider_quality", {
+  id: serial("id").primaryKey(),
+  npi: text("npi").notNull().unique(),
+  providerName: text("provider_name"),
+  specialty: text("specialty"),
+  groupPracticeId: text("group_practice_id"),
+  qualityScore: real("quality_score"),
+  patientExperienceScore: real("patient_experience_score"),
+  state: text("state"),
+  city: text("city"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── Medicare Spending table (per-county spending data) ──
+
+export const medicareSpending = pgTable("medicare_spending", {
+  id: serial("id").primaryKey(),
+  state: text("state").notNull(),
+  county: text("county"),
+  fips: text("fips"),
+  year: integer("year"),
+  totalBeneficiaries: integer("total_beneficiaries"),
+  maBeneficiaries: integer("ma_beneficiaries"),
+  maPenetrationRate: real("ma_penetration_rate"),
+  perCapitaTotalSpending: real("per_capita_total_spending"),
+  perCapitaIpSpending: real("per_capita_ip_spending"),
+  perCapitaOpSpending: real("per_capita_op_spending"),
+  perCapitaRxSpending: real("per_capita_rx_spending"),
+  standardizedPerCapita: real("standardized_per_capita"),
+  avgAge: real("avg_age"),
+  avgRiskScore: real("avg_risk_score"),
+  dualEligiblePct: real("dual_eligible_pct"),
+  erVisitsPer1000: real("er_visits_per_1000"),
+  readmissionPct: real("readmission_pct"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── HPSA Shortage Areas table (Health Professional Shortage Areas) ──
+
+export const hpsaShortageAreas = pgTable("hpsa_shortage_areas", {
+  id: serial("id").primaryKey(),
+  hpsaId: text("hpsa_id"),
+  hpsaName: text("hpsa_name"),
+  hpsaType: text("hpsa_type"),
+  hpsaScore: integer("hpsa_score"),
+  designationType: text("designation_type"),
+  state: text("state").notNull(),
+  county: text("county"),
+  fips: text("fips"),
+  status: text("status"),
+  designatedDate: text("designated_date"),
+  population: integer("population"),
+  povertyPct: real("poverty_pct"),
+  ruralStatus: text("rural_status"),
+  degreeOfShortage: real("degree_of_shortage"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── MA Penetration table (Medicare Advantage penetration by county) ──
+
+export const maPenetration = pgTable("ma_penetration", {
+  id: serial("id").primaryKey(),
+  state: text("state").notNull(),
+  county: text("county"),
+  fips: text("fips"),
+  year: integer("year"),
+  totalBeneficiaries: integer("total_beneficiaries"),
+  maBeneficiaries: integer("ma_beneficiaries"),
+  ffsBeneficiaries: integer("ffs_beneficiaries"),
+  maPenetrationRate: real("ma_penetration_rate"),
+  ffsAddressablePct: real("ffs_addressable_pct"),
+  perCapitaSpending: real("per_capita_spending"),
+  spendingTier: text("spending_tier"),
+  penetrationTier: text("penetration_tier"),
+  opportunityScore: real("opportunity_score"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // ── TypeScript interfaces for API responses (kept compatible with frontend) ──
 

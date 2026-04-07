@@ -1,11 +1,8 @@
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 
-// Initialize SendGrid — graceful if no key set
-const apiKey = process.env.SENDGRID_API_KEY;
-if (apiKey) {
-  sgMail.setApiKey(apiKey);
-}
-const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@prismmed.io";
+// Initialize Resend — graceful if no key set
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@medisuperapp.com";
 const APP_NAME = "Prism";
 
 const BRAND_HEADER = `
@@ -47,7 +44,7 @@ function wrapEmail(bodyHtml: string): string {
 }
 
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
-  if (!apiKey) {
+  if (!resend) {
     console.log("Email not configured, skipping welcome email");
     return;
   }
@@ -73,9 +70,9 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
   `);
 
   try {
-    await sgMail.send({
+    await resend.emails.send({
+      from: `${APP_NAME} <${FROM_EMAIL}>`,
       to: email,
-      from: { email: FROM_EMAIL, name: APP_NAME },
       subject: `Welcome to ${APP_NAME} — Your account is ready`,
       html,
     });
@@ -90,7 +87,7 @@ export async function sendLeadNotification(
   agentName: string,
   lead: { firstName: string; lastName: string; zipCode: string; phone: string; state?: string | null }
 ): Promise<void> {
-  if (!apiKey) {
+  if (!resend) {
     console.log("Email not configured, skipping lead notification");
     return;
   }
@@ -131,9 +128,9 @@ export async function sendLeadNotification(
   `);
 
   try {
-    await sgMail.send({
+    await resend.emails.send({
+      from: `${APP_NAME} <${FROM_EMAIL}>`,
       to: agentEmail,
-      from: { email: FROM_EMAIL, name: APP_NAME },
       subject: `New lead assigned: ${lead.firstName} ${lead.lastName} in ${location}`,
       html,
     });
@@ -144,7 +141,7 @@ export async function sendLeadNotification(
 }
 
 export async function sendPasswordResetEmail(email: string, resetUrl: string): Promise<void> {
-  if (!apiKey) {
+  if (!resend) {
     console.log("Email not configured, skipping password reset email");
     return;
   }
@@ -165,9 +162,9 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string): P
   `);
 
   try {
-    await sgMail.send({
+    await resend.emails.send({
+      from: `${APP_NAME} <${FROM_EMAIL}>`,
       to: email,
-      from: { email: FROM_EMAIL, name: APP_NAME },
       subject: `Reset your ${APP_NAME} password`,
       html,
     });
